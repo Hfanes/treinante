@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-zone2: #22c55e;
+  --color-zone3: #f59e0b;
+  --color-zone4: #ef4444;
+  --color-fresh: #3b82f6;
+  --color-optimal: #22c55e;
+  --color-neutral: #6b7280;
+  --color-fatigued: #f59e0b;
+  --color-overreach: #ef4444;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-gray-50 text-gray-950 antialiased dark:bg-gray-950 dark:text-gray-50;
+}
+
+a {
+  @apply text-brand-600 underline-offset-4 hover:underline;
+}
