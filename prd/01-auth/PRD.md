@@ -96,39 +96,51 @@ Used in server components to fetch initial data without a loading state (faster 
 
 ## User profile schema
 
+Schema changes live in `supabase/migrations/*.sql` and are applied with `pnpm db:push`; do not use SQL Editor as the long-term source of truth.
+
 ```sql
-create table profiles (
+create table public.profiles (
   id uuid references auth.users(id) on delete cascade primary key,
   name text,
-  weekly_km_goal numeric default 30,
+  weekly_km_goal numeric not null default 30,
   max_hr integer,
   resting_hr integer,
   ftp_pace integer,                    -- sec/km, functional threshold pace
-  strava_connected boolean default false,
+  strava_connected boolean not null default false,
   strava_access_token text,
   strava_refresh_token text,
   strava_token_expires_at timestamptz,
-  onboarding_complete boolean default false,
-  created_at timestamptz default now()
+  onboarding_complete boolean not null default false,
+  created_at timestamptz not null default now()
 );
 
-alter table profiles enable row level security;
-create policy "own profile" on profiles
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+alter table public.profiles enable row level security;
+create policy "own profile" on public.profiles
+  for all
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
 
 -- Auto-create profile on signup
-create or replace function handle_new_user()
-returns trigger as $$
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
 begin
-  insert into profiles (id) values (new.id);
+  insert into public.profiles (id)
+  values (new.id)
+  on conflict (id) do nothing;
+
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute procedure handle_new_user();
+  for each row execute procedure public.handle_new_user();
+
+revoke execute on function public.handle_new_user() from anon, authenticated, public;
 ```
 
 ---

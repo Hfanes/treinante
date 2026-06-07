@@ -6,6 +6,7 @@ A general-purpose running analytics platform. Any runner — road, trail, track,
 
 - **Frontend:** Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + Chart.js
 - **Auth + DB + Storage:** Supabase (free tier)
+- **Database workflow:** Supabase CLI migrations + generated TypeScript types, no ORM in v1
 - **Hosting:** Vercel (free tier, same team as Next.js)
 - **Local cache:** IndexedDB via `idb`
 - **Strava OAuth:** Next.js Route Handlers (`/app/api/`)

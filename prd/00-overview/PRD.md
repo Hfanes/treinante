@@ -37,6 +37,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 | Styling             | Tailwind CSS 4                     | Utility-first, CSS-first theme tokens, custom `dark` variant for class-based dark mode |
 | Charts              | Chart.js + react-chartjs-2         | Flexible, dual Y-axis, zoom plugin                                                     |
 | Auth + DB + Storage | Supabase                           | Free tier: auth, PostgreSQL, file storage, RLS                                         |
+| Database workflow   | Supabase CLI migrations            | Versioned SQL source of truth for schema, RLS policies, and auth triggers              |
 | Local cache         | IndexedDB via `idb`                | Write-through cache, instant reads, offline after first load                           |
 | Hosting             | Vercel                             | Free tier, zero-config Next.js deployment                                              |
 | Strava OAuth        | Next.js Route Handlers             | `/app/api/strava/callback/route.ts` — hides client_secret                              |
@@ -99,6 +100,9 @@ Any runner who creates an account. The app adapts to the user's data — if they
 ├── /types
 │   └── index.ts                       # Shared TypeScript types
 │
+├── /supabase
+│   └── /migrations                    # Versioned database schema, RLS, triggers
+│
 ├── proxy.ts                           # Next.js 16 auth redirect for protected routes
 ├── .env.local
 └── next.config.ts
@@ -108,13 +112,13 @@ Any runner who creates an account. The app adapts to the user's data — if they
 
 ## Environment variables
 
-| Variable                        | Where set                 | Used in                                    |
-| ------------------------------- | ------------------------- | ------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Vercel env + `.env.local` | Browser Supabase client                    |
+| Variable                               | Where set                 | Used in                                    |
+| -------------------------------------- | ------------------------- | ------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Vercel env + `.env.local` | Browser Supabase client                    |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel env + `.env.local` | Browser Supabase client                    |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Vercel env only           | Server-side token writes in Route Handlers |
-| `STRAVA_CLIENT_ID`              | Vercel env only           | `/app/api/strava/callback/route.ts`        |
-| `STRAVA_CLIENT_SECRET`          | Vercel env only           | Never in browser — server only             |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Vercel env only           | Server-side token writes in Route Handlers |
+| `STRAVA_CLIENT_ID`                     | Vercel env only           | `/app/api/strava/callback/route.ts`        |
+| `STRAVA_CLIENT_SECRET`                 | Vercel env only           | Never in browser — server only             |
 
 ---
 
@@ -125,6 +129,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 - Vercel free tier: 100GB bandwidth/month — sufficient for personal/small group use
 - GPS coordinate work is client-side only (no map rendering in v1)
 - No real-time cross-device sync — syncs on page load
+- Database schema changes are versioned as Supabase CLI migrations; avoid SQL Editor-only schema changes
 
 ---
 

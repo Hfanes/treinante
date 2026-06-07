@@ -17,6 +17,7 @@
 - Every changed line should trace directly to the user's request.
 - For multi-step work, use a brief plan with verification per step.
 - Define success criteria and loop until verified. Do not claim tests/build ran unless the command was run.
+- Do not run lint/build by default for docs, PRD, prompt, or instruction-only changes; choose verification proportional to the changed files and explain when full verification is skipped.
 
 ## Stack Quirks
 
@@ -36,6 +37,9 @@
 - Build/typecheck: `pnpm build`
 - Format write: `pnpm format`
 - Format check: `pnpm format:check`
+- Apply linked Supabase migrations: `pnpm db:push`
+- Generate linked Supabase DB types: `pnpm db:types`
+- Link CLI once per machine before DB commands: `pnpm exec supabase link --project-ref <ref>`
 - No test script exists yet; do not claim tests ran unless one is added.
 
 ## App Boundaries
@@ -44,6 +48,12 @@
 - Shared contracts are in `types/index.ts`; normalize all import sources to the PRD `Run` shape before storage.
 - Foundation modules under `lib/` are mostly typed stubs until their PRD phase is implemented.
 - UI primitives live in `components/ui`; layout shell lives in `components/layout`.
+
+## Database
+
+- Schema source of truth is `supabase/migrations/*.sql`; do not rely on one-off SQL Editor changes.
+- Use Supabase CLI for migrations and generated types; use Supabase MCP for project inspection/advisors when available.
+- No ORM is installed; keep RLS policies, auth triggers, and schema changes in SQL migrations.
 
 ## Environment
 
