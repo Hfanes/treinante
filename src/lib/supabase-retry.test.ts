@@ -49,7 +49,7 @@ describe("withSupabaseRetry", () => {
 
       await expect(result).resolves.toBe("ok");
       expect(action).toHaveBeenCalledTimes(2);
-    },
+    }
   );
 
   test("retries resolved Supabase-like results with retryable errors", async () => {

@@ -1,5 +1,6 @@
 const RETRY_DELAY_MS = 2_000;
-const RETRYABLE_ERROR_PATTERN = /timeout|503|service unavailable|failed to fetch/i;
+const RETRYABLE_ERROR_PATTERN =
+  /timeout|503|service unavailable|failed to fetch/i;
 
 function isRetryableError(error: unknown) {
   if (error instanceof Error) {
@@ -29,7 +30,7 @@ function wait(ms: number) {
 
 export async function withSupabaseRetry<T>(
   action: () => Promise<T>,
-  onRetry?: () => void,
+  onRetry?: () => void
 ) {
   try {
     const result = await action();
