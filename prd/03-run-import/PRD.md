@@ -17,7 +17,7 @@ Three ways to import runs. All three normalise to the same `Run` type before wri
 5. Confirm → write run to Supabase, upload GPX to Supabase Storage at `gpx/{user_id}/{run_id}.gpx`
 6. Toast: "Run imported — 8.3 km · 42:15"
 
-### GPX parser (`/lib/gpxParser.ts`)
+### GPX parser (`/src/lib/gpxParser.ts`)
 
 Input: GPX XML string. Output: normalised `Run` object.
 
@@ -55,7 +55,7 @@ Iterate trackpoints, accumulate distance. At each 1 km threshold:
 - Single trackpoint → reject: "GPX file contains no track data"
 
 ```typescript
-// /lib/gpxParser.ts
+// /src/lib/gpxParser.ts
 export function parseGPX(
   xmlString: string
 ): Omit<Run, "id" | "user_id" | "created_at"> {
@@ -74,7 +74,7 @@ export function parseGPX(
 **Step 1 — Authorise (client-side redirect)**
 
 ```typescript
-// /components/StravaConnectButton.tsx
+// /src/components/StravaConnectButton.tsx
 const stravaAuthUrl =
   `https://www.strava.com/oauth/authorize?` +
   `client_id=${process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID}` +
@@ -88,7 +88,7 @@ window.location.href = stravaAuthUrl;
 **Step 2 — Callback Route Handler**
 
 ```typescript
-// /app/api/strava/callback/route.ts
+// /src/app/api/strava/callback/route.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -145,12 +145,12 @@ export async function GET(req: NextRequest) {
 **Step 3 — Token refresh Route Handler**
 
 ```typescript
-// /app/api/strava/refresh/route.ts
+// /src/app/api/strava/refresh/route.ts
 // Called automatically by stravaClient.ts when token is expired
 // Exchanges refresh_token for new access_token, updates profiles row
 ```
 
-### Fetching activities (`/lib/stravaClient.ts`)
+### Fetching activities (`/src/lib/stravaClient.ts`)
 
 - **Initial import:** Last 365 days of activities on first connect
 - **Incremental sync:** Activities after `max(runs.date)` for Strava-sourced runs
@@ -207,7 +207,7 @@ Manual runs have no `raw_splits`. Features requiring splits (split chart, GAP, s
 Runs after every successful import (any source):
 
 ```typescript
-// /lib/postImport.ts
+// /src/lib/postImport.ts
 export async function runPostImportPipeline(run: Run, userId: string) {
   await recalculateFitness(userId); // PRD 07 — ATL/CTL/TSB
   await extractAndUpdatePRs(run, userId); // PRD 06 — PR check

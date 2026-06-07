@@ -19,7 +19,7 @@ Strava OAuth is a **data source connection**, not a login method. Managed separa
 
 ## Next.js auth setup
 
-### Proxy (`/proxy.ts`)
+### Proxy (`/src/proxy.ts`)
 
 Protects all routes under `/(dashboard)`. Uses `@supabase/ssr` to read and refresh the session from cookies:
 
@@ -69,7 +69,7 @@ export async function proxy(req: NextRequest) {
 }
 ```
 
-### Server component client (`/lib/supabase-server.ts`)
+### Server component client (`/src/lib/supabase-server.ts`)
 
 ```typescript
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
@@ -194,7 +194,7 @@ After login, redirect to `/dashboard` unless `?next=` param is present.
 ## useAuth hook
 
 ```typescript
-// /hooks/useAuth.ts
+// /src/hooks/useAuth.ts
 const {
   user, // Supabase User | null
   profile, // Profile | null

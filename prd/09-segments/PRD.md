@@ -38,7 +38,7 @@ Uses `GET /segments/starred`. Imports name, distance, start/end lat-lng, KOM tim
 Runs on every GPX or Strava import (not manual runs — no GPS data).
 
 ```typescript
-// /lib/segmentMatcher.ts
+// /src/lib/segmentMatcher.ts
 const PROXIMITY_METRES = 50;
 
 function matchSegment(segment: Segment, splits: Split[]): SegmentMatch | null {
