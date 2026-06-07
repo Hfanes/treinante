@@ -11,6 +11,7 @@
 ## Working Rules
 
 - Prefer regular git branches over git worktrees unless the user explicitly requests a worktree.
+- Create a new git branch for each new PRD implementation unless the user explicitly says to continue on the current branch.
 - Before implementing, state assumptions; if multiple interpretations exist, present them instead of choosing silently.
 - If something is unclear, stop, name what is confusing, and ask.
 - Prefer the minimum code that solves the request; no speculative features, single-use abstractions, or unrequested configurability.
