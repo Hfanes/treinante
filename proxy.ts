@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "@/types/supabase";
 
 const protectedPrefixes = [
   "/dashboard",
@@ -21,7 +22,7 @@ export async function proxy(req: NextRequest) {
     return res;
   }
 
-  const supabase = createServerClient(url, publishableKey, {
+  const supabase = createServerClient<Database>(url, publishableKey, {
     cookies: {
       getAll() {
         return req.cookies.getAll();

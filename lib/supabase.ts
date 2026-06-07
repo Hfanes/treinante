@@ -1,4 +1,5 @@
 import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/types/supabase";
 
 export function createBrowserClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,5 +9,5 @@ export function createBrowserClient() {
     throw new Error("Missing Supabase browser environment variables");
   }
 
-  return createSupabaseBrowserClient(url, publishableKey);
+  return createSupabaseBrowserClient<Database>(url, publishableKey);
 }

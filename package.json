@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "db:push": "supabase db push",
+    "db:types": "supabase gen types typescript --linked > types/supabase.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -34,6 +36,7 @@
     "globals": "^17.6.0",
     "postcss": "^8.5.15",
     "prettier": "^3.8.3",
+    "supabase": "^2.105.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.1"
