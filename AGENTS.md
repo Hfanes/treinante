@@ -4,7 +4,9 @@
 
 - Start with `package.json`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `postcss.config.mjs`, `src/app/globals.css`, then `prd/README.md`.
 - PRDs live under `prd/`; build in the order listed in `prd/README.md` unless user says otherwise.
+- PRD implementation gaps live in `prd/IMPLEMENTATION-GAPS.md`.
 - If PRDs conflict with executable config, trust config and update PRDs in the same change.
+- Do not treat PRDs as unquestioned truth. Before starting a new PRD, review it critically, call out unclear requirements, outdated assumptions, risky choices, and better alternatives, then confirm direction with the user.
 
 ## Working Rules
 
@@ -18,6 +20,7 @@
 - Every changed line should trace directly to the user's request.
 - For multi-step work, use a brief plan with verification per step.
 - Define success criteria and loop until verified. Do not claim tests/build ran unless the command was run.
+- When concluding a PRD build, compare implementation against the PRD, review `prd/IMPLEMENTATION-GAPS.md`, mark resolved gaps, and add any missing or deferred items.
 - Do not run lint/build by default for docs, PRD, prompt, or instruction-only changes; choose verification proportional to the changed files and explain when full verification is skipped.
 
 ## Stack Quirks
