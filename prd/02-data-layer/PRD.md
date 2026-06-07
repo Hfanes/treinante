@@ -140,7 +140,7 @@ create policy "own reports" on weekly_reports
 
 ---
 
-## IndexedDB schema (`/lib/idb.ts`)
+## IndexedDB schema (`/src/lib/idb.ts`)
 
 ```typescript
 import { openDB, DBSchema } from "idb";
@@ -220,7 +220,7 @@ Fetch all user data from Supabase, populate IndexedDB, render. Show skeleton UI 
 For the dashboard and run list pages, fetch initial data on the server to avoid a client-side loading state on first render:
 
 ```typescript
-// /app/(dashboard)/dashboard/page.tsx
+// /src/app/(dashboard)/dashboard/page.tsx
 import { createServerClient } from '@/lib/supabase-server'
 
 export default async function DashboardPage() {

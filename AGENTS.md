@@ -2,7 +2,7 @@
 
 ## Source Of Truth
 
-- Start with `package.json`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `postcss.config.mjs`, `app/globals.css`, then `prd/README.md`.
+- Start with `package.json`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `postcss.config.mjs`, `src/app/globals.css`, then `prd/README.md`.
 - PRDs live under `prd/`; build in the order listed in `prd/README.md` unless user says otherwise.
 - If PRDs conflict with executable config, trust config and update PRDs in the same change.
 
@@ -22,12 +22,12 @@
 
 ## Stack Quirks
 
-- Package manager is pnpm 11.5.0; use `pnpm`, not npm/yarn.
+- Package manager is pnpm 11.5.0; always use `pnpm` for package operations, not npm/yarn. Do not install packages published less than 1 day ago.
 - App uses Next.js 16 + React 19. Protected-route logic belongs in `proxy.ts`; do not recreate `middleware.ts`.
 - `next lint` is removed in Next 16 here. Use `pnpm lint`, which runs `eslint .`.
-- Tailwind is v4 CSS-first. Tokens and dark variant are in `app/globals.css`; there is intentionally no `tailwind.config.ts`.
+- Tailwind is v4 CSS-first. Tokens and dark variant are in `src/app/globals.css`; there is intentionally no `tailwind.config.ts`.
 - Supabase auth uses `@supabase/ssr`, not deprecated `@supabase/auth-helpers-nextjs`.
-- In Next 16 server code, `cookies()` from `next/headers` is async; `lib/supabase-server.ts` exports async `createServerClient()`.
+- In Next 16 server code, `cookies()` from `next/headers` is async; `src/lib/supabase-server.ts` exports async `createServerClient()`.
 - `pnpm-workspace.yaml` approves `sharp` builds and denies `unrs-resolver`; preserve this unless dependency policy changes.
 
 ## Commands
@@ -36,19 +36,19 @@
 - Dev server: `pnpm dev`
 - Lint: `pnpm lint`
 - Build/typecheck: `pnpm build`
+- Test: `pnpm test`
 - Format write: `pnpm format`
 - Format check: `pnpm format:check`
 - Apply linked Supabase migrations: `pnpm db:push`
 - Generate linked Supabase DB types: `pnpm db:types`
 - Link CLI once per machine before DB commands: `pnpm exec supabase link --project-ref <ref>`
-- No test script exists yet; do not claim tests ran unless one is added.
 
 ## App Boundaries
 
-- Routes are in `app/`; auth pages under `app/(auth)`, protected app pages under `app/(dashboard)`, public tools at `app/tools`, Strava route handlers at `app/api/strava`.
-- Shared contracts are in `types/index.ts`; normalize all import sources to the PRD `Run` shape before storage.
-- Foundation modules under `lib/` are mostly typed stubs until their PRD phase is implemented.
-- UI primitives live in `components/ui`; layout shell lives in `components/layout`.
+- Routes are in `src/app/`; auth pages under `src/app/(auth)`, protected app pages under `src/app/(dashboard)`, public tools at `src/app/tools`, Strava route handlers at `src/app/api/strava`.
+- Shared contracts are in `src/types/index.ts`; normalize all import sources to the PRD `Run` shape before storage.
+- Foundation modules under `src/lib/` are mostly typed stubs until their PRD phase is implemented.
+- UI primitives live in `src/components/ui`; layout shell lives in `src/components/layout`.
 
 ## Database
 

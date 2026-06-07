@@ -20,7 +20,7 @@ Implements the Performance Management Chart (PMC) used in endurance coaching. Mo
 ## Training Load per run
 
 ```typescript
-// /lib/calculations.ts
+// /src/lib/calculations.ts
 export function computeTrainingLoad(run: Run, profile: Profile): number {
   const durationHours = run.moving_time / 3600;
 

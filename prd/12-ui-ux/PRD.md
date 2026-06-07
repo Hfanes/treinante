@@ -8,7 +8,7 @@ Clean, data-dense analytics aesthetic. Dark mode supported from day one. Mobile 
 
 ## Layout
 
-### App shell (`/app/(dashboard)/layout.tsx`)
+### App shell (`/src/app/(dashboard)/layout.tsx`)
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@ Badge on "Records" if a PR was set in the last 7 days.
 
 ---
 
-## Design tokens (`/app/globals.css`)
+## Design tokens (`/src/app/globals.css`)
 
 ```css
 @import "tailwindcss";
@@ -78,7 +78,7 @@ Badge on "Records" if a PR was set in the last 7 days.
 
 ---
 
-## Component library (`/components/ui/`)
+## Component library (`/src/components/ui/`)
 
 ### Card
 
@@ -174,7 +174,7 @@ Toggling adds/removes `dark` class on `<html>`. All `dark:` Tailwind variants ac
 In Next.js, set the initial class in `layout.tsx` from a script to avoid flash:
 
 ```tsx
-// /app/layout.tsx
+// /src/app/layout.tsx
 <script
   dangerouslySetInnerHTML={{
     __html: `

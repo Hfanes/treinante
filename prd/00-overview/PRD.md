@@ -40,7 +40,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 | Database workflow   | Supabase CLI migrations            | Versioned SQL source of truth for schema, RLS policies, and auth triggers              |
 | Local cache         | IndexedDB via `idb`                | Write-through cache, instant reads, offline after first load                           |
 | Hosting             | Vercel                             | Free tier, zero-config Next.js deployment                                              |
-| Strava OAuth        | Next.js Route Handlers             | `/app/api/strava/callback/route.ts` — hides client_secret                              |
+| Strava OAuth        | Next.js Route Handlers             | `/src/app/api/strava/callback/route.ts` — hides client_secret                          |
 | GPX parsing         | DOMParser (browser built-in)       | No extra dependency, runs client-side                                                  |
 
 ---
@@ -49,63 +49,65 @@ Any runner who creates an account. The app adapts to the user's data — if they
 
 ```
 /
-├── /app
-│   ├── /api
-│   │   └── /strava
-│   │       ├── /callback/route.ts     # OAuth code → token exchange
-│   │       └── /refresh/route.ts      # Refresh expired tokens
+├── /src
+│   ├── /app
+│   │   ├── /api
+│   │   │   └── /strava
+│   │   │       ├── /callback/route.ts # OAuth code → token exchange
+│   │   │       └── /refresh/route.ts  # Refresh expired tokens
 │   │
-│   ├── /(auth)
-│   │   ├── /login/page.tsx
-│   │   └── /signup/page.tsx
+│   │   ├── /(auth)
+│   │   │   ├── /login/page.tsx
+│   │   │   └── /signup/page.tsx
 │   │
-│   ├── /(dashboard)                   # Protected layout with sidebar
-│   │   ├── layout.tsx                 # Sidebar + auth guard
-│   │   ├── /dashboard/page.tsx        # Feature 05
-│   │   ├── /runs/page.tsx             # Run history table
-│   │   ├── /runs/[id]/page.tsx        # Per-run analysis (Feature 04)
-│   │   ├── /records/page.tsx          # PRs (Feature 06)
-│   │   ├── /fitness/page.tsx          # ATL/CTL/TSB (Feature 07)
-│   │   ├── /predictor/page.tsx        # Race predictor (Feature 08)
-│   │   ├── /segments/page.tsx         # Segment hunter (Feature 09)
-│   │   ├── /reports/page.tsx          # Weekly reports (Feature 10)
-│   │   └── /settings/page.tsx
+│   │   ├── /(dashboard)               # Protected layout with sidebar
+│   │   │   ├── layout.tsx             # Sidebar + auth guard
+│   │   │   ├── /dashboard/page.tsx    # Feature 05
+│   │   │   ├── /runs/page.tsx         # Run history table
+│   │   │   ├── /runs/[id]/page.tsx    # Per-run analysis (Feature 04)
+│   │   │   ├── /records/page.tsx      # PRs (Feature 06)
+│   │   │   ├── /fitness/page.tsx      # ATL/CTL/TSB (Feature 07)
+│   │   │   ├── /predictor/page.tsx    # Race predictor (Feature 08)
+│   │   │   ├── /segments/page.tsx     # Segment hunter (Feature 09)
+│   │   │   ├── /reports/page.tsx      # Weekly reports (Feature 10)
+│   │   │   └── /settings/page.tsx
 │   │
-│   └── /tools/page.tsx                # Public — no auth required
-│
-├── /components
-│   ├── /charts                        # Chart.js wrappers
-│   ├── /layout                        # Sidebar, TopBar, PageShell
-│   ├── /runs                          # RunCard, RunTable, RunDetail
-│   ├── /tools                         # Calculators
-│   ├── /segments                      # SegmentTable, SegmentDetail
-│   └── /ui                            # Button, Card, Badge, Toast, Skeleton
-│
-├── /lib
-│   ├── supabase.ts                    # Supabase client (browser + server)
-│   ├── supabase-server.ts             # Server component client
-│   ├── idb.ts                         # IndexedDB schema + helpers
-│   ├── gpxParser.ts                   # GPX XML → normalised Run
-│   ├── stravaClient.ts                # Strava API fetch wrapper
-│   ├── calculations.ts                # GAP, ATL/CTL/TSB, Riegel, VO2max
-│   ├── prExtractor.ts                 # PR extraction from splits
-│   └── reportEngine.ts               # Weekly report generation
-│
-├── /hooks
-│   ├── useRuns.ts                     # Supabase + IndexedDB sync
-│   ├── useAuth.ts                     # Supabase Auth wrapper
-│   ├── useFitness.ts                  # ATL/CTL/TSB derived state
-│   └── useSegments.ts
-│
-├── /types
-│   └── index.ts                       # Shared TypeScript types
+│   │   └── /tools/page.tsx            # Public — no auth required
+│   │
+│   ├── /components
+│   │   ├── /charts                    # Chart.js wrappers
+│   │   ├── /layout                    # Sidebar, TopBar, PageShell
+│   │   ├── /runs                      # RunCard, RunTable, RunDetail
+│   │   ├── /tools                     # Calculators
+│   │   ├── /segments                  # SegmentTable, SegmentDetail
+│   │   └── /ui                        # Button, Card, Badge, Toast, Skeleton
+│   │
+│   ├── /lib
+│   │   ├── supabase.ts                # Supabase client (browser + server)
+│   │   ├── supabase-server.ts         # Server component client
+│   │   ├── idb.ts                     # IndexedDB schema + helpers
+│   │   ├── gpxParser.ts               # GPX XML → normalised Run
+│   │   ├── stravaClient.ts            # Strava API fetch wrapper
+│   │   ├── calculations.ts            # GAP, ATL/CTL/TSB, Riegel, VO2max
+│   │   ├── prExtractor.ts             # PR extraction from splits
+│   │   └── reportEngine.ts            # Weekly report generation
+│   │
+│   ├── /hooks
+│   │   ├── useRuns.ts                 # Supabase + IndexedDB sync
+│   │   ├── useAuth.ts                 # Supabase Auth wrapper
+│   │   ├── useFitness.ts              # ATL/CTL/TSB derived state
+│   │   └── useSegments.ts
+│   │
+│   ├── /types
+│   │   └── index.ts                   # Shared TypeScript types
+│   │
+│   └── proxy.ts                       # Next.js 16 auth redirect for protected routes
 │
 ├── /supabase
 │   └── /migrations                    # Versioned database schema, RLS, triggers
 │
-├── proxy.ts                           # Next.js 16 auth redirect for protected routes
 ├── .env.local
-└── next.config.ts
+└── next.config.mjs
 ```
 
 ---
@@ -117,7 +119,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 | `NEXT_PUBLIC_SUPABASE_URL`             | Vercel env + `.env.local` | Browser Supabase client                    |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel env + `.env.local` | Browser Supabase client                    |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Vercel env only           | Server-side token writes in Route Handlers |
-| `STRAVA_CLIENT_ID`                     | Vercel env only           | `/app/api/strava/callback/route.ts`        |
+| `STRAVA_CLIENT_ID`                     | Vercel env only           | `/src/app/api/strava/callback/route.ts`    |
 | `STRAVA_CLIENT_SECRET`                 | Vercel env only           | Never in browser — server only             |
 
 ---
@@ -138,7 +140,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 All runs, regardless of source (GPX, Strava, manual), normalise to a single `Run` type before storage:
 
 ```typescript
-// /types/index.ts
+// /src/types/index.ts
 
 export type RunSource = "gpx" | "strava" | "manual";
 export type EffortZone = "z2" | "z3" | "z4";

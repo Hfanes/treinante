@@ -23,7 +23,7 @@ Automatically extract and track personal records across all distances and catego
 
 ---
 
-## Extraction algorithm (`/lib/prExtractor.ts`)
+## Extraction algorithm (`/src/lib/prExtractor.ts`)
 
 ### Rolling window for time PRs
 
