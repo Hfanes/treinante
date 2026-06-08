@@ -93,10 +93,7 @@ export type Database = {
           name: string | null;
           onboarding_complete: boolean;
           resting_hr: number | null;
-          strava_access_token: string | null;
           strava_connected: boolean;
-          strava_refresh_token: string | null;
-          strava_token_expires_at: string | null;
           weekly_km_goal: number;
         };
         Insert: {
@@ -107,10 +104,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
-          strava_access_token?: string | null;
           strava_connected?: boolean;
-          strava_refresh_token?: string | null;
-          strava_token_expires_at?: string | null;
           weekly_km_goal?: number;
         };
         Update: {
@@ -121,10 +115,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
-          strava_access_token?: string | null;
           strava_connected?: boolean;
-          strava_refresh_token?: string | null;
-          strava_token_expires_at?: string | null;
           weekly_km_goal?: number;
         };
         Relationships: [];
@@ -345,6 +336,41 @@ export type Database = {
             foreignKeyName: "segments_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      strava_tokens: {
+        Row: {
+          access_token: string;
+          created_at: string;
+          expires_at: string;
+          refresh_token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token: string;
+          created_at?: string;
+          expires_at: string;
+          refresh_token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token?: string;
+          created_at?: string;
+          expires_at?: string;
+          refresh_token?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "strava_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
