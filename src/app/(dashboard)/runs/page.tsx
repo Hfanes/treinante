@@ -1,14 +1,25 @@
 import { PageShell } from "@/components/layout/page-shell";
-import { Card } from "@/components/ui";
+import { RunListClient } from "@/components/runs/run-list-client";
+import { createServerClient } from "@/lib/supabase-server";
+import type { Run } from "@/types";
 
-export default function RunsPage() {
+async function getInitialRuns() {
+  const supabase = await createServerClient();
+  const { data } = await supabase
+    .from("runs")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(100);
+
+  return (data ?? []) as unknown as Run[];
+}
+
+export default async function RunsPage() {
+  const initialRuns = await getInitialRuns();
+
   return (
     <PageShell title="Runs">
-      <Card subtitle="Foundation route placeholder. Feature logic comes from PRD implementation phases.">
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Ready for RunMetrics data.
-        </p>
-      </Card>
+      <RunListClient initialRuns={initialRuns} />
     </PageShell>
   );
 }

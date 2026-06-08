@@ -1,6 +1,8 @@
 import { openDB, type DBSchema } from "idb";
 import type {
+  ExportFile,
   PersonalRecord,
+  Profile,
   Run,
   Segment,
   SegmentEffort,
@@ -59,4 +61,134 @@ export function openRunMetricsDB() {
       db.createObjectStore("sync_meta", { keyPath: "key" });
     },
   });
+}
+
+export const db = openRunMetricsDB();
+
+export async function getCachedRuns(userId: string) {
+  const database = await db;
+  const runs = await database.getAllFromIndex("runs", "by_user", userId);
+  return runs.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export async function getCachedRun(id: string) {
+  const database = await db;
+  return database.get("runs", id);
+}
+
+export async function upsertCachedRuns(runs: Run[]) {
+  const database = await db;
+  const tx = database.transaction("runs", "readwrite");
+  await Promise.all(runs.map((run) => tx.store.put(run)));
+  await tx.done;
+}
+
+export async function upsertCachedRun(run: Run) {
+  const database = await db;
+  await database.put("runs", run);
+}
+
+export async function deleteCachedRun(id: string) {
+  const database = await db;
+  await database.delete("runs", id);
+}
+
+export async function getSyncMeta(key: string) {
+  const database = await db;
+  return (await database.get("sync_meta", key))?.value ?? null;
+}
+
+export async function setSyncMeta(key: string, value: string) {
+  const database = await db;
+  await database.put("sync_meta", { key, value });
+}
+
+export async function getCachedExport(
+  profile: Partial<Profile> | null
+): Promise<ExportFile> {
+  const database = await db;
+  const userId = profile?.id;
+  const [runs, personalRecords, segments, segmentEfforts, weeklyReports] =
+    await Promise.all([
+      database.getAll("runs"),
+      database.getAll("personal_records"),
+      database.getAll("segments"),
+      database.getAll("segment_efforts"),
+      database.getAll("weekly_reports"),
+    ]);
+
+  return {
+    exported_at: new Date().toISOString(),
+    version: 2,
+    profile,
+    runs: userId ? runs.filter((run) => run.user_id === userId) : runs,
+    personal_records: userId
+      ? personalRecords.filter((record) => record.user_id === userId)
+      : personalRecords,
+    segments: userId
+      ? segments.filter((segment) => segment.user_id === userId)
+      : segments,
+    segment_efforts: userId
+      ? segmentEfforts.filter((effort) => effort.user_id === userId)
+      : segmentEfforts,
+    weekly_reports: userId
+      ? weeklyReports.filter((report) => report.user_id === userId)
+      : weeklyReports,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+export function parseExportFile(value: unknown): ExportFile {
+  if (!isRecord(value) || value.version !== 2) {
+    throw new Error("Unsupported import file version");
+  }
+
+  const requiredArrays = [
+    "runs",
+    "personal_records",
+    "segments",
+    "segment_efforts",
+    "weekly_reports",
+  ] as const;
+
+  for (const key of requiredArrays) {
+    if (!Array.isArray(value[key])) {
+      throw new Error(`Import file is missing ${key}`);
+    }
+  }
+
+  return value as unknown as ExportFile;
+}
+
+export async function hydrateFromExport(file: ExportFile) {
+  const database = await db;
+  const tx = database.transaction(
+    [
+      "runs",
+      "personal_records",
+      "segments",
+      "segment_efforts",
+      "weekly_reports",
+    ],
+    "readwrite"
+  );
+
+  await Promise.all([
+    ...file.runs.map((run) => tx.objectStore("runs").put(run)),
+    ...file.personal_records.map((record) =>
+      tx.objectStore("personal_records").put(record)
+    ),
+    ...file.segments.map((segment) => tx.objectStore("segments").put(segment)),
+    ...file.segment_efforts.map((effort) =>
+      tx.objectStore("segment_efforts").put(effort)
+    ),
+    ...file.weekly_reports.map((report) =>
+      tx.objectStore("weekly_reports").put(report)
+    ),
+  ]);
+
+  await tx.done;
 }
