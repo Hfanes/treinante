@@ -29,3 +29,18 @@ Reviewed: 2026-06-07
 ### External Setup Required
 
 - Google OAuth live verification requires Supabase provider setup and valid redirect URLs in Supabase Dashboard.
+
+## PRD 02 — Data Layer: Supabase Schema, IndexedDB Cache, Sync & Export
+
+Reviewed: 2026-06-07
+
+### Deferred To Future PRDs
+
+- Toast messages for Supabase mutation/import failures are not implemented. Deferred to PRD 12 toast infrastructure.
+- JSON import post-processing does not re-run personal records, fitness, segments, or weekly reports pipelines. Deferred to PRDs 04, 06, 07, 09, and 10 where those pipelines are implemented.
+
+### Not Implemented Yet
+
+- Settings UI does not expose export/import controls yet, even though `useRuns` includes `exportJSON` and `importJSON`.
+- Offline writes are not supported. Current behavior is cached offline reads only; mutations require Supabase success first.
+- Sync strategy is complete for `runs`; related stores are import/export-capable but do not yet background-sync independently from Supabase.

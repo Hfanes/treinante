@@ -16,24 +16,36 @@ export interface Split {
 export interface Run {
   id: string;
   user_id: string;
+  title: string | null;
   date: string;
+  start_time: string | null;
   source: RunSource;
+  sport_type: string | null;
   strava_activity_id: number | null;
   distance: number;
   total_time: number;
   moving_time: number;
   avg_hr: number | null;
   max_hr: number | null;
+  avg_power: number | null;
+  max_power: number | null;
   elevation_gain: number;
   elevation_loss: number;
   avg_pace: number;
+  start_lat: number | null;
+  start_lng: number | null;
+  end_lat: number | null;
+  end_lng: number | null;
+  summary_polyline: string | null;
   gpx_file_url: string | null;
   raw_splits: Split[];
+  raw_source: Record<string, unknown>;
   training_load: number | null;
   ctl_at_date: number | null;
   atl_at_date: number | null;
   tsb_at_date: number | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Profile {
@@ -85,6 +97,7 @@ export interface Segment {
 
 export interface SegmentEffort {
   id: string;
+  user_id: string;
   segment_id: string;
   run_id: string;
   elapsed_time: number;
@@ -118,4 +131,15 @@ export interface FitnessPoint {
   ctl: number;
   atl: number;
   tsb: number;
+}
+
+export interface ExportFile {
+  exported_at: string;
+  version: 2;
+  profile: Partial<Profile> | null;
+  runs: Run[];
+  personal_records: PersonalRecord[];
+  segments: Segment[];
+  segment_efforts: SegmentEffort[];
+  weekly_reports: WeeklyReport[];
 }
