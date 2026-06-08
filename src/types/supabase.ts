@@ -12,8 +12,78 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
+      personal_records: {
+        Row: {
+          achieved_at: string | null;
+          id: string;
+          run_id: string | null;
+          type: string;
+          updated_at: string;
+          user_id: string;
+          value: number;
+        };
+        Insert: {
+          achieved_at?: string | null;
+          id?: string;
+          run_id?: string | null;
+          type: string;
+          updated_at?: string;
+          user_id: string;
+          value: number;
+        };
+        Update: {
+          achieved_at?: string | null;
+          id?: string;
+          run_id?: string | null;
+          type?: string;
+          updated_at?: string;
+          user_id?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "personal_records_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_records_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -58,6 +128,298 @@ export type Database = {
           weekly_km_goal?: number;
         };
         Relationships: [];
+      };
+      runs: {
+        Row: {
+          atl_at_date: number | null;
+          avg_hr: number | null;
+          avg_pace: number;
+          avg_power: number | null;
+          created_at: string;
+          ctl_at_date: number | null;
+          date: string;
+          distance: number;
+          elevation_gain: number;
+          elevation_loss: number;
+          end_lat: number | null;
+          end_lng: number | null;
+          gpx_file_url: string | null;
+          id: string;
+          max_hr: number | null;
+          max_power: number | null;
+          moving_time: number;
+          raw_source: Json;
+          raw_splits: Json;
+          source: string;
+          sport_type: string | null;
+          start_lat: number | null;
+          start_lng: number | null;
+          start_time: string | null;
+          strava_activity_id: number | null;
+          summary_polyline: string | null;
+          title: string | null;
+          total_time: number;
+          training_load: number | null;
+          tsb_at_date: number | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          atl_at_date?: number | null;
+          avg_hr?: number | null;
+          avg_pace: number;
+          avg_power?: number | null;
+          created_at?: string;
+          ctl_at_date?: number | null;
+          date: string;
+          distance: number;
+          elevation_gain?: number;
+          elevation_loss?: number;
+          end_lat?: number | null;
+          end_lng?: number | null;
+          gpx_file_url?: string | null;
+          id?: string;
+          max_hr?: number | null;
+          max_power?: number | null;
+          moving_time: number;
+          raw_source?: Json;
+          raw_splits?: Json;
+          source: string;
+          sport_type?: string | null;
+          start_lat?: number | null;
+          start_lng?: number | null;
+          start_time?: string | null;
+          strava_activity_id?: number | null;
+          summary_polyline?: string | null;
+          title?: string | null;
+          total_time: number;
+          training_load?: number | null;
+          tsb_at_date?: number | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          atl_at_date?: number | null;
+          avg_hr?: number | null;
+          avg_pace?: number;
+          avg_power?: number | null;
+          created_at?: string;
+          ctl_at_date?: number | null;
+          date?: string;
+          distance?: number;
+          elevation_gain?: number;
+          elevation_loss?: number;
+          end_lat?: number | null;
+          end_lng?: number | null;
+          gpx_file_url?: string | null;
+          id?: string;
+          max_hr?: number | null;
+          max_power?: number | null;
+          moving_time?: number;
+          raw_source?: Json;
+          raw_splits?: Json;
+          source?: string;
+          sport_type?: string | null;
+          start_lat?: number | null;
+          start_lng?: number | null;
+          start_time?: string | null;
+          strava_activity_id?: number | null;
+          summary_polyline?: string | null;
+          title?: string | null;
+          total_time?: number;
+          training_load?: number | null;
+          tsb_at_date?: number | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "runs_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      segment_efforts: {
+        Row: {
+          avg_hr: number | null;
+          date: string;
+          elapsed_time: number;
+          id: string;
+          run_id: string;
+          segment_id: string;
+          user_id: string;
+        };
+        Insert: {
+          avg_hr?: number | null;
+          date: string;
+          elapsed_time: number;
+          id?: string;
+          run_id: string;
+          segment_id: string;
+          user_id: string;
+        };
+        Update: {
+          avg_hr?: number | null;
+          date?: string;
+          elapsed_time?: number;
+          id?: string;
+          run_id?: string;
+          segment_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "segment_efforts_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "segment_efforts_segment_id_fkey";
+            columns: ["segment_id"];
+            isOneToOne: false;
+            referencedRelation: "segments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "segment_efforts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      segments: {
+        Row: {
+          best_date: string | null;
+          best_time: number | null;
+          created_at: string;
+          distance: number | null;
+          end_lat: number | null;
+          end_lng: number | null;
+          id: string;
+          kom_time: number | null;
+          name: string;
+          start_lat: number | null;
+          start_lng: number | null;
+          strava_segment_id: number | null;
+          user_id: string;
+        };
+        Insert: {
+          best_date?: string | null;
+          best_time?: number | null;
+          created_at?: string;
+          distance?: number | null;
+          end_lat?: number | null;
+          end_lng?: number | null;
+          id?: string;
+          kom_time?: number | null;
+          name: string;
+          start_lat?: number | null;
+          start_lng?: number | null;
+          strava_segment_id?: number | null;
+          user_id: string;
+        };
+        Update: {
+          best_date?: string | null;
+          best_time?: number | null;
+          created_at?: string;
+          distance?: number | null;
+          end_lat?: number | null;
+          end_lng?: number | null;
+          id?: string;
+          kom_time?: number | null;
+          name?: string;
+          start_lat?: number | null;
+          start_lng?: number | null;
+          strava_segment_id?: number | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "segments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      weekly_reports: {
+        Row: {
+          atl_end: number | null;
+          avg_hr: number | null;
+          avg_pace: number | null;
+          ctl_end: number | null;
+          generated_at: string;
+          id: string;
+          insight_text: string | null;
+          num_runs: number | null;
+          total_d_plus: number | null;
+          total_km: number | null;
+          total_time: number | null;
+          tsb_end: number | null;
+          user_id: string;
+          vs_prev_d_plus_delta: number | null;
+          vs_prev_km_delta: number | null;
+          vs_prev_time_delta: number | null;
+          week_start: string;
+          zone_breakdown: Json | null;
+        };
+        Insert: {
+          atl_end?: number | null;
+          avg_hr?: number | null;
+          avg_pace?: number | null;
+          ctl_end?: number | null;
+          generated_at?: string;
+          id?: string;
+          insight_text?: string | null;
+          num_runs?: number | null;
+          total_d_plus?: number | null;
+          total_km?: number | null;
+          total_time?: number | null;
+          tsb_end?: number | null;
+          user_id: string;
+          vs_prev_d_plus_delta?: number | null;
+          vs_prev_km_delta?: number | null;
+          vs_prev_time_delta?: number | null;
+          week_start: string;
+          zone_breakdown?: Json | null;
+        };
+        Update: {
+          atl_end?: number | null;
+          avg_hr?: number | null;
+          avg_pace?: number | null;
+          ctl_end?: number | null;
+          generated_at?: string;
+          id?: string;
+          insight_text?: string | null;
+          num_runs?: number | null;
+          total_d_plus?: number | null;
+          total_km?: number | null;
+          total_time?: number | null;
+          tsb_end?: number | null;
+          user_id?: string;
+          vs_prev_d_plus_delta?: number | null;
+          vs_prev_km_delta?: number | null;
+          vs_prev_time_delta?: number | null;
+          week_start?: string;
+          zone_breakdown?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weekly_reports_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {
@@ -196,6 +558,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
