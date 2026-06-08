@@ -140,7 +140,7 @@ create trigger on_auth_user_created
 revoke execute on function public.handle_new_user() from anon, authenticated, public;
 ```
 
-Strava OAuth tokens are not profile data. They live in a private `public.strava_tokens` table managed by server route handlers with `SUPABASE_SERVICE_ROLE_KEY`. Browser clients read only `profiles.strava_connected`.
+Strava OAuth tokens are not profile data. They live in a private `public.strava_tokens` table managed by server route handlers with `SUPABASE_SECRET_KEY`. Browser clients read only `profiles.strava_connected`.
 
 ```sql
 create table public.strava_tokens (
