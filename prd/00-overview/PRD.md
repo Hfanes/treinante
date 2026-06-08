@@ -132,6 +132,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 - GPS coordinate work is client-side only (no map rendering in v1)
 - No real-time cross-device sync — syncs on page load
 - Database schema changes are versioned as Supabase CLI migrations; avoid SQL Editor-only schema changes
+- Strava OAuth tokens are server-only integration credentials stored outside `profiles`; browser clients only see `strava_connected`.
 
 ---
 

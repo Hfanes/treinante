@@ -107,9 +107,6 @@ create table public.profiles (
   resting_hr integer,
   ftp_pace integer,                    -- sec/km, functional threshold pace
   strava_connected boolean not null default false,
-  strava_access_token text,
-  strava_refresh_token text,
-  strava_token_expires_at timestamptz,
   onboarding_complete boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -141,6 +138,22 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 revoke execute on function public.handle_new_user() from anon, authenticated, public;
+```
+
+Strava OAuth tokens are not profile data. They live in a private `public.strava_tokens` table managed by server route handlers with `SUPABASE_SERVICE_ROLE_KEY`. Browser clients read only `profiles.strava_connected`.
+
+```sql
+create table public.strava_tokens (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.strava_tokens enable row level security;
+revoke all on table public.strava_tokens from anon, authenticated, public;
 ```
 
 ---
