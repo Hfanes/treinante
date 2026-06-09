@@ -92,6 +92,7 @@ window.location.href = stravaAuthUrl;
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -124,18 +125,22 @@ export async function GET(req: NextRequest) {
   });
   const { access_token, refresh_token, expires_at } = await tokenRes.json();
 
-  // Get current user and store tokens in profiles
+  // Get current user, then store tokens with the server-only admin client
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  await supabase
+  const admin = createAdminClient();
+
+  await admin.from("strava_tokens").upsert({
+    user_id: user!.id,
+    access_token,
+    refresh_token,
+    expires_at: new Date(expires_at * 1000).toISOString(),
+  });
+
+  await admin
     .from("profiles")
-    .update({
-      strava_connected: true,
-      strava_access_token: access_token,
-      strava_refresh_token: refresh_token,
-      strava_token_expires_at: new Date(expires_at * 1000).toISOString(),
-    })
+    .update({ strava_connected: true })
     .eq("id", user!.id);
 
   return NextResponse.redirect(new URL("/settings?strava=connected", req.url));
@@ -147,7 +152,7 @@ export async function GET(req: NextRequest) {
 ```typescript
 // /src/app/api/strava/refresh/route.ts
 // Called automatically by stravaClient.ts when token is expired
-// Exchanges refresh_token for new access_token, updates profiles row
+// Exchanges refresh_token for new access_token, updates strava_tokens row
 ```
 
 ### Fetching activities (`/src/lib/stravaClient.ts`)
@@ -176,7 +181,7 @@ export async function GET(req: NextRequest) {
 - Not connected: "Connect Strava" button → starts OAuth flow
 - Connected: athlete name, "Sync now" button, "Disconnect" button
 - "Sync now" → incremental fetch with spinner + count: "Synced 4 new runs"
-- Disconnect: clears tokens from `profiles`, does not delete existing runs
+- Disconnect: deletes the `strava_tokens` row and sets `profiles.strava_connected = false`; does not delete existing runs
 
 ---
 

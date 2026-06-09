@@ -67,3 +67,4 @@
 - Put real secrets only in `.env.local`.
 - Never commit secrets, API keys, tokens, passwords, or credentials to the repository.
 - Server-only secrets include `SUPABASE_SERVICE_ROLE_KEY`, `STRAVA_CLIENT_ID`, and `STRAVA_CLIENT_SECRET`.
+- Strava OAuth tokens must stay in server-only storage; do not store them in browser-readable profile data or expose them to client code.

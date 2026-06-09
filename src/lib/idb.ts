@@ -35,6 +35,10 @@ interface RunMetricsDB extends DBSchema {
 }
 
 export function openRunMetricsDB() {
+  if (typeof indexedDB === "undefined") {
+    throw new Error("IndexedDB is only available in the browser");
+  }
+
   return openDB<RunMetricsDB>("runmetrics", 1, {
     upgrade(db) {
       const runs = db.createObjectStore("runs", { keyPath: "id" });
@@ -63,50 +67,55 @@ export function openRunMetricsDB() {
   });
 }
 
-export const db = openRunMetricsDB();
+let dbPromise: ReturnType<typeof openRunMetricsDB> | null = null;
+
+function getDB() {
+  dbPromise ??= openRunMetricsDB();
+  return dbPromise;
+}
 
 export async function getCachedRuns(userId: string) {
-  const database = await db;
+  const database = await getDB();
   const runs = await database.getAllFromIndex("runs", "by_user", userId);
   return runs.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export async function getCachedRun(id: string) {
-  const database = await db;
+  const database = await getDB();
   return database.get("runs", id);
 }
 
 export async function upsertCachedRuns(runs: Run[]) {
-  const database = await db;
+  const database = await getDB();
   const tx = database.transaction("runs", "readwrite");
   await Promise.all(runs.map((run) => tx.store.put(run)));
   await tx.done;
 }
 
 export async function upsertCachedRun(run: Run) {
-  const database = await db;
+  const database = await getDB();
   await database.put("runs", run);
 }
 
 export async function deleteCachedRun(id: string) {
-  const database = await db;
+  const database = await getDB();
   await database.delete("runs", id);
 }
 
 export async function getSyncMeta(key: string) {
-  const database = await db;
+  const database = await getDB();
   return (await database.get("sync_meta", key))?.value ?? null;
 }
 
 export async function setSyncMeta(key: string, value: string) {
-  const database = await db;
+  const database = await getDB();
   await database.put("sync_meta", { key, value });
 }
 
 export async function getCachedExport(
   profile: Partial<Profile> | null
 ): Promise<ExportFile> {
-  const database = await db;
+  const database = await getDB();
   const userId = profile?.id;
   const [runs, personalRecords, segments, segmentEfforts, weeklyReports] =
     await Promise.all([
@@ -164,7 +173,7 @@ export function parseExportFile(value: unknown): ExportFile {
 }
 
 export async function hydrateFromExport(file: ExportFile) {
-  const database = await db;
+  const database = await getDB();
   const tx = database.transaction(
     [
       "runs",
