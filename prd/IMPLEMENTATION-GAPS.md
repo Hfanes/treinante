@@ -115,3 +115,17 @@ Reviewed: 2026-06-09
 
 - Fitness charts support shared date-range controls and per-chart zoom/pan, but direct cross-chart zoom event synchronization is not implemented to avoid brittle Chart.js ref coupling.
 - Fitness snapshots are recalculated after run import/delete/sync and backfilled on `/fitness` when missing; existing stale snapshots are not periodically refreshed unless a run mutation or page backfill occurs.
+
+## PRD 08 — Race Time Predictor
+
+Reviewed: 2026-06-09
+
+### Deferred To Future PRDs
+
+- Race predictor is implemented on `/predictor`, but it is not embedded in Training Tools yet because PRD 11 owns the `/tools` calculators.
+
+### Partial Implementations
+
+- Automatic VO2max uses one anchor effort by priority: best clean rolling window from the last 90 days, then whole-run average pace fallback. Rolling-window candidates are based on stored whole-kilometer splits, so partial-kilometer windows are not considered.
+- VO2max trend uses a compact in-page monthly bar visualization rather than a Chart.js line chart.
+- HR-based VO2max uses Settings max HR first, then observed run max HR. Age-based `220 - age` fallback is not implemented because profiles do not currently store age or date of birth.
