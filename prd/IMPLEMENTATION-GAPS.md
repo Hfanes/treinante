@@ -15,7 +15,7 @@ Reviewed: 2026-06-07
 
 ### Deferred To Future PRDs
 
-- Settings Strava connect/disconnect is not implemented. Deferred to PRD 03.
+- Settings Strava connect/disconnect is implemented in PRD 03.
 - Settings export all data as JSON is not implemented. Deferred to PRD 02.
 - Global toast for cold-start handling is not implemented. Deferred to PRD 12.
 
@@ -44,3 +44,22 @@ Reviewed: 2026-06-07
 - Settings UI does not expose export/import controls yet, even though `useRuns` includes `exportJSON` and `importJSON`.
 - Offline writes are not supported. Current behavior is cached offline reads only; mutations require Supabase success first.
 - Sync strategy is complete for `runs`; related stores are import/export-capable but do not yet background-sync independently from Supabase.
+
+## PRD 03 — Run Import: GPX, Strava OAuth, Manual Entry
+
+Reviewed: 2026-06-09
+
+### Deferred To Future PRDs
+
+- Post-import pipeline does not recalculate personal records, fitness, segments, or weekly reports after import/delete. Deferred to PRDs 06, 07, 09, and 10 where those calculations are implemented.
+- Import success/error toasts are inline page messages for now. Global toast system remains deferred to PRD 12.
+- Manual run form is available on `/runs`, not from a global "Add run" dropdown anywhere in the app. Global action placement deferred to PRD 12 navigation/UI polish.
+- Delete does not re-run downstream analytics pipelines yet. Deferred with post-import pipeline work.
+
+### Partial Implementations
+
+- Strava Settings UI shows connected/not connected, incremental sync, full-history resync, delete Strava runs, and disconnect, but does not display athlete name because no athlete profile fields exist yet.
+- Strava sync imports full paged history on first connect and streams when available, but does not yet implement advanced retry/rate-limit handling.
+- Strava imports store computed per-km split points, not the full GPS point stream. PRD 04 does not require full route storage, but PRD 09 segment matching may need a `run_points` table or compressed route storage if per-km split points are too coarse.
+- Run history supports sorting through a dropdown and filters by source/date range; columns themselves are not clickable sortable headers.
+- Run history limits to 25 rows but does not expose pagination controls yet.

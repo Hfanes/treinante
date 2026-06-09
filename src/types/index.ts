@@ -48,6 +48,11 @@ export interface Run {
   updated_at: string;
 }
 
+export type RunDraft = Omit<
+  Run,
+  "id" | "user_id" | "created_at" | "updated_at"
+>;
+
 export interface Profile {
   id: string;
   name: string | null;

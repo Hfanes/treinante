@@ -61,7 +61,6 @@ Use `.env.local.example` as the source for required variable names:
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_STRAVA_CLIENT_ID`
-- `STRAVA_CLIENT_ID`
 - `STRAVA_CLIENT_SECRET`
 
 Never commit real secrets, API keys, tokens, passwords, or credentials. Server-only secrets belong in `.env.local` locally and in the deployment provider environment for hosted environments.
