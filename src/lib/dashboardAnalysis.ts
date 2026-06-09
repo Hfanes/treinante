@@ -1,4 +1,5 @@
 import { analyzeRun, formatPace } from "@/lib/runAnalysis";
+import { getCurrentFormLabel } from "@/lib/calculations";
 import type { EffortZone, Profile, Run } from "@/types";
 
 export interface WeeklyBucket {
@@ -97,13 +98,6 @@ function rollingAverage(values: number[], index: number, windowSize: number) {
   const window = values.slice(Math.max(0, index - windowSize + 1), index + 1);
   if (window.length < windowSize) return null;
   return Math.round(sum(window) / window.length);
-}
-
-function classifyForm(tsb: number) {
-  if (tsb >= 5) return "Fresh";
-  if (tsb >= -10) return "Optimal";
-  if (tsb >= -25) return "Fatigued";
-  return "Overreach";
 }
 
 export function computeLongestStreak(runs: Run[]) {
@@ -215,12 +209,12 @@ export function buildDashboardData(
       totalRuns: runs.length,
       longestStreak: computeLongestStreak(runs),
       currentForm:
-        uniqueDays.size >= 14 &&
+        uniqueDays.size >= 7 &&
         latestTsbRun?.tsb_at_date !== null &&
         latestTsbRun?.tsb_at_date !== undefined
           ? {
               value: Math.round(latestTsbRun.tsb_at_date),
-              label: classifyForm(latestTsbRun.tsb_at_date),
+              label: getCurrentFormLabel(latestTsbRun.tsb_at_date),
             }
           : null,
     },

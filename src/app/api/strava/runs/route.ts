@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
@@ -23,6 +24,7 @@ export async function DELETE() {
 
     if (error) throw error;
     await recalculatePersonalRecords(admin, user.id);
+    await recalculateFitnessSnapshots(admin, user.id);
 
     return NextResponse.json({ deleted: count ?? 0 });
   } catch (err) {

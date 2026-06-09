@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase-admin";
+import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import type { Run, Split } from "@/types";
 import type { TablesInsert } from "@/types/supabase";
@@ -293,6 +294,7 @@ export async function syncStravaRuns(
         .throwOnError();
     }
     await recalculatePersonalRecords(admin, userId);
+    await recalculateFitnessSnapshots(admin, userId);
   }
 
   return imported;
