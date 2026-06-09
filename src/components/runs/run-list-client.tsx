@@ -91,6 +91,12 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
     }
   }, [initialRuns]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDateFrom(params.get("dateFrom") ?? "");
+    setDateTo(params.get("dateTo") ?? "");
+  }, []);
+
   const displayRuns = runs.length > 0 || !loading ? runs : initialRuns;
   const showElevation = displayRuns.some((run) => run.elevation_gain > 0);
   const filteredRuns = useMemo(() => {
