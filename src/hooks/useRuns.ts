@@ -111,6 +111,8 @@ export function useRuns(): {
       const nextRuns = lastSync ? await getCachedRuns(user.id) : remoteRuns;
       setRuns(sortRuns(nextRuns));
       await setSyncMeta(syncKey, new Date().toISOString());
+    } catch (err) {
+      console.error("Run sync failed", err);
     } finally {
       setLoading(false);
       setSyncing(false);
@@ -147,16 +149,27 @@ export function useRuns(): {
 
   const deleteRun = useCallback(
     async (id: string) => {
+      const runToDelete = runs.find((run) => run.id === id);
       const { error } = await supabase.from("runs").delete().eq("id", id);
 
       if (error) {
         throw error;
       }
 
+      if (runToDelete?.gpx_file_url) {
+        const { error: storageError } = await supabase.storage
+          .from("gpx")
+          .remove([runToDelete.gpx_file_url]);
+
+        if (storageError) {
+          console.error("GPX file cleanup failed", storageError);
+        }
+      }
+
       await deleteCachedRun(id);
       setRuns((currentRuns) => currentRuns.filter((run) => run.id !== id));
     },
-    [supabase]
+    [runs, supabase]
   );
 
   const getRun = useCallback(
