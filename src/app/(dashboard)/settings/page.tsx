@@ -1,5 +1,6 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { AccountSettingsForm } from "@/components/settings/account-settings-form";
+import { StravaIntegrationCard } from "@/components/settings/strava-integration-card";
 import { Card } from "@/components/ui";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
@@ -16,7 +17,10 @@ export default async function SettingsPage() {
   return (
     <PageShell title="Settings">
       {profile ? (
-        <AccountSettingsForm profile={profile as Profile} />
+        <div className="grid gap-4">
+          <AccountSettingsForm profile={profile as Profile} />
+          <StravaIntegrationCard profile={profile as Profile} />
+        </div>
       ) : (
         <Card subtitle="Your account profile could not be loaded.">
           <p className="text-sm text-gray-600 dark:text-gray-300">

@@ -102,6 +102,21 @@ export async function deleteCachedRun(id: string) {
   await database.delete("runs", id);
 }
 
+export async function deleteCachedRunsBySource(
+  userId: string,
+  source: Run["source"]
+) {
+  const database = await getDB();
+  const runs = await database.getAllFromIndex("runs", "by_user", userId);
+  const tx = database.transaction("runs", "readwrite");
+  await Promise.all(
+    runs
+      .filter((run) => run.source === source)
+      .map((run) => tx.store.delete(run.id))
+  );
+  await tx.done;
+}
+
 export async function getSyncMeta(key: string) {
   const database = await getDB();
   return (await database.get("sync_meta", key))?.value ?? null;
