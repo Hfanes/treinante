@@ -44,6 +44,7 @@ Reviewed: 2026-06-07
 - Settings UI does not expose export/import controls yet, even though `useRuns` includes `exportJSON` and `importJSON`.
 - Offline writes are not supported. Current behavior is cached offline reads only; mutations require Supabase success first.
 - Sync strategy is complete for `runs`; related stores are import/export-capable but do not yet background-sync independently from Supabase.
+- IndexedDB currently stores full `Run` objects in one `runs` store, including split arrays and raw source metadata. Before PRD 09 segment matching or detailed route storage, consider splitting cache storage into lightweight indexed `runs` rows and lazy `run_details` rows for splits/raw payloads.
 
 ## PRD 03 — Run Import: GPX, Strava OAuth, Manual Entry
 
@@ -78,3 +79,17 @@ Reviewed: 2026-06-09
 - GAP is computed for the run detail display from stored per-km split elevations; existing imported rows are not backfilled with updated stored `raw_splits.gap` values.
 - Whole-run GAP is averaged from available per-km splits. Current import data does not include a final partial split, so GAP ignores any trailing partial kilometer.
 - Chart zoom/pan is enabled through Chart.js plugins, but there is no explicit reset-zoom control yet.
+
+## PRD 05 — Unified Activity Dashboard
+
+Reviewed: 2026-06-09
+
+### Deferred To Future PRDs
+
+- Fitness preview displays existing `ctl_at_date`/`atl_at_date` values when present, but does not compute CTL/ATL/TSB. Full fitness model remains deferred to PRD 07.
+- Quick actions route to existing `/runs` and `/settings` flows instead of opening a persistent global action menu or mobile FAB. Global action placement remains deferred to PRD 12.
+
+### Partial Implementations
+
+- Weekly chart bar clicks navigate to `/runs?dateFrom=...&dateTo=...`; `/runs` hydrates those query params into its existing filters, but the filters are still client-side only.
+- Dashboard quick action for Strava opens Settings rather than triggering a dashboard-local sync with last-sync timestamp.
