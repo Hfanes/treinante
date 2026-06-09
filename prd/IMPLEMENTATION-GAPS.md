@@ -37,7 +37,7 @@ Reviewed: 2026-06-07
 ### Deferred To Future PRDs
 
 - Toast messages for Supabase mutation/import failures are not implemented. Deferred to PRD 12 toast infrastructure.
-- JSON import post-processing does not re-run personal records, fitness, segments, or weekly reports pipelines. Deferred to PRDs 06, 07, 09, and 10 where those pipelines are implemented.
+- JSON import post-processing re-runs personal records, but does not re-run fitness, segments, or weekly reports pipelines. Deferred to PRDs 07, 09, and 10 where those pipelines are implemented.
 
 ### Not Implemented Yet
 
@@ -52,7 +52,7 @@ Reviewed: 2026-06-09
 
 ### Deferred To Future PRDs
 
-- Post-import pipeline does not recalculate personal records, fitness, segments, or weekly reports after import/delete. Deferred to PRDs 06, 07, 09, and 10 where those calculations are implemented.
+- Post-import pipeline recalculates personal records, but does not recalculate fitness, segments, or weekly reports after import/delete. Deferred to PRDs 07, 09, and 10 where those calculations are implemented.
 - Import success/error toasts are inline page messages for now. Global toast system remains deferred to PRD 12.
 - Manual run form is available on `/runs`, not from a global "Add run" dropdown anywhere in the app. Global action placement deferred to PRD 12 navigation/UI polish.
 - Delete does not re-run downstream analytics pipelines yet. Deferred with post-import pipeline work.
@@ -72,7 +72,7 @@ Reviewed: 2026-06-09
 ### Deferred To Future PRDs
 
 - TSB card displays only when `runs.tsb_at_date` already exists; computing ATL/CTL/TSB remains deferred to PRD 07.
-- Run import/delete still does not trigger downstream personal record, fitness, segment, or weekly report recalculation. Deferred to PRDs 06, 07, 09, and 10 where those pipelines are implemented.
+- Run import/delete triggers personal record recalculation, but still does not trigger downstream fitness, segment, or weekly report recalculation. Deferred to PRDs 07, 09, and 10 where those pipelines are implemented.
 
 ### Partial Implementations
 
@@ -93,3 +93,16 @@ Reviewed: 2026-06-09
 
 - Weekly chart bar clicks navigate to `/runs?dateFrom=...&dateTo=...`; `/runs` hydrates those query params into its existing filters, but the filters are still client-side only.
 - Dashboard quick action for Strava opens Settings rather than triggering a dashboard-local sync with last-sync timestamp.
+
+## PRD 06 — Personal Records & Bests
+
+Reviewed: 2026-06-09
+
+### Deferred To Future PRDs
+
+- New PR success toasts are not implemented. Global toast infrastructure remains deferred to PRD 12.
+
+### Partial Implementations
+
+- Records page shows current PR cards and distance bests, but PR timeline chart is not implemented because the current `personal_records` schema stores only the latest best per type, not historical PR improvement events.
+- Interpolated half-marathon and marathon records are inferred from the linked run distance being below the target distance; there is no dedicated `estimated` metadata column yet.
