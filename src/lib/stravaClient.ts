@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase-admin";
+import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import type { Run, Split } from "@/types";
 import type { TablesInsert } from "@/types/supabase";
 
@@ -291,6 +292,7 @@ export async function syncStravaRuns(
         .upsert(batch as unknown as RunInsert[])
         .throwOnError();
     }
+    await recalculatePersonalRecords(admin, userId);
   }
 
   return imported;
