@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      client_id: process.env.STRAVA_CLIENT_ID,
+      client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
       client_secret: process.env.STRAVA_CLIENT_SECRET,
       code,
       grant_type: "authorization_code",
@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
 
 ### Fetching activities (`/src/lib/stravaClient.ts`)
 
-- **Initial import:** Last 365 days of activities on first connect
+- **Initial import:** Full Strava activity history on first connect
 - **Incremental sync:** Activities after `max(runs.date)` for Strava-sourced runs
 - **Filter:** Only `type: 'Run'` activities
 - **Splits:** Fetch from `/activities/{id}/streams?keys=distance,time,heartrate,altitude,latlng`
@@ -179,8 +179,10 @@ export async function GET(req: NextRequest) {
 ### Strava UI (Settings → Integrations)
 
 - Not connected: "Connect Strava" button → starts OAuth flow
-- Connected: athlete name, "Sync now" button, "Disconnect" button
+- Connected: athlete name, "Sync now", "Resync all history", "Delete Strava runs", and "Disconnect" buttons
 - "Sync now" → incremental fetch with spinner + count: "Synced 4 new runs"
+- "Resync all history" → full paged Strava history fetch, deduped by `strava_activity_id`
+- "Delete Strava runs" → deletes Strava-imported runs from this app only; keeps connection and does not delete anything from Strava
 - Disconnect: deletes the `strava_tokens` row and sets `profiles.strava_connected = false`; does not delete existing runs
 
 ---

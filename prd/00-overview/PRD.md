@@ -119,7 +119,7 @@ Any runner who creates an account. The app adapts to the user's data — if they
 | `NEXT_PUBLIC_SUPABASE_URL`             | Vercel env + `.env.local` | Browser Supabase client                    |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel env + `.env.local` | Browser Supabase client                    |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Vercel env only           | Server-side token writes in Route Handlers |
-| `STRAVA_CLIENT_ID`                     | Vercel env only           | `/src/app/api/strava/callback/route.ts`    |
+| `NEXT_PUBLIC_STRAVA_CLIENT_ID`         | Vercel env + `.env.local` | Strava OAuth authorize + token exchange    |
 | `STRAVA_CLIENT_SECRET`                 | Vercel env only           | Never in browser — server only             |
 
 ---
