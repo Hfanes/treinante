@@ -14,6 +14,7 @@ import {
   upsertCachedRun,
   upsertCachedRuns,
 } from "@/lib/idb";
+import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import { createBrowserClient } from "@/lib/supabase";
 import type { ExportFile, Run } from "@/types";
@@ -138,6 +139,7 @@ export function useRuns(): {
 
       const savedRun = data as unknown as Run;
       await recalculatePersonalRecords(supabase, savedRun.user_id);
+      await recalculateFitnessSnapshots(supabase, savedRun.user_id);
       await upsertCachedRun(savedRun);
       setRuns((currentRuns) =>
         sortRuns([
@@ -170,6 +172,7 @@ export function useRuns(): {
 
       if (user) {
         await recalculatePersonalRecords(supabase, user.id);
+        await recalculateFitnessSnapshots(supabase, user.id);
       }
 
       await deleteCachedRun(id);
@@ -228,6 +231,7 @@ export function useRuns(): {
 
       await hydrateFromExport(exportFile);
       await recalculatePersonalRecords(supabase, user.id);
+      await recalculateFitnessSnapshots(supabase, user.id);
       setRuns(await getCachedRuns(user.id));
     },
     [supabase, user]

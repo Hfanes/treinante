@@ -37,7 +37,7 @@ Reviewed: 2026-06-07
 ### Deferred To Future PRDs
 
 - Toast messages for Supabase mutation/import failures are not implemented. Deferred to PRD 12 toast infrastructure.
-- JSON import post-processing re-runs personal records, but does not re-run fitness, segments, or weekly reports pipelines. Deferred to PRDs 07, 09, and 10 where those pipelines are implemented.
+- JSON import post-processing re-runs personal records and fitness snapshots, but does not re-run segments or weekly reports pipelines. Deferred to PRDs 09 and 10 where those pipelines are implemented.
 
 ### Not Implemented Yet
 
@@ -52,7 +52,7 @@ Reviewed: 2026-06-09
 
 ### Deferred To Future PRDs
 
-- Post-import pipeline recalculates personal records, but does not recalculate fitness, segments, or weekly reports after import/delete. Deferred to PRDs 07, 09, and 10 where those calculations are implemented.
+- Post-import pipeline recalculates personal records and fitness snapshots, but does not recalculate segments or weekly reports after import/delete. Deferred to PRDs 09 and 10 where those calculations are implemented.
 - Import success/error toasts are inline page messages for now. Global toast system remains deferred to PRD 12.
 - Manual run form is available on `/runs`, not from a global "Add run" dropdown anywhere in the app. Global action placement deferred to PRD 12 navigation/UI polish.
 - Delete does not re-run downstream analytics pipelines yet. Deferred with post-import pipeline work.
@@ -71,8 +71,8 @@ Reviewed: 2026-06-09
 
 ### Deferred To Future PRDs
 
-- TSB card displays only when `runs.tsb_at_date` already exists; computing ATL/CTL/TSB remains deferred to PRD 07.
-- Run import/delete triggers personal record recalculation, but still does not trigger downstream fitness, segment, or weekly report recalculation. Deferred to PRDs 07, 09, and 10 where those pipelines are implemented.
+- TSB card uses PRD 07 fitness snapshots once at least 7 unique training days exist.
+- Run import/delete triggers personal record and fitness recalculation, but still does not trigger downstream segment or weekly report recalculation. Deferred to PRDs 09 and 10 where those pipelines are implemented.
 
 ### Partial Implementations
 
@@ -86,7 +86,7 @@ Reviewed: 2026-06-09
 
 ### Deferred To Future PRDs
 
-- Fitness preview displays existing `ctl_at_date`/`atl_at_date` values when present, but does not compute CTL/ATL/TSB. Full fitness model remains deferred to PRD 07.
+- Fitness preview displays PRD 07 `ctl_at_date`/`atl_at_date` snapshots when present.
 - Quick actions route to existing `/runs` and `/settings` flows instead of opening a persistent global action menu or mobile FAB. Global action placement remains deferred to PRD 12.
 
 ### Partial Implementations
@@ -106,3 +106,12 @@ Reviewed: 2026-06-09
 
 - Records page shows current PR cards and distance bests, but PR timeline chart is not implemented because the current `personal_records` schema stores only the latest best per type, not historical PR improvement events.
 - Interpolated half-marathon and marathon records are inferred from the linked run distance being below the target distance; there is no dedicated `estimated` metadata column yet.
+
+## PRD 07 — Fitness & Freshness
+
+Reviewed: 2026-06-09
+
+### Partial Implementations
+
+- Fitness charts support shared date-range controls and per-chart zoom/pan, but direct cross-chart zoom event synchronization is not implemented to avoid brittle Chart.js ref coupling.
+- Fitness snapshots are recalculated after run import/delete/sync and backfilled on `/fitness` when missing; existing stale snapshots are not periodically refreshed unless a run mutation or page backfill occurs.

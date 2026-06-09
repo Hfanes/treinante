@@ -70,9 +70,7 @@ export default async function RecordsPage() {
     personalRecords = await recalculatePersonalRecords(supabase, user.id);
   }
 
-  const runMap = new Map(
-    typedRuns.map((run) => [run.id, run])
-  );
+  const runMap = new Map(typedRuns.map((run) => [run.id, run]));
   const byType = new Map(
     personalRecords.map((record) => [record.type, record])
   );
