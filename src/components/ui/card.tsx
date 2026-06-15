@@ -16,21 +16,13 @@ export function Card({
   className = "",
 }: CardProps) {
   return (
-    <div
-      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 ${className}`}
-    >
-      {label ? (
-        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          {label}
-        </div>
-      ) : null}
+    <div className={`instrument-card metric-card p-5 md:p-6 ${className}`}>
+      {label ? <div className="metric-label">{label}</div> : null}
       {value !== undefined ? (
-        <div className="mt-1 font-mono text-2xl font-semibold text-gray-950 dark:text-white">
-          {value}
-        </div>
+        <div className="metric-value mt-2">{value}</div>
       ) : null}
       {subtitle ? (
-        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
           {subtitle}
         </div>
       ) : null}

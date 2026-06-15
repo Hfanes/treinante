@@ -269,22 +269,20 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
 
   return (
     <div className="grid gap-4">
-      <Card className="overflow-hidden border-gray-950 bg-gray-950 text-white dark:border-gray-800">
+      <Card className="vbars overflow-hidden bg-[color-mix(in_oklch,var(--background)_78%,black)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-brand-500">
-              Import desk
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold">
+            <div className="ui-label">Import desk</div>
+            <h2 className="instrument-heading mt-2 text-4xl">
               Load real training data.
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-gray-300">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
               Drop GPX files for full GPS analysis, or add a clean manual run
               when only distance and time exist.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-950 transition hover:bg-gray-100">
+            <label className="inline-flex cursor-pointer items-center justify-center rounded-[2px] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
               Import GPX
               <input
                 className="sr-only"
@@ -318,12 +316,12 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
             {pendingGpx.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-gray-200 p-3 dark:border-gray-800"
+                className="rounded-[2px] border border-[var(--border)] p-3"
               >
-                <p className="font-medium text-gray-950 dark:text-white">
+                <p className="font-medium text-[var(--bone)]">
                   {item.draft.title}
                 </p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mt-1 text-sm text-[var(--muted-foreground)]">
                   {formatKm(item.draft.distance)} ·{" "}
                   {formatDuration(item.draft.moving_time)} · D+{" "}
                   {item.draft.elevation_gain.toFixed(0)} m
@@ -358,20 +356,20 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
             onSubmit={handleManualSubmit}
           >
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               placeholder="Title"
               value={manualTitle}
               onChange={(event) => setManualTitle(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="date"
               required
               value={manualDate}
               onChange={(event) => setManualDate(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="number"
               min="0.01"
               step="0.01"
@@ -381,20 +379,20 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
               onChange={(event) => setManualDistance(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               required
               placeholder="Total HH:MM:SS"
               value={manualTotalTime}
               onChange={(event) => setManualTotalTime(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               placeholder="Moving HH:MM:SS"
               value={manualMovingTime}
               onChange={(event) => setManualMovingTime(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="number"
               min="1"
               placeholder="Avg HR"
@@ -402,7 +400,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
               onChange={(event) => setManualAvgHr(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="number"
               min="1"
               placeholder="Max HR"
@@ -410,7 +408,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
               onChange={(event) => setManualMaxHr(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="number"
               min="0"
               placeholder="D+ m"
@@ -418,7 +416,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
               onChange={(event) => setManualElevationGain(event.target.value)}
             />
             <input
-              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
               type="number"
               min="0"
               placeholder="D- m"
@@ -426,7 +424,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
               onChange={(event) => setManualElevationLoss(event.target.value)}
             />
             <textarea
-              className="rounded-lg border border-gray-300 px-3 py-2 md:col-span-3 dark:border-gray-700 dark:bg-gray-950"
+              className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] md:col-span-3"
               placeholder="Notes"
               value={manualNotes}
               onChange={(event) => setManualNotes(event.target.value)}
@@ -441,7 +439,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
       <Card subtitle="Sort, filter, inspect, or delete imported runs.">
         <div className="mt-4 grid gap-2 md:grid-cols-5">
           <select
-            className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             value={sourceFilter}
             onChange={(event) =>
               setSourceFilter(event.target.value as RunSource | "all")
@@ -453,7 +451,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
             <option value="manual">Manual</option>
           </select>
           <select
-            className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             value={sortKey}
             onChange={(event) => setSortKey(event.target.value as SortKey)}
           >
@@ -465,30 +463,30 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
             <option value="elevation_gain">Sort by D+</option>
           </select>
           <input
-            className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             type="date"
             value={dateFrom}
             onChange={(event) => setDateFrom(event.target.value)}
           />
           <input
-            className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             type="date"
             value={dateTo}
             onChange={(event) => setDateTo(event.target.value)}
           />
-          <p className="self-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="self-center text-sm text-[var(--muted-foreground)]">
             Showing {filteredRuns.length} of {displayRuns.length}
           </p>
         </div>
 
         {filteredRuns.length === 0 ? (
-          <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
             No runs match these filters.
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
                 <tr>
                   <th className="py-2">Date</th>
                   <th>Distance</th>
@@ -500,17 +498,19 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+              <tbody className="divide-y divide-[var(--border)]">
                 {filteredRuns.map((run) => (
                   <tr key={run.id} className="align-middle">
                     <td className="py-3">
                       <a
-                        className="font-medium text-gray-950 dark:text-white"
+                        className="font-medium text-[var(--bone)]"
                         href={`/runs/${run.id}`}
                       >
                         {run.title ?? "Untitled run"}
                       </a>
-                      <div className="text-xs text-gray-500">{run.date}</div>
+                      <div className="text-xs text-[var(--muted-foreground)]">
+                        {run.date}
+                      </div>
                     </td>
                     <td>{formatKm(run.distance)}</td>
                     <td>{formatDuration(run.moving_time)}</td>

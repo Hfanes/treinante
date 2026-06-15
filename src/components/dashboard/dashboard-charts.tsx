@@ -39,7 +39,48 @@ ChartJS.register(
 const z2Color = "rgba(34, 197, 94, 0.8)";
 const z3Color = "rgba(245, 158, 11, 0.82)";
 const z4Color = "rgba(239, 68, 68, 0.82)";
-const brandColor = "rgba(37, 99, 235, 0.78)";
+const paceColor = "oklch(0.78 0.075 78)";
+const gapColor = "oklch(0.62 0.05 78)";
+const hrColor = "#f87171";
+const elevColor = "oklch(0.45 0.03 80)";
+const borderColor = "oklch(0.36 0.012 80)";
+const labelColor = "oklch(0.62 0.05 78)";
+
+const chartPlugins = {
+  legend: {
+    position: "bottom" as const,
+    labels: {
+      boxHeight: 2,
+      boxWidth: 12,
+      color: labelColor,
+      font: { family: "Space Mono", size: 11 },
+    },
+  },
+  tooltip: {
+    backgroundColor: "oklch(0.265 0.012 80)",
+    borderColor,
+    borderWidth: 1,
+    bodyColor: "oklch(0.88 0.04 85)",
+    bodyFont: { family: "Space Mono", size: 11 },
+    cornerRadius: 2,
+    padding: 12,
+    titleColor: labelColor,
+    titleFont: { family: "Space Mono", size: 11 },
+  },
+};
+
+const chartScales = {
+  x: {
+    border: { color: borderColor },
+    grid: { color: borderColor, lineWidth: 0.5 },
+    ticks: { color: labelColor, font: { family: "Space Mono", size: 10 } },
+  },
+  y: {
+    border: { color: borderColor },
+    grid: { color: borderColor, lineWidth: 0.5 },
+    ticks: { color: labelColor, font: { family: "Space Mono", size: 10 } },
+  },
+};
 
 export function WeeklyVolumeChart({
   buckets,
@@ -79,14 +120,15 @@ export function WeeklyVolumeChart({
           {
             label: "km",
             data: buckets.map((bucket) => bucket.totalKm),
-            backgroundColor: brandColor,
-            borderRadius: 6,
+            backgroundColor: paceColor,
+            borderRadius: 0,
           },
         ],
   };
   const options: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: { duration: 600, easing: "easeOutQuart" },
     onClick: (_event, elements) => {
       const index = elements[0]?.index;
       if (index === undefined) return;
@@ -96,8 +138,9 @@ export function WeeklyVolumeChart({
       );
     },
     plugins: {
-      legend: { position: "bottom" },
+      legend: chartPlugins.legend,
       tooltip: {
+        ...chartPlugins.tooltip,
         callbacks: {
           title: (items) => `Week of ${items[0]?.label ?? ""}`,
           label: (item) =>
@@ -116,17 +159,18 @@ export function WeeklyVolumeChart({
                   type: "line",
                   yMin: weeklyGoal,
                   yMax: weeklyGoal,
-                  borderColor: "rgba(17, 24, 39, 0.55)",
-                  borderDash: [6, 6],
-                  borderWidth: 2,
+                  borderColor: "oklch(0.78 0.075 78 / 0.6)",
+                  borderDash: [4, 4],
+                  borderWidth: 1,
                 },
               ],
             }
           : undefined,
     },
     scales: {
-      x: { stacked: hasZones },
+      x: { ...chartScales.x, stacked: hasZones },
       y: {
+        ...chartScales.y,
         stacked: hasZones,
         beginAtZero: true,
         title: { display: true, text: "km" },
@@ -146,17 +190,23 @@ export function WeeklyElevationChart({ buckets }: { buckets: WeeklyBucket[] }) {
           {
             label: "D+",
             data: buckets.map((bucket) => bucket.elevationGain),
-            backgroundColor: "rgba(16, 185, 129, 0.72)",
-            borderRadius: 6,
+            backgroundColor: elevColor,
+            borderRadius: 0,
           },
         ],
       }}
       options={{
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        animation: { duration: 600, easing: "easeOutQuart" },
+        plugins: { ...chartPlugins, legend: { display: false } },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: "metres D+" } },
+          ...chartScales,
+          y: {
+            ...chartScales.y,
+            beginAtZero: true,
+            title: { display: true, text: "metres D+" },
+          },
         },
       }}
     />
@@ -174,25 +224,27 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
       {
         label: "Pace",
         data: points.map((point) => point.pace),
-        borderColor: "rgba(37, 99, 235, 0.35)",
+        borderColor: "oklch(0.78 0.075 78 / 0.35)",
+        borderWidth: 1.5,
         pointRadius: 2,
-        tension: 0.25,
+        tension: 0.3,
       },
       {
         label: "GAP",
         data: points.map((point) => point.gap),
-        borderColor: "rgba(17, 24, 39, 0.85)",
-        borderDash: [6, 4],
+        borderColor: gapColor,
+        borderDash: [4, 4],
+        borderWidth: 1.5,
         pointRadius: 0,
-        tension: 0.25,
+        tension: 0.3,
       },
       {
         label: "7-run avg",
         data: points.map((point) => point.rollingPace),
-        borderColor: "rgb(37, 99, 235)",
-        borderWidth: 3,
+        borderColor: paceColor,
+        borderWidth: 1.5,
         pointRadius: 0,
-        tension: 0.35,
+        tension: 0.3,
       },
     ],
   };
@@ -203,9 +255,11 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
       options={{
         responsive: true,
         maintainAspectRatio: false,
+        animation: { duration: 600, easing: "easeOutQuart" },
         plugins: {
-          legend: { position: "bottom" },
+          legend: chartPlugins.legend,
           tooltip: {
+            ...chartPlugins.tooltip,
             callbacks: {
               label: (item) =>
                 `${item.dataset.label}: ${formatDashboardPace(Number(item.raw))}`,
@@ -216,6 +270,7 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
         },
         scales: {
           y: {
+            ...chartScales.y,
             reverse: true,
             min: Math.max(1, Math.min(...values) - 30),
             max: Math.max(...values) + 30,
@@ -237,8 +292,9 @@ export function HrTrendChart({
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: { duration: 600, easing: "easeOutQuart" },
     plugins: {
-      legend: { position: "bottom" },
+      legend: chartPlugins.legend,
       annotation: maxHr
         ? {
             annotations: [
@@ -261,7 +317,12 @@ export function HrTrendChart({
         : undefined,
     },
     scales: {
-      y: { beginAtZero: false, title: { display: true, text: "bpm" } },
+      ...chartScales,
+      y: {
+        ...chartScales.y,
+        beginAtZero: false,
+        title: { display: true, text: "bpm" },
+      },
     },
   };
 
@@ -273,10 +334,10 @@ export function HrTrendChart({
           {
             label: "7-run avg HR",
             data: points.map((point) => point.rollingHr),
-            borderColor: "rgb(220, 38, 38)",
-            borderWidth: 3,
-            pointRadius: 1,
-            tension: 0.35,
+            borderColor: hrColor,
+            borderWidth: 1.5,
+            pointRadius: 2,
+            tension: 0.3,
           },
         ],
       }}
@@ -294,14 +355,16 @@ export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
           {
             label: "CTL",
             data: points.map((point) => point.ctl),
-            borderColor: "rgb(37, 99, 235)",
+            borderColor: "#60a5fa",
+            borderWidth: 1.5,
             pointRadius: 0,
             tension: 0.3,
           },
           {
             label: "ATL",
             data: points.map((point) => point.atl),
-            borderColor: "rgb(220, 38, 38)",
+            borderColor: hrColor,
+            borderWidth: 1.5,
             pointRadius: 0,
             tension: 0.3,
           },
@@ -310,7 +373,9 @@ export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
       options={{
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } },
+        animation: { duration: 600, easing: "easeOutQuart" },
+        plugins: chartPlugins,
+        scales: chartScales,
       }}
     />
   );

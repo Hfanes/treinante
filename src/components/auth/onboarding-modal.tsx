@@ -114,24 +114,22 @@ export function OnboardingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <form
-        className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-950"
+        className="instrument-card w-full max-w-lg p-6"
         onSubmit={handleComplete}
       >
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">
-          Step {step} of 3
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">
+        <p className="ui-label">Step {step} of 3</p>
+        <h2 className="instrument-heading mt-2 text-4xl">
           Set up your runner profile
         </h2>
 
         <div className="mt-6">
           {step === 1 ? (
-            <label className="flex flex-col gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+            <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
               Display name
               <input
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
@@ -139,17 +137,17 @@ export function OnboardingModal({
           ) : null}
 
           {step === 2 ? (
-            <label className="flex flex-col gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+            <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
               Weekly km goal
               <input
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
                 min="1"
                 step="0.1"
                 type="number"
                 value={weeklyGoal}
                 onChange={(event) => setWeeklyGoal(event.target.value)}
               />
-              <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+              <span className="text-xs font-normal text-[var(--muted-foreground)]">
                 How many km do you aim to run per week on average?
               </span>
             </label>
@@ -157,24 +155,24 @@ export function OnboardingModal({
 
           {step === 3 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
                 Max HR
                 <input
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+                  className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
                   min="1"
                   type="number"
                   value={maxHr}
                   onChange={(event) => setMaxHr(event.target.value)}
                 />
-                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                <span className="text-xs font-normal text-[var(--muted-foreground)]">
                   Average HR from a recent all-out 20-min effort, or leave
                   blank.
                 </span>
               </label>
-              <label className="flex flex-col gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
                 Resting HR
                 <input
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+                  className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
                   min="1"
                   type="number"
                   value={restingHr}

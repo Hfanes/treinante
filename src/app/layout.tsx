@@ -1,5 +1,24 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-cormorant",
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-space-mono",
+});
 
 export const metadata: Metadata = {
   title: "RunMetrics",
@@ -10,7 +29,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html
+      className={`${inter.variable} ${cormorant.variable} ${spaceMono.variable} dark`}
+      lang="en"
+    >
       <body>{children}</body>
     </html>
   );

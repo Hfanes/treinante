@@ -34,13 +34,13 @@ export default async function DashboardLayout({
   const profile = await getProfile();
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Sidebar />
       {children}
       {profile && !profile.onboarding_complete ? (
         <OnboardingModal initialProfile={profile} />
       ) : null}
-      <nav className="fixed inset-x-0 bottom-0 grid grid-cols-5 border-t border-gray-200 bg-white text-xs dark:border-gray-800 dark:bg-gray-950 md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] font-mono text-[0.6rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] md:hidden">
         <Link className="p-3 text-center no-underline" href="/dashboard">
           Dashboard
         </Link>

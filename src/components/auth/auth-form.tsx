@@ -72,29 +72,27 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
       }
     >
       <div className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">
-          RunMetrics
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">
+        <p className="ui-label">RunMetrics</p>
+        <h1 className="instrument-heading mt-2 text-4xl">
           {isLogin ? "Log in" : "Create account"}
         </h1>
       </div>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Email
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-950 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--bone)] transition focus:border-[var(--primary)]"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Password
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-950 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--bone)] transition focus:border-[var(--primary)]"
             type="password"
             autoComplete={isLogin ? "current-password" : "new-password"}
             value={password}
@@ -116,10 +114,10 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
         </Button>
       </form>
 
-      <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400">
-        <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+      <div className="ui-label my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-[var(--border)]" />
         or
-        <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+        <span className="h-px flex-1 bg-[var(--border)]" />
       </div>
 
       <Button
@@ -132,10 +130,10 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
         Continue with Google
       </Button>
 
-      <p className="mt-5 text-sm text-gray-600 dark:text-gray-300">
+      <p className="mt-5 text-sm text-[var(--muted-foreground)]">
         {isLogin ? "New here?" : "Already have an account?"}{" "}
         <Link
-          className="font-medium text-brand-600 no-underline dark:text-brand-400"
+          className="font-medium text-[var(--primary)] no-underline"
           href={alternateHref}
         >
           {isLogin ? "Create an account" : "Log in"}

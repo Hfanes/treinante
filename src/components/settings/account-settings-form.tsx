@@ -95,18 +95,18 @@ export function AccountSettingsForm({ profile }: { profile: Profile }) {
   return (
     <Card subtitle="Edit the profile values used across reports and training calculations.">
       <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Name
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Weekly km goal
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
             min="1"
             step="0.1"
             type="number"
@@ -114,30 +114,30 @@ export function AccountSettingsForm({ profile }: { profile: Profile }) {
             onChange={(event) => setWeeklyGoal(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Max HR
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
             min="1"
             type="number"
             value={maxHr}
             onChange={(event) => setMaxHr(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           Resting HR
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
             min="1"
             type="number"
             value={restingHr}
             onChange={(event) => setRestingHr(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
           FTP pace
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
             min="1"
             type="number"
             value={ftpPace}

@@ -15,22 +15,19 @@ type BadgeVariant =
   | "overreach";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-  z2: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  z3: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  z4: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  gpx: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  strava:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
-  manual:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  fresh: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  default: "bg-[var(--muted)] text-[var(--secondary)]",
+  z2: "border border-[#22c55e44] bg-[#15803d22] text-[#22c55e]",
+  z3: "border border-[#f59e0b44] bg-[#b4530922] text-[#f59e0b]",
+  z4: "border border-[#ef444444] bg-[#dc262622] text-[#ef4444]",
+  gpx: "bg-[var(--muted)] text-[var(--primary)]",
+  strava: "bg-[var(--muted)] text-[#fc4c02]",
+  manual: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+  fresh: "bg-[#1d4ed822] text-[#60a5fa]",
   optimal:
-    "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  neutral: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-  fatigued:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  overreach: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    "border border-[#4ade8044] bg-[#15803d22] text-[var(--tsb-positive)]",
+  neutral: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+  fatigued: "border border-[#f59e0b44] bg-[#b4530922] text-[#f59e0b]",
+  overreach: "border border-[#ef444444] bg-[#dc262622] text-[#ef4444]",
 };
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -44,7 +41,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${variants[variant]} ${className}`}
+      className={`inline-flex rounded-[2px] px-2 py-0.5 font-mono text-[0.68rem] uppercase tracking-[0.1em] ${variants[variant]} ${className}`}
       {...props}
     />
   );
