@@ -37,7 +37,7 @@ Reviewed: 2026-06-07
 ### Deferred To Future PRDs
 
 - Toast messages for Supabase mutation/import failures are not implemented. Deferred to PRD 12 toast infrastructure.
-- JSON import post-processing re-runs personal records and fitness snapshots, but does not re-run segments or weekly reports pipelines. Deferred to PRDs 09 and 10 where those pipelines are implemented.
+- JSON import post-processing re-runs personal records, fitness snapshots, and weekly reports. Segment recalculation remains deferred to PRD 09. Weekly reports resolved in PRD 10 on 2026-06-09.
 
 ### Not Implemented Yet
 
@@ -52,7 +52,7 @@ Reviewed: 2026-06-09
 
 ### Deferred To Future PRDs
 
-- Post-import pipeline recalculates personal records and fitness snapshots, but does not recalculate segments or weekly reports after import/delete. Deferred to PRDs 09 and 10 where those calculations are implemented.
+- Post-import pipeline recalculates personal records, fitness snapshots, and weekly reports after import/delete. Segment recalculation remains deferred to PRD 09. Weekly reports resolved in PRD 10 on 2026-06-09.
 - Import success/error toasts are inline page messages for now. Global toast system remains deferred to PRD 12.
 - Manual run form is available on `/runs`, not from a global "Add run" dropdown anywhere in the app. Global action placement deferred to PRD 12 navigation/UI polish.
 - Delete does not re-run downstream analytics pipelines yet. Deferred with post-import pipeline work.
@@ -72,7 +72,7 @@ Reviewed: 2026-06-09
 ### Deferred To Future PRDs
 
 - TSB card uses PRD 07 fitness snapshots once at least 7 unique training days exist.
-- Run import/delete triggers personal record and fitness recalculation, but still does not trigger downstream segment or weekly report recalculation. Deferred to PRDs 09 and 10 where those pipelines are implemented.
+- Run import/delete triggers personal record, fitness, and weekly report recalculation. Segment recalculation remains deferred to PRD 09. Weekly reports resolved in PRD 10 on 2026-06-09.
 
 ### Partial Implementations
 
@@ -129,3 +129,13 @@ Reviewed: 2026-06-09
 - Automatic VO2max uses one anchor effort by priority: best clean rolling window from the last 90 days, then whole-run average pace fallback. Rolling-window candidates are based on stored whole-kilometer splits, so partial-kilometer windows are not considered.
 - VO2max trend uses a compact in-page monthly bar visualization rather than a Chart.js line chart.
 - HR-based VO2max uses Settings max HR first, then observed run max HR. Age-based `220 - age` fallback is not implemented because profiles do not currently store age or date of birth.
+
+## PRD 10 — Auto Weekly Training Report
+
+Reviewed: 2026-06-09
+
+### Implemented
+
+- Weekly reports are generated from stored runs, profile goal, fitness snapshots, HR zones, and previous-week deltas.
+- Previous-week report generation runs from the protected dashboard layout on app open, and can also be manually triggered from `/reports`.
+- Run add/delete, JSON import, and Strava sync now recalculate weekly reports.
