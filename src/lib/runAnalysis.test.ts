@@ -76,7 +76,7 @@ const baseRun: Run = {
       lng: null,
     },
   ],
-  raw_source: {},
+  raw_source: { start_elevation: 0 },
   training_load: null,
   ctl_at_date: null,
   atl_at_date: null,

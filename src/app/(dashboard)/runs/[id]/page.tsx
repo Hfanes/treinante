@@ -32,6 +32,12 @@ function zoneLabel(zone: RunAnalysisZone) {
   return zone === "z2" ? "Z2" : zone === "z3" ? "Z3" : "Z4+";
 }
 
+function formatElevationDelta(value: number | null) {
+  if (value === null) return "-";
+  if (Math.round(value) === 0) return "0 m";
+  return `${value > 0 ? "+" : ""}${Math.round(value)} m`;
+}
+
 type RunAnalysisZone = NonNullable<ReturnType<typeof analyzeRun>["zone"]>;
 
 function driftCopy(drift: CardiacDrift) {
@@ -83,6 +89,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const showMovingTime =
     Math.abs(typedRun.total_time - typedRun.moving_time) > 30;
   const drift = analysis.cardiacDrift ? driftCopy(analysis.cardiacDrift) : null;
+  const hasStopFlags = analysis.splits.some((split) => split.is_stop);
 
   return (
     <PageShell title={typedRun.title ?? "Run detail"}>
@@ -210,7 +217,8 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
                     <th>GAP</th>
                     <th>HR</th>
                     <th>Elevation</th>
-                    <th>Note</th>
+                    <th>D+/-</th>
+                    {hasStopFlags ? <th>Flag</th> : null}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -228,7 +236,10 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
                       <td>{split.gap ? formatPace(split.gap) : "-"}</td>
                       <td>{split.hr ? `${split.hr} bpm` : "-"}</td>
                       <td>{split.elevation ? `${split.elevation} m` : "-"}</td>
-                      <td>{split.is_stop ? "Stop" : ""}</td>
+                      <td>{formatElevationDelta(split.elevationDelta)}</td>
+                      {hasStopFlags ? (
+                        <td>{split.is_stop ? "Possible stop" : ""}</td>
+                      ) : null}
                     </tr>
                   ))}
                 </tbody>

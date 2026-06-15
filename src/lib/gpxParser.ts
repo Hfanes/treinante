@@ -226,6 +226,7 @@ export function parseGPX(xmlString: string): RunDraft {
     raw_source: {
       creator: doc.documentElement.getAttribute("creator"),
       point_count: points.length,
+      start_elevation: first.ele,
       warning: distance < 0.5 ? "GPX activity is shorter than 0.5 km" : null,
     },
     training_load: null,

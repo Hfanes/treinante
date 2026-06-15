@@ -2,6 +2,7 @@ import type { EffortZone, Profile, Run, Split } from "@/types";
 
 export interface AnalyzedSplit extends Omit<Split, "gap"> {
   gap: number | null;
+  elevationDelta: number | null;
 }
 
 export interface CardiacDrift {
@@ -61,15 +62,22 @@ export function computeGap(
 export function computeAnalyzedSplits(run: Run): AnalyzedSplit[] {
   if (run.raw_splits.length === 0) return [];
 
+  const startElevation =
+    typeof run.raw_source.start_elevation === "number"
+      ? run.raw_source.start_elevation
+      : null;
+
   return run.raw_splits.map((split, index, splits) => {
-    const previousElevation = index > 0 ? splits[index - 1].elevation : 0;
-    const elevationDelta = split.elevation - previousElevation;
+    const previousElevation =
+      index > 0 ? splits[index - 1].elevation : startElevation;
+    const elevationDelta =
+      previousElevation === null ? null : split.elevation - previousElevation;
     const gap =
-      run.elevation_gain >= 10
+      run.elevation_gain >= 10 && elevationDelta !== null
         ? computeGap(split.pace, elevationDelta, 1000)
         : null;
 
-    return { ...split, gap };
+    return { ...split, elevationDelta, gap };
   });
 }
 

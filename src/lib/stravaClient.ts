@@ -186,6 +186,7 @@ function mapActivityToRun(
   const streamSummary = Object.fromEntries(
     streams.map((stream) => [stream.type, stream.data.length])
   );
+  const streamData = streamMap(streams) as { altitude?: number[] };
 
   return {
     id: crypto.randomUUID(),
@@ -220,6 +221,7 @@ function mapActivityToRun(
     raw_source: {
       activity,
       stream_summary: streamSummary,
+      start_elevation: streamData.altitude?.[0] ?? null,
     } as unknown as Record<string, unknown>,
     training_load: null,
     ctl_at_date: null,
