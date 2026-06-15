@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase-admin";
 import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
+import { recalculateWeeklyReports } from "@/lib/reportEngine";
 import type { Run, Split } from "@/types";
 import type { TablesInsert } from "@/types/supabase";
 
@@ -53,7 +54,12 @@ async function stravaFetch<T>(path: string, accessToken: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Strava API failed with ${response.status}`);
+    const text = await response.text();
+    throw new Error(
+      text.trim()
+        ? `Strava API failed with ${response.status}: ${text}`
+        : `Strava API failed with ${response.status}`
+    );
   }
 
   return (await response.json()) as T;
@@ -293,9 +299,11 @@ export async function syncStravaRuns(
         .upsert(batch as unknown as RunInsert[])
         .throwOnError();
     }
-    await recalculatePersonalRecords(admin, userId);
-    await recalculateFitnessSnapshots(admin, userId);
   }
+
+  await recalculatePersonalRecords(admin, userId);
+  await recalculateFitnessSnapshots(admin, userId);
+  await recalculateWeeklyReports(admin, userId);
 
   return imported;
 }

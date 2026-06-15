@@ -49,12 +49,31 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
 
   async function request(path: string, method = "POST") {
     const response = await fetch(path, { method });
-    const body = (await response.json()) as {
+    const text = await response.text();
+    let body: {
       imported?: number;
       deleted?: number;
       error?: string;
-    };
-    if (!response.ok) throw new Error(body.error ?? "Strava request failed");
+    } = {};
+
+    try {
+      const parsed = text ? (JSON.parse(text) as unknown) : {};
+      body =
+        parsed && typeof parsed === "object" ? (parsed as typeof body) : {};
+    } catch {
+      if (!response.ok) {
+        throw new Error(
+          `Strava request failed with ${response.status}. The server returned an invalid response.`
+        );
+      }
+      throw new Error("Strava request returned an invalid response");
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        body.error ?? `Strava request failed with ${response.status}`
+      );
+    }
     return body;
   }
 
