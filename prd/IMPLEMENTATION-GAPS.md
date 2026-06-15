@@ -120,9 +120,9 @@ Reviewed: 2026-06-09
 
 Reviewed: 2026-06-09
 
-### Deferred To Future PRDs
+### Resolved In Future PRDs
 
-- Race predictor is implemented on `/predictor`, but it is not embedded in Training Tools yet because PRD 11 owns the `/tools` calculators.
+- Race-related training tools were added to `/tools` in PRD 11 on 2026-06-15. The full automatic race predictor remains on `/predictor` rather than being duplicated in the public tools page.
 
 ### Partial Implementations
 
@@ -139,3 +139,16 @@ Reviewed: 2026-06-09
 - Weekly reports are generated from stored runs, profile goal, fitness snapshots, HR zones, and previous-week deltas.
 - Previous-week report generation runs from the protected dashboard layout on app open, and can also be manually triggered from `/reports`.
 - Run add/delete, JSON import, and Strava sync now recalculate weekly reports.
+
+## PRD 11 — Training Tools
+
+Reviewed: 2026-06-15
+
+### Implemented
+
+- `/tools` is public and includes the pace calculator, gel timing calculator, hill gradient calculator, and Zone 2 HR calculator.
+- Tools update client-side without submit buttons, except the logged-in-only Zone 2 action that saves the estimated max HR to the user's profile.
+
+### Intentional Product Choices
+
+- The full automatic race predictor remains on protected `/predictor`; `/tools` provides public race-pace utilities and fueling guidance instead of duplicating personalized predictor data.
