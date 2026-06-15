@@ -2,13 +2,21 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
-import { Button, Card } from "@/components/ui";
+import { Badge, Button, Card } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import { useRuns } from "@/hooks/useRuns";
 import { upsertCachedRuns } from "@/lib/idb";
 import { parseGPX } from "@/lib/gpxParser";
+import {
+  buildPrBadgeMap,
+  formatPrBadgeLabel,
+  type PersonalRecordBadgeRecord,
+} from "@/lib/personalRecordLabels";
+import { analyzeRun } from "@/lib/runAnalysis";
 import { createBrowserClient } from "@/lib/supabase";
 import type { Run, RunDraft, RunSource } from "@/types";
+
+const RUNS_PER_PAGE = 25;
 
 type SortKey =
   | "date"
@@ -28,6 +36,12 @@ function formatKm(value: number) {
   return `${value.toFixed(1)} km`;
 }
 
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(
+    value
+  );
+}
+
 function formatDuration(seconds: number) {
   const rounded = Math.max(0, Math.round(seconds));
   const hours = Math.floor(rounded / 3600);
@@ -40,6 +54,61 @@ function formatDuration(seconds: number) {
 
 function formatPace(seconds: number) {
   return `${formatDuration(seconds)}/km`;
+}
+
+type RunAnalysisZone = NonNullable<ReturnType<typeof analyzeRun>["zone"]>;
+
+function zoneLabel(zone: RunAnalysisZone) {
+  return zone === "z2" ? "Z2" : zone === "z3" ? "Z3" : "Z4";
+}
+
+function splitPaceBars(run: Run) {
+  const splitPaces = run.raw_splits
+    .map((split) => split.pace)
+    .filter((pace) => Number.isFinite(pace) && pace > 0);
+
+  if (splitPaces.length === 0) return [];
+
+  if (splitPaces.length <= 24) return splitPaces;
+
+  return Array.from({ length: 24 }, (_, index) => {
+    const start = Math.floor((index * splitPaces.length) / 24);
+    const end = Math.floor(((index + 1) * splitPaces.length) / 24);
+    const bucket = splitPaces.slice(start, Math.max(start + 1, end));
+
+    return bucket.reduce((sum, pace) => sum + pace, 0) / bucket.length;
+  });
+}
+
+function SplitsSparkline({ run }: { run: Run }) {
+  const bars = splitPaceBars(run);
+
+  if (bars.length === 0) return <span>-</span>;
+
+  const minPace = Math.min(...bars);
+  const maxPace = Math.max(...bars);
+  const range = Math.max(1, maxPace - minPace);
+
+  return (
+    <div
+      aria-label={`${run.raw_splits.length} splits`}
+      className="flex h-10 w-28 items-end gap-0.5"
+      role="img"
+    >
+      {bars.map((pace, index) => {
+        const height = 28 + ((pace - minPace) / range) * 72;
+
+        return (
+          <span
+            aria-hidden="true"
+            className="flex-1 bg-[#d8bd8a] opacity-90"
+            key={`${run.id}-split-${index}`}
+            style={{ height: `${height}%` }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 function createRun(userId: string, draft: RunDraft): Run {
@@ -61,8 +130,36 @@ function parseTimeToSeconds(value: string) {
   return null;
 }
 
-export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
-  const { user } = useAuth();
+function PrBadge({ label }: { label: string }) {
+  return (
+    <span
+      aria-label="Current personal record"
+      className="inline-flex items-center gap-1 rounded-[2px] border border-[var(--primary)] bg-[color-mix(in_oklch,var(--primary)_18%,transparent)] px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[var(--primary)]"
+    >
+      <span aria-hidden="true">★</span>
+      {label}
+    </span>
+  );
+}
+
+function RunsLibraryHero() {
+  return (
+    <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+      <h2 className="instrument-heading max-w-6xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl xl:text-9xl">
+        Every run. <em className="font-normal">Every split.</em>
+      </h2>
+    </section>
+  );
+}
+
+export function RunListClient({
+  currentPrRecords,
+  initialRuns,
+}: {
+  currentPrRecords: PersonalRecordBadgeRecord[];
+  initialRuns: Run[];
+}) {
+  const { profile, user } = useAuth();
   const { runs, addRun, deleteRun, loading } = useRuns();
   const [pendingGpx, setPendingGpx] = useState<PendingGpx[]>([]);
   const [sourceFilter, setSourceFilter] = useState<RunSource | "all">("all");
@@ -71,6 +168,7 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
   const [dateTo, setDateTo] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualTitle, setManualTitle] = useState("");
   const [manualDate, setManualDate] = useState(
@@ -98,6 +196,10 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
   }, []);
 
   const displayRuns = runs.length > 0 || !loading ? runs : initialRuns;
+  const currentPrBadgeMap = useMemo(
+    () => buildPrBadgeMap(currentPrRecords),
+    [currentPrRecords]
+  );
   const showElevation = displayRuns.some((run) => run.elevation_gain > 0);
   const filteredRuns = useMemo(() => {
     return [...displayRuns]
@@ -109,9 +211,28 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
         const aValue = a[sortKey] ?? -1;
         const bValue = b[sortKey] ?? -1;
         return Number(bValue) - Number(aValue);
-      })
-      .slice(0, 25);
+      });
   }, [dateFrom, dateTo, displayRuns, sortKey, sourceFilter]);
+  const pageCount = Math.max(1, Math.ceil(filteredRuns.length / RUNS_PER_PAGE));
+  const filteredTotals = useMemo(
+    () => ({
+      distance: filteredRuns.reduce((sum, run) => sum + run.distance, 0),
+      elevation: filteredRuns.reduce((sum, run) => sum + run.elevation_gain, 0),
+    }),
+    [filteredRuns]
+  );
+  const visibleRuns = filteredRuns.slice(
+    (currentPage - 1) * RUNS_PER_PAGE,
+    currentPage * RUNS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateFrom, dateTo, sortKey, sourceFilter]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, pageCount));
+  }, [pageCount]);
 
   async function handleGpxFiles(event: ChangeEvent<HTMLInputElement>) {
     setError(null);
@@ -269,6 +390,8 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
 
   return (
     <div className="grid gap-4">
+      <RunsLibraryHero />
+
       <Card className="vbars overflow-hidden bg-[color-mix(in_oklch,var(--background)_78%,black)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -475,8 +598,16 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
             onChange={(event) => setDateTo(event.target.value)}
           />
           <p className="self-center text-sm text-[var(--muted-foreground)]">
-            Showing {filteredRuns.length} of {displayRuns.length}
+            Showing {visibleRuns.length} of {filteredRuns.length} filtered
           </p>
+        </div>
+
+        <div className="ui-label mt-4 flex flex-wrap items-center gap-2 font-bold text-[#d8bd8a]">
+          <span>{formatNumber(filteredRuns.length)} runs</span>
+          <span aria-hidden="true">·</span>
+          <span>{filteredTotals.distance.toFixed(1)} km</span>
+          <span aria-hidden="true">·</span>
+          <span>{formatNumber(Math.round(filteredTotals.elevation))} m ↑</span>
         </div>
 
         {filteredRuns.length === 0 ? (
@@ -485,54 +616,107 @@ export function RunListClient({ initialRuns }: { initialRuns: Run[] }) {
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[960px] text-left text-sm">
               <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
                 <tr>
                   <th className="py-2">Date</th>
                   <th>Distance</th>
                   <th>Time</th>
                   <th>Pace</th>
+                  <th>Splits</th>
                   <th>Avg HR</th>
+                  <th>Zone</th>
                   {showElevation ? <th>D+</th> : null}
                   <th>Source</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {filteredRuns.map((run) => (
-                  <tr key={run.id} className="align-middle">
-                    <td className="py-3">
-                      <a
-                        className="font-medium text-[var(--bone)]"
-                        href={`/runs/${run.id}`}
-                      >
-                        {run.title ?? "Untitled run"}
-                      </a>
-                      <div className="text-xs text-[var(--muted-foreground)]">
-                        {run.date}
-                      </div>
-                    </td>
-                    <td>{formatKm(run.distance)}</td>
-                    <td>{formatDuration(run.moving_time)}</td>
-                    <td>{formatPace(run.avg_pace)}</td>
-                    <td>{run.avg_hr ?? "-"}</td>
-                    {showElevation ? (
-                      <td>{run.elevation_gain.toFixed(0)} m</td>
-                    ) : null}
-                    <td>{run.source.toUpperCase()}</td>
-                    <td>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => void handleDelete(run)}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {visibleRuns.map((run) => {
+                  const zone = analyzeRun(run, profile).zone;
+                  const prBadgeLabel = formatPrBadgeLabel(
+                    currentPrBadgeMap.get(run.id)
+                  );
+
+                  return (
+                    <tr key={run.id} className="align-middle">
+                      <td className="py-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a
+                            className="font-medium text-[var(--bone)]"
+                            href={`/runs/${run.id}`}
+                          >
+                            {run.title ?? "Untitled run"}
+                          </a>
+                          {prBadgeLabel ? (
+                            <PrBadge label={prBadgeLabel} />
+                          ) : null}
+                        </div>
+                        <div className="text-xs text-[var(--muted-foreground)]">
+                          {run.date}
+                        </div>
+                      </td>
+                      <td>{formatKm(run.distance)}</td>
+                      <td>{formatDuration(run.moving_time)}</td>
+                      <td>{formatPace(run.avg_pace)}</td>
+                      <td>
+                        <SplitsSparkline run={run} />
+                      </td>
+                      <td>{run.avg_hr ?? "-"}</td>
+                      <td>
+                        {zone ? (
+                          <Badge variant={zone}>{zoneLabel(zone)}</Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      {showElevation ? (
+                        <td>{run.elevation_gain.toFixed(0)} m</td>
+                      ) : null}
+                      <td>{run.source.toUpperCase()}</td>
+                      <td>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => void handleDelete(run)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+            {filteredRuns.length > RUNS_PER_PAGE ? (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Page {currentPage} of {pageCount}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={currentPage === 1}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(1, page - 1))
+                    }
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={currentPage === pageCount}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.min(pageCount, page + 1))
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </Card>
