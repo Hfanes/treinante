@@ -3,16 +3,16 @@ import { createServerClient } from "@/lib/supabase-server";
 import { refreshStravaToken } from "@/lib/stravaClient";
 
 export async function POST() {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await refreshStravaToken(user.id);
     return NextResponse.json({ ok: true });
   } catch (err) {
