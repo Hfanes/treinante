@@ -14,12 +14,17 @@ const RIEGEL_EXPONENT = 1.06;
 const PREDICTOR_ROLLING_WINDOWS = [21, 10, 5, 3] as const;
 
 export const RACE_TARGETS = [
-  { key: "mile", label: "1 mile", distance: 1.609, prType: null },
+  { key: "mile", label: "1 mile", distance: 1.609, prType: "1_mile" },
   { key: "5k", label: "5 km", distance: 5, prType: "5k" },
   { key: "10k", label: "10 km", distance: 10, prType: "10k" },
-  { key: "half", label: "Half marathon", distance: 21.0975, prType: "21k" },
-  { key: "marathon", label: "Marathon", distance: 42.195, prType: "42k" },
-  { key: "50k", label: "50 km", distance: 50, prType: null },
+  {
+    key: "half",
+    label: "Half marathon",
+    distance: 21.0975,
+    prType: "half_marathon",
+  },
+  { key: "marathon", label: "Marathon", distance: 42.195, prType: "marathon" },
+  { key: "50k", label: "50 km", distance: 50, prType: "50k" },
 ] as const;
 
 export interface PredictorAnchor {

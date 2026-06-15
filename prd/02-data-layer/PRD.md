@@ -55,7 +55,10 @@ create table personal_records (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references profiles(id) on delete cascade not null,
   type text not null check (type in (
-    '1k','5k','10k','21k','42k','longest_run','most_elevation','best_d_plus_per_km'
+    '400m','half_mile','1k','1_mile','2_mile','5k','10k','15k',
+    '10_mile','20k','half_marathon','30k','marathon',
+    '50k','50_mile','100k','100_mile','200k','24h','48h',
+    'longest_run','longest_duration','most_elevation','best_d_plus_per_km'
   )),
   value numeric not null,
   run_id uuid references runs(id) on delete set null,

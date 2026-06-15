@@ -72,7 +72,7 @@ describe("PR extraction", () => {
     expect(interpolatePrTime(5400, 18, 21)).toBe(6359);
   });
 
-  it("computes time and distance records across runs", () => {
+  it("computes standard personal records across runs", () => {
     const records = computePersonalRecords([
       run({
         id: "slow-5k",
@@ -86,24 +86,31 @@ describe("PR extraction", () => {
         moving_time: 1700,
         raw_splits: [1, 2, 3, 4, 5].map((km) => split(km, 340)),
       }),
-      run({ id: "long", distance: 18, moving_time: 5400 }),
-      run({ id: "hill", distance: 8, elevation_gain: 800 }),
+      run({ id: "long", distance: 21.2, moving_time: 8000 }),
+      run({ id: "ultra", distance: 180, moving_time: 26 * 60 * 60 }),
+      run({ id: "hill", distance: 8, moving_time: 4000, elevation_gain: 800 }),
     ]);
     const byType = new Map(records.map((record) => [record.type, record]));
 
+    expect(byType.get("400m")?.run_id).toBe("fast-5k");
     expect(byType.get("5k")?.run_id).toBe("fast-5k");
     expect(byType.get("5k")?.value).toBe(1700);
-    expect(byType.get("21k")?.run_id).toBe("long");
-    expect(byType.get("longest_run")?.value).toBe(18);
+    expect(byType.get("half_marathon")?.run_id).toBe("long");
+    expect(byType.get("24h")?.run_id).toBe("ultra");
+    expect(byType.get("24h")?.value).toBeCloseTo(166.2, 1);
+    expect(byType.get("longest_run")?.value).toBe(180);
+    expect(byType.get("longest_duration")?.value).toBe(26 * 60 * 60);
     expect(byType.get("most_elevation")?.value).toBe(800);
     expect(byType.get("best_d_plus_per_km")?.value).toBe(100);
   });
 
-  it("does not create elevation records without elevation data", () => {
+  it("does not create distance PRs when runs are too short", () => {
     const records = computePersonalRecords([run({ distance: 5 })]);
     const types = records.map((record) => record.type);
 
+    expect(types).not.toContain("10k");
+    expect(types).not.toContain("marathon");
+    expect(types).not.toContain("24h");
     expect(types).not.toContain("most_elevation");
-    expect(types).not.toContain("best_d_plus_per_km");
   });
 });

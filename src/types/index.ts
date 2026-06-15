@@ -65,12 +65,28 @@ export interface Profile {
 }
 
 export type PersonalRecordType =
+  | "400m"
+  | "half_mile"
   | "1k"
+  | "1_mile"
+  | "2_mile"
   | "5k"
   | "10k"
-  | "21k"
-  | "42k"
+  | "15k"
+  | "10_mile"
+  | "20k"
+  | "half_marathon"
+  | "30k"
+  | "marathon"
+  | "50k"
+  | "50_mile"
+  | "100k"
+  | "100_mile"
+  | "200k"
+  | "24h"
+  | "48h"
   | "longest_run"
+  | "longest_duration"
   | "most_elevation"
   | "best_d_plus_per_km";
 

@@ -12,11 +12,24 @@ const TIME_RECORDS: Array<{
   label: string;
   km: number;
 }> = [
+  { type: "400m", label: "400 m", km: 0.4 },
+  { type: "half_mile", label: "1/2 mile", km: 0.804672 },
   { type: "1k", label: "1 km", km: 1 },
+  { type: "1_mile", label: "1 mile", km: 1.609344 },
+  { type: "2_mile", label: "2 mile", km: 3.218688 },
   { type: "5k", label: "5 km", km: 5 },
   { type: "10k", label: "10 km", km: 10 },
-  { type: "21k", label: "Half marathon", km: 21 },
-  { type: "42k", label: "Marathon", km: 42 },
+  { type: "15k", label: "15 km", km: 15 },
+  { type: "10_mile", label: "10 mile", km: 16.09344 },
+  { type: "20k", label: "20 km", km: 20 },
+  { type: "half_marathon", label: "Half marathon", km: 21.0975 },
+  { type: "30k", label: "30 km", km: 30 },
+  { type: "marathon", label: "Marathon", km: 42.195 },
+  { type: "50k", label: "50 km", km: 50 },
+  { type: "50_mile", label: "50 mile", km: 80.4672 },
+  { type: "100k", label: "100 km", km: 100 },
+  { type: "100_mile", label: "100 mile", km: 160.9344 },
+  { type: "200k", label: "200 km", km: 200 },
 ];
 
 const DISTANCE_RECORDS: Array<{
@@ -30,6 +43,11 @@ const DISTANCE_RECORDS: Array<{
     format: (value) => `${value.toFixed(1)} km`,
   },
   {
+    type: "longest_duration",
+    label: "Longest duration",
+    format: formatDuration,
+  },
+  {
     type: "most_elevation",
     label: "Most elevation",
     format: (value) => `${value.toFixed(0)} m D+`,
@@ -39,6 +57,16 @@ const DISTANCE_RECORDS: Array<{
     label: "Best D+/km",
     format: (value) => `${value.toFixed(1)} m/km`,
   },
+  {
+    type: "24h",
+    label: "24h distance",
+    format: (value) => `${value.toFixed(1)} km`,
+  },
+  {
+    type: "48h",
+    label: "48h distance",
+    format: (value) => `${value.toFixed(1)} km`,
+  },
 ];
 
 function formatDate(date: string | null) {
@@ -46,6 +74,7 @@ function formatDate(date: string | null) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${date}T00:00:00Z`));
 }
@@ -66,7 +95,7 @@ export default async function RecordsPage() {
   let personalRecords = (records ?? []) as unknown as PersonalRecord[];
   const typedRuns = (runs ?? []) as unknown as Run[];
 
-  if (user && personalRecords.length === 0 && typedRuns.length > 0) {
+  if (user && typedRuns.length > 0) {
     personalRecords = await recalculatePersonalRecords(supabase, user.id);
   }
 
@@ -87,7 +116,7 @@ export default async function RecordsPage() {
     <PageShell title="Records">
       <div className="grid gap-5">
         {personalRecords.length === 0 ? (
-          <Card subtitle="Import GPX or Strava runs with split data to unlock time records. Manual runs still count for longest run and elevation bests.">
+          <Card subtitle="Import GPX or Strava runs with split data to unlock standard distance PRs. Manual runs use whole-run pace estimates.">
             <p className="text-sm text-gray-600 dark:text-gray-300">
               No personal records yet.
             </p>
@@ -141,7 +170,7 @@ export default async function RecordsPage() {
         ) : null}
 
         {distanceRecords.length > 0 ? (
-          <Card subtitle="Single-run bests across distance and climbing.">
+          <Card subtitle="Single-run bests and fixed-duration distance records.">
             <h2 className="font-semibold text-gray-950 dark:text-white">
               Distance bests
             </h2>

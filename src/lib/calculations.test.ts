@@ -173,7 +173,7 @@ describe("race predictor calculations", () => {
       estimateBestPaceVo2Max([
         { type: "5k", value: 1200 },
         { type: "10k", value: 2500 },
-        { type: "21k", value: 5400 },
+        { type: "half_marathon", value: 5400 },
       ])
     ).toBe(49.8);
   });
