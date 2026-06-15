@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { OnboardingModal } from "@/components/auth/onboarding-modal";
+import { ensurePreviousWeeklyReport } from "@/lib/reportEngine";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
 import Link from "next/link";
@@ -17,6 +18,11 @@ async function getProfile() {
     .select("*")
     .eq("id", user.id)
     .single();
+
+  await ensurePreviousWeeklyReport(supabase, user.id).catch(() => {
+    console.warn("Weekly report auto-generation failed");
+  });
+
   return data as Profile | null;
 }
 
