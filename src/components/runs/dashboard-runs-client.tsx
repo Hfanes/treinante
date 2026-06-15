@@ -15,6 +15,11 @@ import {
   formatDashboardPace,
   type WeeklyBucket,
 } from "@/lib/dashboardAnalysis";
+import {
+  buildPrBadgeMap,
+  formatPrBadgeLabel,
+  type PersonalRecordBadgeRecord,
+} from "@/lib/personalRecordLabels";
 import type { Profile, Run } from "@/types";
 
 const actionClass =
@@ -165,7 +170,8 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
   const max = Math.max(...buckets.map((bucket) => bucket.totalKm), 1);
   const mid = Math.round(max / 2);
   const points = buckets.map((bucket, index) => {
-    const x = buckets.length === 1 ? 50 : ((index + 0.5) / buckets.length) * 100;
+    const x =
+      buckets.length === 1 ? 50 : ((index + 0.5) / buckets.length) * 100;
     const y = 100 - (bucket.totalKm / max) * 100;
     return { ...bucket, x, y };
   });
@@ -189,9 +195,11 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
                 key={bucket.start}
               >
                 <span className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max -translate-x-1/2 border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                  {bucket.label} · {bucket.totalKm.toFixed(1)} km · {bucket.runs}{" "}
-                  runs
-                  {bucket.elevationGain ? ` · ${bucket.elevationGain} m D+` : ""}
+                  {bucket.label} · {bucket.totalKm.toFixed(1)} km ·{" "}
+                  {bucket.runs} runs
+                  {bucket.elevationGain
+                    ? ` · ${bucket.elevationGain} m D+`
+                    : ""}
                 </span>
                 <span
                   className="block w-full bg-[var(--primary)] opacity-55 transition group-hover:opacity-90 group-focus-visible:opacity-90"
@@ -547,9 +555,11 @@ function YearProgress({
 }
 
 export function DashboardRunsClient({
+  currentPrRecords,
   initialRuns,
   profile,
 }: {
+  currentPrRecords: PersonalRecordBadgeRecord[];
   initialRuns: Run[];
   profile: Pick<
     Profile,
@@ -578,6 +588,10 @@ export function DashboardRunsClient({
   const dashboard = useMemo(
     () => buildDashboardData(runs, profile),
     [profile, runs]
+  );
+  const currentPrBadgeMap = useMemo(
+    () => buildPrBadgeMap(currentPrRecords),
+    [currentPrRecords]
   );
   const showHrChart = dashboard.hrHistory.length >= 5;
   const rangeStats = selectedRangeSummary(runs, summaryRange);
@@ -804,26 +818,41 @@ export function DashboardRunsClient({
               </Link>
             </div>
             <div>
-              {dashboard.recentRuns.map((run) => (
-                <Link
-                  className="grid grid-cols-2 gap-3 border-b border-[var(--border)] py-5 text-sm no-underline last:border-b-0 md:grid-cols-[0.65fr_0.75fr_0.75fr_0.75fr] md:items-center"
-                  href={`/runs/${run.id}`}
-                  key={run.id}
-                >
-                  <span className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
-                    {run.date.slice(5)}
-                  </span>
-                  <span className="font-mono text-[var(--bone)]">
-                    {run.distance.toFixed(1)} km
-                  </span>
-                  <span className="font-mono text-[var(--bone)]">
-                    {formatDashboardPace(run.avg_pace)}
-                  </span>
-                  <span className="font-mono text-[var(--bone)]">
-                    {formatDurationShort(run.moving_time)}
-                  </span>
-                </Link>
-              ))}
+              {dashboard.recentRuns.map((run) => {
+                const prBadgeLabel = formatPrBadgeLabel(
+                  currentPrBadgeMap.get(run.id)
+                );
+
+                return (
+                  <Link
+                    className="grid grid-cols-2 gap-3 border-b border-[var(--border)] py-5 text-sm no-underline last:border-b-0 md:grid-cols-[0.65fr_0.75fr_0.75fr_0.75fr] md:items-center"
+                    href={`/runs/${run.id}`}
+                    key={run.id}
+                  >
+                    <span className="flex items-center gap-3 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                      {run.date.slice(5)}
+                      {prBadgeLabel ? (
+                        <span
+                          aria-label="Current personal record"
+                          className="inline-flex items-center gap-1 rounded-[2px] border border-[var(--primary)] bg-[color-mix(in_oklch,var(--primary)_18%,transparent)] px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[var(--primary)]"
+                        >
+                          <span aria-hidden="true">★</span>
+                          {prBadgeLabel}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="font-mono text-[var(--bone)]">
+                      {run.distance.toFixed(1)} km
+                    </span>
+                    <span className="font-mono text-[var(--bone)]">
+                      {formatDashboardPace(run.avg_pace)}
+                    </span>
+                    <span className="font-mono text-[var(--bone)]">
+                      {formatDurationShort(run.moving_time)}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
