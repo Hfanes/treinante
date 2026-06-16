@@ -762,7 +762,25 @@ export function DashboardRunsClient({
 
         {showHrChart ? (
           <Card subtitle="7-run rolling average, last 60 days.">
-            <h2 className="instrument-heading text-2xl">Heart rate trend</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <h2 className="instrument-heading text-2xl">Heart rate trend</h2>
+              <div className="flex flex-wrap gap-4 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="h-px w-8 border-t-2 border-dashed border-[#38f27d]"
+                  />
+                  Z2 ceiling
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="h-px w-8 border-t-2 border-dashed border-[#ffb21a]"
+                  />
+                  Z4 floor
+                </span>
+              </div>
+            </div>
             <div className="mt-4 h-[300px]">
               <HrTrendChart
                 points={dashboard.hrHistory}

@@ -52,13 +52,13 @@ Instrument-grade analytics aesthetic. Dark olive-brown canvas, warm sand accents
   --zone2: #22c55e;
   --zone3: #f59e0b;
   --zone4: #ef4444;
-  --ctl: #60a5fa;
-  --atl: #f87171;
-  --tsb-positive: #4ade80;
-  --tsb-negative: #f87171;
-  --chart-pace: oklch(0.78 0.075 78);
-  --chart-gap: oklch(0.62 0.05 78);
-  --chart-hr: #f87171;
+  --ctl: #f3d49b;
+  --atl: #7f6d4d;
+  --tsb-positive: #f3d49b;
+  --tsb-negative: #6f674d;
+  --chart-pace: #f3d49b;
+  --chart-gap: #7f6d4d;
+  --chart-hr: #8f815f;
   --chart-elev: oklch(0.45 0.03 80);
   --trend-up: #4ade80;
   --trend-down: #f87171;
@@ -68,6 +68,10 @@ Instrument-grade analytics aesthetic. Dark olive-brown canvas, warm sand accents
 ```
 
 > **Critical:** Never use raw Tailwind color classes (e.g. `text-blue-500`, `bg-gray-800`) for brand colors. Always reference `var(--token)`. Zone and semantic colors (`--zone2`, `--trend-up`, etc.) are permitted only for chart fills, zone badges, and trend arrows — never for buttons, backgrounds, or nav chrome.
+
+Two-series charts must use strong light/dark contrast. Preferred warm pair:
+`--ctl` / `--atl` or `--chart-pace` / `--chart-gap`; add stroke-weight or
+dash-pattern differences where lines may cross.
 
 ---
 

@@ -39,9 +39,13 @@ ChartJS.register(
 const z2Color = "rgba(34, 197, 94, 0.8)";
 const z3Color = "rgba(245, 158, 11, 0.82)";
 const z4Color = "rgba(239, 68, 68, 0.82)";
-const paceColor = "oklch(0.78 0.075 78)";
-const gapColor = "oklch(0.62 0.05 78)";
-const hrColor = "#f87171";
+const paceColor = "#f3d49b";
+const gapColor = "#7f6d4d";
+const hrColor = "#8f815f";
+const ctlColor = "#f3d49b";
+const atlColor = "#7f6d4d";
+const hrZoneEasyColor = "#38f27d";
+const hrZoneHardColor = "#ffb21a";
 const elevColor = "oklch(0.45 0.03 80)";
 const borderColor = "oklch(0.36 0.012 80)";
 const labelColor = "oklch(0.62 0.05 78)";
@@ -224,8 +228,8 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
       {
         label: "Pace",
         data: points.map((point) => point.pace),
-        borderColor: "oklch(0.78 0.075 78 / 0.35)",
-        borderWidth: 1.5,
+        borderColor: "#fff0c4",
+        borderWidth: 1,
         pointRadius: 2,
         tension: 0.3,
       },
@@ -234,7 +238,7 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
         data: points.map((point) => point.gap),
         borderColor: gapColor,
         borderDash: [4, 4],
-        borderWidth: 1.5,
+        borderWidth: 2,
         pointRadius: 0,
         tension: 0.3,
       },
@@ -242,7 +246,7 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
         label: "7-run avg",
         data: points.map((point) => point.rollingPace),
         borderColor: paceColor,
-        borderWidth: 1.5,
+        borderWidth: 2.5,
         pointRadius: 0,
         tension: 0.3,
       },
@@ -302,15 +306,17 @@ export function HrTrendChart({
                 type: "line",
                 yMin: maxHr * 0.81,
                 yMax: maxHr * 0.81,
-                borderColor: z2Color,
-                borderDash: [5, 5],
+                borderColor: hrZoneEasyColor,
+                borderDash: [6, 4],
+                borderWidth: 2,
               },
               {
                 type: "line",
                 yMin: maxHr * 0.9,
                 yMax: maxHr * 0.9,
-                borderColor: z3Color,
-                borderDash: [5, 5],
+                borderColor: hrZoneHardColor,
+                borderDash: [6, 4],
+                borderWidth: 2,
               },
             ],
           }
@@ -335,8 +341,11 @@ export function HrTrendChart({
             label: "7-run avg HR",
             data: points.map((point) => point.rollingHr),
             borderColor: hrColor,
-            borderWidth: 1.5,
-            pointRadius: 2,
+            borderWidth: 3,
+            pointBackgroundColor: hrColor,
+            pointBorderColor: "#f3d49b",
+            pointRadius: 2.5,
+            pointHoverRadius: 4,
             tension: 0.3,
           },
         ],
@@ -348,35 +357,52 @@ export function HrTrendChart({
 
 export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
   return (
-    <Line
-      data={{
-        labels: points.map((point) => point.date.slice(5)),
-        datasets: [
-          {
-            label: "CTL",
-            data: points.map((point) => point.ctl),
-            borderColor: "#60a5fa",
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.3,
-          },
-          {
-            label: "ATL",
-            data: points.map((point) => point.atl),
-            borderColor: hrColor,
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.3,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 600, easing: "easeOutQuart" },
-        plugins: chartPlugins,
-        scales: chartScales,
-      }}
-    />
+    <div className="vbars-dense h-full rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-4">
+      <div className="mb-3 flex flex-wrap justify-end gap-5 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[#f3d49b]">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-px w-8 bg-[#f3d49b]" aria-hidden="true" />
+          CTL - Fitness
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-px w-8 bg-[#7f6d4d]" aria-hidden="true" />
+          ATL - Fatigue
+        </span>
+      </div>
+      <div className="h-[calc(100%-2.25rem)]">
+        <Line
+          data={{
+            labels: points.map((point) => point.date.slice(5)),
+            datasets: [
+              {
+                label: "CTL",
+                data: points.map((point) => point.ctl),
+                borderColor: ctlColor,
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.34,
+              },
+              {
+                label: "ATL",
+                data: points.map((point) => point.atl),
+                borderColor: atlColor,
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.18,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: { ...chartPlugins, legend: { display: false } },
+            scales: {
+              x: { display: false, grid: { display: false } },
+              y: { display: false, grid: { display: false } },
+            },
+          }}
+        />
+      </div>
+    </div>
   );
 }

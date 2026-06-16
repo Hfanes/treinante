@@ -34,6 +34,10 @@ ChartJS.register(
 
 let zoomPluginReady = false;
 
+const paceColor = "#f3d49b";
+const gapColor = "#7f6d4d";
+const hrColor = "#8f815f";
+
 export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
   const [zoomReady, setZoomReady] = useState(zoomPluginReady);
   const [showPace, setShowPace] = useState(false);
@@ -107,8 +111,8 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
               label: "Pace",
               data: splits.map((split) => split.pace),
               yAxisID: "pace",
-              borderColor: "oklch(0.78 0.075 78)",
-              borderWidth: 1.5,
+              borderColor: paceColor,
+              borderWidth: 2.5,
               pointRadius: 0,
               tension: 0.3,
               order: 1,
@@ -122,9 +126,9 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
               label: "GAP",
               data: splits.map((split) => split.gap),
               yAxisID: "pace",
-              borderColor: "oklch(0.62 0.05 78)",
+              borderColor: gapColor,
               borderDash: [4, 4],
-              borderWidth: 1.5,
+              borderWidth: 2,
               pointRadius: 0,
               tension: 0.3,
               order: 1,
@@ -138,8 +142,8 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
               label: "HR",
               data: splits.map((split) => split.hr),
               yAxisID: "hr",
-              borderColor: "#f87171",
-              borderWidth: 1.5,
+              borderColor: hrColor,
+              borderWidth: 2.5,
               pointRadius: 0,
               tension: 0.3,
               order: 2,

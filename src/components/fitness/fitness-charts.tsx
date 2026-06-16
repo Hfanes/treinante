@@ -39,6 +39,10 @@ const RANGES = [
 
 const borderColor = "oklch(0.36 0.012 80)";
 const labelColor = "oklch(0.62 0.05 78)";
+const ctlColor = "#f3d49b";
+const atlColor = "#7f6d4d";
+const positiveTsbColor = "#f3d49b";
+const negativeTsbColor = "#6f674d";
 
 const chartPlugins = {
   legend: {
@@ -81,6 +85,10 @@ function visiblePoints(points: FitnessPoint[], days: number | null) {
   return points.slice(-days);
 }
 
+function rangeEyebrow(days: number | null) {
+  return days ? `[ Last ${days} days ]` : "[ All history ]";
+}
+
 export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
   const [range, setRange] = useState(RANGES[1]);
   const [zoomReady, setZoomReady] = useState(zoomPluginReady);
@@ -113,20 +121,24 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
       {
         label: "CTL fitness",
         data: visible.map((point) => point.ctl),
-        borderColor: "#60a5fa",
-        backgroundColor: "rgba(96, 165, 250, 0.12)",
-        borderWidth: 1.5,
+        borderColor: ctlColor,
+        backgroundColor: "transparent",
+        borderWidth: 4,
+        borderCapStyle: "round",
+        borderJoinStyle: "round",
         pointRadius: 0,
-        tension: 0.32,
+        tension: 0.34,
       },
       {
         label: "ATL fatigue",
         data: visible.map((point) => point.atl),
-        borderColor: "#f87171",
-        backgroundColor: "rgba(248, 113, 113, 0.1)",
-        borderWidth: 1.5,
+        borderColor: atlColor,
+        backgroundColor: "transparent",
+        borderWidth: 4,
+        borderCapStyle: "round",
+        borderJoinStyle: "round",
         pointRadius: 0,
-        tension: 0.32,
+        tension: 0.18,
       },
     ],
   };
@@ -137,6 +149,7 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
     interaction: { mode: "index", intersect: false },
     plugins: {
       ...chartPlugins,
+      legend: { display: false },
       ...(zoomReady
         ? {
             zoom: {
@@ -151,11 +164,14 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
         : {}),
     },
     scales: {
-      ...chartScales,
+      x: {
+        display: false,
+        grid: { display: false },
+      },
       y: {
-        ...chartScales.y,
+        display: false,
         beginAtZero: true,
-        title: { display: true, text: "load" },
+        grid: { display: false },
       },
     },
   };
@@ -166,7 +182,7 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
         label: "TSB form",
         data: visible.map((point) => point.tsb),
         backgroundColor: visible.map((point) =>
-          point.tsb >= 0 ? "rgba(34, 197, 94, 0.78)" : "rgba(239, 68, 68, 0.78)"
+          point.tsb >= 0 ? positiveTsbColor : negativeTsbColor
         ),
         borderRadius: 0,
       },
@@ -199,11 +215,11 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="mt-5 grid gap-4">
       <div className="flex flex-wrap gap-2">
         {RANGES.map((item) => (
           <button
-            className={`rounded-full border px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] transition ${
+            className={`rounded-[2px] border px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] transition ${
               item.label === range.label
                 ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
                 : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -217,8 +233,30 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
         ))}
       </div>
 
-      <div className="h-[340px] rounded-[2px] border border-[var(--border)] p-3">
-        <Line data={lineData} options={lineOptions} />
+      <div className="vbars-dense rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-5 sm:p-6">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="ui-label text-[#f3d49b]">
+              {rangeEyebrow(range.days)}
+            </p>
+            <h2 className="instrument-heading mt-3 text-3xl leading-none text-[#f3d49b] sm:text-4xl">
+              CTL · ATL overlay
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-5 pt-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[#f3d49b]">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-px w-8 bg-[#f3d49b]" aria-hidden="true" />
+              CTL - Fitness
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-px w-8 bg-[#7f6d4d]" aria-hidden="true" />
+              ATL - Fatigue
+            </span>
+          </div>
+        </div>
+        <div className="h-[340px]">
+          <Line data={lineData} options={lineOptions} />
+        </div>
       </div>
       <div className="h-[220px] rounded-[2px] border border-[var(--border)] p-3">
         <Bar data={barData} options={barOptions} />
