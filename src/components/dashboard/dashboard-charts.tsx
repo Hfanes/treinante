@@ -395,7 +395,19 @@ export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
-            plugins: { ...chartPlugins, legend: { display: false } },
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...chartPlugins.tooltip,
+                callbacks: {
+                  title: (items) =>
+                    points[items[0]?.dataIndex ?? 0]?.date ?? "",
+                  label: (item) =>
+                    `${item.dataset.label}: ${Number(item.raw).toFixed(1)}`,
+                },
+              },
+            },
             scales: {
               x: { display: false, grid: { display: false } },
               y: { display: false, grid: { display: false } },

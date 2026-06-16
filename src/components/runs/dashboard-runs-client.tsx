@@ -792,7 +792,7 @@ export function DashboardRunsClient({
           <Card subtitle="Connect a heart rate monitor or import from Strava to see HR trends." />
         )}
 
-        <Card subtitle="Compact preview. Full fitness model arrives in PRD 07.">
+        <Card subtitle="Compact preview. Hover the curve for daily CTL and ATL.">
           <div className="flex items-center justify-between gap-3">
             <h2 className="instrument-heading text-2xl">Fitness preview</h2>
             <Link className="text-sm text-[var(--primary)]" href="/fitness">

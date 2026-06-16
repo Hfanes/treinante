@@ -138,19 +138,27 @@ function GelCalculator({ pace }: { pace: number }) {
             {formatDuration(finishTime)}.
           </p>
         </div>
-        <select
-          className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--bone)]"
-          value={distanceKey}
-          onChange={(event) =>
-            setDistanceKey(event.target.value as ToolDistanceKey)
-          }
-        >
-          {TOOL_DISTANCES.map((item) => (
-            <option key={item.key} value={item.key}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+        <span className="relative inline-flex">
+          <select
+            className="appearance-none rounded-[2px] border border-[var(--border)] bg-[var(--background)] py-2 pr-9 pl-4 text-sm text-[var(--bone)]"
+            value={distanceKey}
+            onChange={(event) =>
+              setDistanceKey(event.target.value as ToolDistanceKey)
+            }
+          >
+            {TOOL_DISTANCES.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--bone)]"
+          >
+            ▾
+          </span>
+        </span>
       </div>
 
       {gels.length === 0 ? (
