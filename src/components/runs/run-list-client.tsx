@@ -145,8 +145,9 @@ function PrBadge({ label }: { label: string }) {
 function RunsLibraryHero() {
   return (
     <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-      <h2 className="instrument-heading max-w-6xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl xl:text-9xl">
-        Every run. <em className="font-normal">Every split.</em>
+      <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+        Every run.{" "}
+        <em className="font-normal text-[var(--primary)]">Every split.</em>
       </h2>
     </section>
   );

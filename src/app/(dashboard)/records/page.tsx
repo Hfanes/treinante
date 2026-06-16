@@ -82,8 +82,11 @@ function formatDate(date: string | null) {
 function RecordsHero() {
   return (
     <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-      <h2 className="instrument-heading max-w-6xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl xl:text-9xl">
-        Every best. <em className="font-normal">Every breakthrough.</em>
+      <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+        Every best.{" "}
+        <em className="font-normal text-[var(--primary)]">
+          Every breakthrough.
+        </em>
       </h2>
     </section>
   );

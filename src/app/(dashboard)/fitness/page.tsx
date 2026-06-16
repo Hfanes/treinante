@@ -77,6 +77,13 @@ export default async function FitnessPage() {
   return (
     <PageShell title="Fitness">
       <div className="grid gap-5">
+        <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+          <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+            The shape{" "}
+            <em className="font-normal text-[var(--primary)]">of your year.</em>
+          </h2>
+        </section>
+
         {trainingDays < 7 || !current ? (
           <Card subtitle="Keep running - fitness and fatigue tracking fills in after a week of data.">
             <p className="text-sm text-gray-600 dark:text-gray-300">

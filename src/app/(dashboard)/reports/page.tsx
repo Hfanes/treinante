@@ -253,6 +253,13 @@ export default async function ReportsPage({
   return (
     <PageShell title="Reports">
       <div className="grid gap-4">
+        <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+          <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+            Every week,{" "}
+            <em className="font-normal text-[var(--primary)]">made legible.</em>
+          </h2>
+        </section>
+
         <Card subtitle="Weekly summaries are generated automatically after each completed week with at least one run.">
           <form action={generateLastWeekReport} className="mt-4">
             <Button type="submit">Generate last week's report</Button>
