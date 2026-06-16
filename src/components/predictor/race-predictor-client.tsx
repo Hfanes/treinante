@@ -13,9 +13,52 @@ interface ManualRaceCalculatorProps {
   initialTime: number;
 }
 
+interface PredictorExplanationToggleProps {
+  anchorLabel: string;
+  anchorPace: string;
+}
+
 function safeNumber(value: string, fallback: number) {
   const next = Number.parseFloat(value);
   return Number.isFinite(next) ? next : fallback;
+}
+
+export function PredictorExplanationToggle({
+  anchorLabel,
+  anchorPace,
+}: PredictorExplanationToggleProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="mt-4">
+      <button
+        className="mb-2 inline-flex items-center gap-1 font-mono text-[0.5rem] tracking-[0.08em] text-[var(--primary)]"
+        onClick={() => setExpanded((value) => !value)}
+        type="button"
+      >
+        <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+        {expanded ? "Hide method" : "Show method"}
+      </button>
+      {expanded ? (
+        <div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 text-sm leading-6 text-[var(--muted-foreground)]">
+          <p>
+            Pace-based means estimated from running speed. This uses{" "}
+            {anchorLabel} at {anchorPace}.
+          </p>
+          <p>
+            Rolling window means the app slides a fixed-distance window across
+            your splits and finds the fastest consecutive block. A 5 km rolling
+            window checks km 1-5, then 2-6, then 3-7, and so on.
+          </p>
+          <p>
+            It only uses the last 90 days so the estimate reflects current
+            fitness. It checks longer windows first: 21 km, then 10 km, then 5
+            km, then 3 km.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function ManualRaceCalculator({
@@ -66,16 +109,26 @@ export function ManualRaceCalculator({
           ))}
         </div>
 
-        <label className="mt-5 grid gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Distance (km)
+        <label className="mt-5 grid gap-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="flex items-center justify-between gap-3">
+            Distance (km)
+            <span className="font-mono text-2xl text-white">
+              {distanceValue.toFixed(1)}
+            </span>
+          </span>
           <input
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-2xl text-white"
+            className="h-2 w-full appearance-none rounded-[2px] bg-white/10 accent-[var(--primary)]"
+            max="42.2"
             min="0.1"
             onChange={(event) => setDistance(event.target.value)}
             step="0.1"
-            type="number"
+            type="range"
             value={distance}
           />
+          <span className="flex justify-between font-mono text-[0.68rem] text-gray-500">
+            <span>0.1</span>
+            <span>42.2</span>
+          </span>
         </label>
 
         {mode === "time" ? (
