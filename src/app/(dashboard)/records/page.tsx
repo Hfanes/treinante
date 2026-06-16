@@ -79,6 +79,16 @@ function formatDate(date: string | null) {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
+function RecordsHero() {
+  return (
+    <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+      <h2 className="instrument-heading max-w-6xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl xl:text-9xl">
+        Every best. <em className="font-normal">Every breakthrough.</em>
+      </h2>
+    </section>
+  );
+}
+
 export default async function RecordsPage() {
   const supabase = await createServerClient();
   const [
@@ -111,10 +121,40 @@ export default async function RecordsPage() {
     ...config,
     record: byType.get(config.type),
   })).filter((item) => item.record);
+  const listRecords = [
+    ...timeRecords.map(({ type, label, km, record }) => {
+      const run = record?.run_id ? runMap.get(record.run_id) : null;
+      const estimated = Boolean(run && run.distance < km);
+
+      return {
+        type,
+        label,
+        value: record
+          ? `${estimated ? "~" : ""}${formatDuration(record.value)}`
+          : "-",
+        date: record ? formatDate(record.achieved_at) : "-",
+        run,
+        detail:
+          estimated && run
+            ? `Estimated from ${run.distance.toFixed(1)} km`
+            : null,
+      };
+    }),
+    ...distanceRecords.map(({ type, label, format, record }) => ({
+      type,
+      label,
+      value: record ? format(record.value) : "-",
+      date: record ? formatDate(record.achieved_at) : "-",
+      run: record?.run_id ? runMap.get(record.run_id) : null,
+      detail: null,
+    })),
+  ];
 
   return (
     <PageShell title="Records">
       <div className="grid gap-5">
+        <RecordsHero />
+
         {personalRecords.length === 0 ? (
           <Card subtitle="Import GPX or Strava runs with split data to unlock standard distance PRs. Manual runs use whole-run pace estimates.">
             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -212,6 +252,58 @@ export default async function RecordsPage() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        ) : null}
+
+        {listRecords.length > 0 ? (
+          <Card subtitle="Same personal records as a dense list for layout comparison.">
+            <h2 className="font-semibold text-gray-950 dark:text-white">
+              PR list
+            </h2>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="py-2">Record</th>
+                    <th>Value</th>
+                    <th>Date</th>
+                    <th>Run</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {listRecords.map((record) => (
+                    <tr key={record.type}>
+                      <td className="py-3">
+                        <div className="font-medium text-gray-950 dark:text-white">
+                          {record.label}
+                        </div>
+                        {record.detail ? (
+                          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {record.detail}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="font-mono text-[var(--bone)]">
+                        {record.value}
+                      </td>
+                      <td>{record.date}</td>
+                      <td>
+                        {record.run ? (
+                          <Link
+                            className="text-brand-600 dark:text-brand-400"
+                            href={`/runs/${record.run.id}`}
+                          >
+                            Open
+                          </Link>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
