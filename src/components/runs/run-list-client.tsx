@@ -142,10 +142,102 @@ function PrBadge({ label }: { label: string }) {
   );
 }
 
+function MobileRunCard({
+  onDelete,
+  prBadgeLabel,
+  run,
+  showElevation,
+  zone,
+}: {
+  onDelete: (run: Run) => void;
+  prBadgeLabel: string | null;
+  run: Run;
+  showElevation: boolean;
+  zone: RunAnalysisZone | null;
+}) {
+  return (
+    <article className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <a
+            className="block truncate font-medium text-[var(--bone)] no-underline"
+            href={`/runs/${run.id}`}
+          >
+            {run.title ?? "Untitled run"}
+          </a>
+          <p className="mt-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+            {run.date} · {run.source.toUpperCase()}
+          </p>
+        </div>
+        {zone ? <Badge variant={zone}>{zoneLabel(zone)}</Badge> : null}
+      </div>
+
+      {prBadgeLabel ? (
+        <div className="mt-3">
+          <PrBadge label={prBadgeLabel} />
+        </div>
+      ) : null}
+
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <dt className="ui-label">Distance</dt>
+          <dd className="mt-1 font-mono text-[var(--bone)]">
+            {formatKm(run.distance)}
+          </dd>
+        </div>
+        <div>
+          <dt className="ui-label">Time</dt>
+          <dd className="mt-1 font-mono text-[var(--bone)]">
+            {formatDuration(run.moving_time)}
+          </dd>
+        </div>
+        <div>
+          <dt className="ui-label">Pace</dt>
+          <dd className="mt-1 font-mono text-[var(--bone)]">
+            {formatPace(run.avg_pace)}
+          </dd>
+        </div>
+        <div>
+          <dt className="ui-label">Avg HR</dt>
+          <dd className="mt-1 font-mono text-[var(--bone)]">
+            {run.avg_hr ? `${run.avg_hr} bpm` : "-"}
+          </dd>
+        </div>
+        {showElevation ? (
+          <div>
+            <dt className="ui-label">D+</dt>
+            <dd className="mt-1 font-mono text-[var(--bone)]">
+              {run.elevation_gain.toFixed(0)} m
+            </dd>
+          </div>
+        ) : null}
+        <div>
+          <dt className="ui-label">Splits</dt>
+          <dd className="mt-1">
+            <SplitsSparkline run={run} />
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border)] pt-3">
+        <a
+          className="text-sm text-[var(--primary)] no-underline"
+          href={`/runs/${run.id}`}
+        >
+          Open details
+        </a>
+        <Button type="button" variant="ghost" onClick={() => onDelete(run)}>
+          Delete
+        </Button>
+      </div>
+    </article>
+  );
+}
+
 function RunsLibraryHero() {
   return (
     <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-      <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+      <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
         Every run.{" "}
         <em className="font-normal text-[var(--primary)]">Every split.</em>
       </h2>
@@ -161,8 +253,9 @@ export function RunListClient({
   initialRuns: Run[];
 }) {
   const { profile, user } = useAuth();
-  const { runs, addRun, deleteRun, loading } = useRuns();
+  const { runs, addRun, deleteRun, loading, syncRuns } = useRuns();
   const [pendingGpx, setPendingGpx] = useState<PendingGpx[]>([]);
+  const [stravaSyncing, setStravaSyncing] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<RunSource | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [dateFrom, setDateFrom] = useState("");
@@ -197,6 +290,7 @@ export function RunListClient({
   }, []);
 
   const displayRuns = runs.length > 0 || !loading ? runs : initialRuns;
+  const stravaConnected = profile?.strava_connected ?? false;
   const currentPrBadgeMap = useMemo(
     () => buildPrBadgeMap(currentPrRecords),
     [currentPrRecords]
@@ -257,6 +351,57 @@ export function RunListClient({
 
     setPendingGpx(previews);
     event.target.value = "";
+  }
+
+  function connectStrava() {
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    if (!clientId) {
+      setError("Missing Strava client id.");
+      return;
+    }
+
+    const redirectUri = `${window.location.origin}/api/strava/callback`;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      approval_prompt: "auto",
+      scope: "activity:read_all",
+    });
+
+    window.location.assign(`https://www.strava.com/oauth/authorize?${params}`);
+  }
+
+  async function handleStravaSync() {
+    if (!stravaConnected) {
+      connectStrava();
+      return;
+    }
+
+    setStravaSyncing(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/strava/sync", { method: "POST" });
+      const body = (await response.json()) as {
+        imported?: number;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          body.error ?? `Strava sync failed with ${response.status}`
+        );
+      }
+
+      await syncRuns();
+      setMessage(`Synced ${body.imported ?? 0} new Strava runs.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sync Strava.");
+    } finally {
+      setStravaSyncing(false);
+    }
   }
 
   async function confirmGpxImport() {
@@ -405,8 +550,8 @@ export function RunListClient({
               when only distance and time exist.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <label className="inline-flex cursor-pointer items-center justify-center rounded-[2px] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[2px] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90">
               Import GPX
               <input
                 className="sr-only"
@@ -417,6 +562,19 @@ export function RunListClient({
               />
             </label>
             <Button
+              className="w-full sm:w-auto"
+              type="button"
+              disabled={stravaSyncing}
+              onClick={() => void handleStravaSync()}
+            >
+              {stravaConnected
+                ? stravaSyncing
+                  ? "Syncing Strava..."
+                  : "Sync Strava"
+                : "Connect Strava"}
+            </Button>
+            <Button
+              className="w-full sm:w-auto"
               type="button"
               variant="secondary"
               onClick={() => setManualOpen((open) => !open)}
@@ -553,7 +711,7 @@ export function RunListClient({
               value={manualNotes}
               onChange={(event) => setManualNotes(event.target.value)}
             />
-            <Button type="submit" className="md:self-start">
+            <Button type="submit" className="w-full md:w-auto md:self-start">
               Save manual run
             </Button>
           </form>
@@ -616,85 +774,108 @@ export function RunListClient({
             No runs match these filters.
           </p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[960px] text-left text-sm">
-              <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
-                <tr>
-                  <th className="py-2">Date</th>
-                  <th>Distance</th>
-                  <th>Time</th>
-                  <th>Pace</th>
-                  <th>Splits</th>
-                  <th>Avg HR</th>
-                  <th>Zone</th>
-                  {showElevation ? <th>D+</th> : null}
-                  <th>Source</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {visibleRuns.map((run) => {
-                  const zone = analyzeRun(run, profile).zone;
-                  const prBadgeLabel = formatPrBadgeLabel(
-                    currentPrBadgeMap.get(run.id)
-                  );
+          <>
+            <div className="mt-4 grid gap-3 md:hidden">
+              {visibleRuns.map((run) => {
+                const zone = analyzeRun(run, profile).zone;
+                const prBadgeLabel = formatPrBadgeLabel(
+                  currentPrBadgeMap.get(run.id)
+                );
 
-                  return (
-                    <tr key={run.id} className="align-middle">
-                      <td className="py-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <a
-                            className="font-medium text-[var(--bone)]"
-                            href={`/runs/${run.id}`}
+                return (
+                  <MobileRunCard
+                    key={run.id}
+                    onDelete={(selectedRun) => void handleDelete(selectedRun)}
+                    prBadgeLabel={prBadgeLabel}
+                    run={run}
+                    showElevation={showElevation}
+                    zone={zone}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="mt-4 hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[960px] text-left text-sm">
+                <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                  <tr>
+                    <th className="py-2">Date</th>
+                    <th>Distance</th>
+                    <th>Time</th>
+                    <th>Pace</th>
+                    <th>Splits</th>
+                    <th>Avg HR</th>
+                    <th>Zone</th>
+                    {showElevation ? <th>D+</th> : null}
+                    <th>Source</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {visibleRuns.map((run) => {
+                    const zone = analyzeRun(run, profile).zone;
+                    const prBadgeLabel = formatPrBadgeLabel(
+                      currentPrBadgeMap.get(run.id)
+                    );
+
+                    return (
+                      <tr key={run.id} className="align-middle">
+                        <td className="py-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a
+                              className="font-medium text-[var(--bone)]"
+                              href={`/runs/${run.id}`}
+                            >
+                              {run.title ?? "Untitled run"}
+                            </a>
+                            {prBadgeLabel ? (
+                              <PrBadge label={prBadgeLabel} />
+                            ) : null}
+                          </div>
+                          <div className="text-xs text-[var(--muted-foreground)]">
+                            {run.date}
+                          </div>
+                        </td>
+                        <td>{formatKm(run.distance)}</td>
+                        <td>{formatDuration(run.moving_time)}</td>
+                        <td>{formatPace(run.avg_pace)}</td>
+                        <td>
+                          <SplitsSparkline run={run} />
+                        </td>
+                        <td>{run.avg_hr ?? "-"}</td>
+                        <td>
+                          {zone ? (
+                            <Badge variant={zone}>{zoneLabel(zone)}</Badge>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        {showElevation ? (
+                          <td>{run.elevation_gain.toFixed(0)} m</td>
+                        ) : null}
+                        <td>{run.source.toUpperCase()}</td>
+                        <td>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => void handleDelete(run)}
                           >
-                            {run.title ?? "Untitled run"}
-                          </a>
-                          {prBadgeLabel ? (
-                            <PrBadge label={prBadgeLabel} />
-                          ) : null}
-                        </div>
-                        <div className="text-xs text-[var(--muted-foreground)]">
-                          {run.date}
-                        </div>
-                      </td>
-                      <td>{formatKm(run.distance)}</td>
-                      <td>{formatDuration(run.moving_time)}</td>
-                      <td>{formatPace(run.avg_pace)}</td>
-                      <td>
-                        <SplitsSparkline run={run} />
-                      </td>
-                      <td>{run.avg_hr ?? "-"}</td>
-                      <td>
-                        {zone ? (
-                          <Badge variant={zone}>{zoneLabel(zone)}</Badge>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      {showElevation ? (
-                        <td>{run.elevation_gain.toFixed(0)} m</td>
-                      ) : null}
-                      <td>{run.source.toUpperCase()}</td>
-                      <td>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => void handleDelete(run)}
-                        >
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            Delete
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
             {filteredRuns.length > RUNS_PER_PAGE ? (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+              <div className="mt-4 flex flex-col gap-3 border-t border-[var(--border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-[var(--muted-foreground)]">
                   Page {currentPage} of {pageCount}
                 </p>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:flex">
                   <Button
                     type="button"
                     variant="secondary"
@@ -718,7 +899,7 @@ export function RunListClient({
                 </div>
               </div>
             ) : null}
-          </div>
+          </>
         )}
       </Card>
     </div>
