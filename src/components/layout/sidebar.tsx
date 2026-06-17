@@ -7,7 +7,7 @@ async function getProfileName() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (!user) return { isLoggedIn: false, profileName: null };
 
   const { data } = await supabase
     .from("profiles")
@@ -15,11 +15,11 @@ async function getProfileName() {
     .eq("id", user.id)
     .single();
 
-  return data?.name ?? null;
+  return { isLoggedIn: true, profileName: data?.name ?? null };
 }
 
 export async function Sidebar() {
-  const profileName = await getProfileName();
+  const { isLoggedIn, profileName } = await getProfileName();
 
-  return <SidebarClient profileName={profileName} />;
+  return <SidebarClient isLoggedIn={isLoggedIn} profileName={profileName} />;
 }
