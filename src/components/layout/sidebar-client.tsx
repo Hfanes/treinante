@@ -3,7 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import {
   Activity,
   ChevronLeft,
@@ -38,11 +44,25 @@ const secondaryNavItems = [
 const navBaseClass =
   "group relative flex h-10 items-center rounded-[2px] font-mono text-[0.68rem] uppercase tracking-[0.14em] no-underline transition-colors duration-200 ease-in-out focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] motion-reduce:transition-none";
 
+const collapsedWidth = 80;
+const openWidth = 240;
+const snapMidpoint = (collapsedWidth + openWidth) / 2;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function isActivePath(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function SidebarLabel({
   collapsed,
+  dragStyle,
   label,
 }: {
   collapsed: boolean;
+  dragStyle?: CSSProperties;
   label: string;
 }) {
   return (
@@ -50,6 +70,7 @@ function SidebarLabel({
       className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-in-out motion-reduce:transition-none ${
         collapsed ? "ml-0 max-w-0 opacity-0" : "ml-3 max-w-32 opacity-100"
       }`}
+      style={dragStyle}
     >
       {label}
     </span>
@@ -76,6 +97,7 @@ function NavLink({
   active,
   collapsed,
   disabled = false,
+  dragLabelStyle,
   href,
   icon: Icon,
   label,
@@ -83,6 +105,7 @@ function NavLink({
   active: boolean;
   collapsed: boolean;
   disabled?: boolean;
+  dragLabelStyle?: CSSProperties;
   href: string;
   icon: LucideIcon;
   label: string;
@@ -90,7 +113,11 @@ function NavLink({
   const content = (
     <>
       <Icon aria-hidden="true" className="size-4 shrink-0" strokeWidth={1.8} />
-      <SidebarLabel collapsed={collapsed} label={label} />
+      <SidebarLabel
+        collapsed={collapsed}
+        dragStyle={dragLabelStyle}
+        label={label}
+      />
       <SidebarTooltip collapsed={collapsed} label={label} />
     </>
   );
@@ -127,12 +154,14 @@ function NavLink({
 
 function AuthLink({
   collapsed,
+  dragLabelStyle,
   href,
   icon: Icon,
   label,
   primary = false,
 }: {
   collapsed: boolean;
+  dragLabelStyle?: CSSProperties;
   href: string;
   icon: LucideIcon;
   label: string;
@@ -151,7 +180,11 @@ function AuthLink({
       href={href}
     >
       <Icon aria-hidden="true" className="size-4 shrink-0" strokeWidth={1.8} />
-      <SidebarLabel collapsed={collapsed} label={label} />
+      <SidebarLabel
+        collapsed={collapsed}
+        dragStyle={dragLabelStyle}
+        label={label}
+      />
       <SidebarTooltip collapsed={collapsed} label={label} />
     </Link>
   );
@@ -166,6 +199,11 @@ export function SidebarClient({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragWidth, setDragWidth] = useState<number | null>(null);
+  const startXRef = useRef(0);
+  const startWidthRef = useRef(openWidth);
+  const latestWidthRef = useRef(openWidth);
 
   useEffect(() => {
     setCollapsed(
@@ -174,18 +212,97 @@ export function SidebarClient({
   }, []);
 
   function toggleCollapsed() {
-    setCollapsed((current) => {
-      const next = !current;
-      localStorage.setItem("runmetrics-sidebar-collapsed", String(next));
-      return next;
-    });
+    const next = !collapsed;
+    localStorage.setItem("runmetrics-sidebar-collapsed", String(next));
+    setCollapsed(next);
   }
+
+  function startResize(event: ReactMouseEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const currentWidth = collapsed ? collapsedWidth : openWidth;
+    startXRef.current = event.clientX;
+    startWidthRef.current = currentWidth;
+    latestWidthRef.current = currentWidth;
+    setDragWidth(currentWidth);
+    setIsDragging(true);
+  }
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const previousCursor = document.body.style.cursor;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    function handleMouseMove(event: MouseEvent) {
+      const nextWidth = clamp(
+        startWidthRef.current + event.clientX - startXRef.current,
+        collapsedWidth,
+        openWidth
+      );
+      latestWidthRef.current = nextWidth;
+      setDragWidth(nextWidth);
+    }
+
+    function handleMouseUp() {
+      const nextCollapsed = latestWidthRef.current < snapMidpoint;
+      if (nextCollapsed !== collapsed) {
+        localStorage.setItem(
+          "runmetrics-sidebar-collapsed",
+          String(nextCollapsed)
+        );
+        setCollapsed(nextCollapsed);
+      }
+      setIsDragging(false);
+      setDragWidth(null);
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+    }
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+    };
+  }, [collapsed, isDragging]);
+
+  const openness =
+    dragWidth === null
+      ? Number(!collapsed)
+      : (dragWidth - collapsedWidth) / (openWidth - collapsedWidth);
+  const layoutCollapsed = isDragging
+    ? (dragWidth ?? collapsedWidth) < snapMidpoint
+    : collapsed;
+  const labelRatio = clamp((openness - 0.25) / 0.75, 0, 1);
+  const dragLabelStyle = isDragging
+    ? {
+        marginLeft: `${labelRatio * 0.75}rem`,
+        maxWidth: `${labelRatio * 8}rem`,
+        opacity: labelRatio,
+      }
+    : undefined;
+  const dragWordmarkStyle = isDragging
+    ? {
+        maxHeight: `${labelRatio * 5}rem`,
+        maxWidth: `${labelRatio * 10}rem`,
+        opacity: labelRatio,
+      }
+    : undefined;
+  const sidebarStyle = isDragging
+    ? { transition: "none", width: `${dragWidth ?? openWidth}px` }
+    : undefined;
 
   return (
     <aside
       className={`sticky top-0 hidden h-screen shrink-0 border-r border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_92%,black)] transition-[width,padding] duration-300 ease-in-out motion-reduce:transition-none md:block ${
-        collapsed ? "w-20 px-3 py-4" : "w-60 p-5"
+        layoutCollapsed ? "w-20 px-3 py-4" : "w-60 p-5"
       }`}
+      style={sidebarStyle}
     >
       <div className="flex items-start justify-between gap-3">
         <Link
@@ -205,10 +322,11 @@ export function SidebarClient({
           </span>
           <span
             className={`min-w-0 overflow-hidden transition-[max-width,max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none ${
-              collapsed
+              layoutCollapsed
                 ? "max-h-0 max-w-0 opacity-0"
                 : "max-h-20 max-w-40 opacity-100"
             }`}
+            style={dragWordmarkStyle}
           >
             <span className="instrument-heading block text-3xl leading-none">
               RunMetrics
@@ -226,7 +344,7 @@ export function SidebarClient({
           <ChevronLeft
             aria-hidden="true"
             className={`size-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${
-              collapsed ? "rotate-180" : "rotate-0"
+              layoutCollapsed ? "rotate-180" : "rotate-0"
             }`}
             strokeWidth={1.8}
           />
@@ -236,9 +354,10 @@ export function SidebarClient({
       <nav className="mt-10 flex flex-col gap-1">
         {primaryNavItems.map(([label, href, Icon]) => (
           <NavLink
-            active={pathname === href}
-            collapsed={collapsed}
+            active={isActivePath(pathname, href)}
+            collapsed={layoutCollapsed}
             disabled={!isLoggedIn}
+            dragLabelStyle={dragLabelStyle}
             href={href}
             icon={Icon}
             key={href}
@@ -248,9 +367,10 @@ export function SidebarClient({
         <div className="my-4 h-px bg-[var(--border)]" />
         {secondaryNavItems.map(([label, href, Icon]) => (
           <NavLink
-            active={pathname === href}
-            collapsed={collapsed}
+            active={isActivePath(pathname, href)}
+            collapsed={layoutCollapsed}
             disabled={!isLoggedIn && href !== "/tools"}
+            dragLabelStyle={dragLabelStyle}
             href={href}
             icon={Icon}
             key={href}
@@ -261,20 +381,20 @@ export function SidebarClient({
 
       <div
         className={`absolute bottom-5 border-t border-[var(--border)] pt-4 ${
-          collapsed ? "inset-x-3" : "inset-x-5"
+          layoutCollapsed ? "inset-x-3" : "inset-x-5"
         }`}
       >
         {isLoggedIn ? (
-          <div className={collapsed ? "text-center" : ""}>
+          <div className={layoutCollapsed ? "text-center" : ""}>
             <p
               className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none ${
-                collapsed ? "max-h-0 opacity-0" : "max-h-6 opacity-100"
+                layoutCollapsed ? "max-h-0 opacity-0" : "max-h-6 opacity-100"
               } ui-label`}
             >
               Runner
             </p>
             <p className="mt-2 truncate text-sm text-[var(--bone)]">
-              {collapsed
+              {layoutCollapsed
                 ? (profileName ?? "Profile").at(0)
                 : (profileName ?? "Profile")}
             </p>
@@ -282,20 +402,35 @@ export function SidebarClient({
         ) : (
           <div className="grid gap-2">
             <AuthLink
-              collapsed={collapsed}
+              collapsed={layoutCollapsed}
+              dragLabelStyle={dragLabelStyle}
               href="/login"
               icon={LogIn}
               label="Login"
               primary
             />
             <AuthLink
-              collapsed={collapsed}
+              collapsed={layoutCollapsed}
+              dragLabelStyle={dragLabelStyle}
               href="/signup"
               icon={UserPlus}
               label="Register"
             />
           </div>
         )}
+      </div>
+      <div
+        aria-label="Resize sidebar"
+        aria-orientation="vertical"
+        className="group absolute top-0 right-[-4px] z-50 h-full w-2 cursor-col-resize"
+        onMouseDown={startResize}
+        role="separator"
+      >
+        <span
+          className={`absolute top-0 left-1/2 h-full w-[2px] -translate-x-1/2 bg-[var(--primary)] opacity-0 transition-opacity duration-150 group-hover:opacity-100 motion-reduce:transition-none ${
+            isDragging ? "opacity-100" : ""
+          }`}
+        />
       </div>
     </aside>
   );
