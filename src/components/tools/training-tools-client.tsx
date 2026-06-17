@@ -171,7 +171,7 @@ function GelCalculator({ pace }: { pace: number }) {
           <div className="mt-4 grid gap-2">
             {gels.map((gel) => (
               <div
-                className="grid grid-cols-[1fr_auto_auto] gap-3 rounded-[2px] bg-[var(--muted)] p-3 text-sm"
+                className="grid gap-2 rounded-[2px] bg-[var(--muted)] p-3 text-sm sm:grid-cols-[1fr_auto_auto] sm:gap-3"
                 key={gel.label}
               >
                 <div>
@@ -342,7 +342,11 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"
       >
         <input name="lthr" type="hidden" value={lthrValue} />
-        <Button disabled={!isLoggedIn || pending} type="submit">
+        <Button
+          className="w-full sm:w-auto"
+          disabled={!isLoggedIn || pending}
+          type="submit"
+        >
           {pending
             ? "Saving..."
             : estimatedMaxHr

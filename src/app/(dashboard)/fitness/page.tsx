@@ -78,7 +78,7 @@ export default async function FitnessPage() {
     <PageShell title="Fitness">
       <div className="grid gap-5">
         <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-          <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+          <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
             The shape{" "}
             <em className="font-normal text-[var(--primary)]">of your year.</em>
           </h2>

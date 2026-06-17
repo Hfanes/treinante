@@ -91,14 +91,16 @@ export function ManualRaceCalculator({
   return (
     <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
       <Card
-        className="bg-gray-950 text-white dark:bg-black"
+        className="bg-[color-mix(in_oklch,var(--background)_82%,black)] text-[var(--bone)]"
         subtitle="Anchor performance"
       >
-        <div className="flex w-fit rounded-full bg-white/10 p-1 text-sm">
+        <div className="grid grid-cols-2 rounded-[2px] bg-[var(--muted)] p-1 text-sm">
           {(["time", "pace"] as const).map((item) => (
             <button
-              className={`rounded-full px-3 py-1 font-medium ${
-                mode === item ? "bg-white text-gray-950" : "text-gray-300"
+              className={`min-h-11 rounded-[2px] px-3 py-2 font-medium ${
+                mode === item
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "text-[var(--foreground)]"
               }`}
               key={item}
               onClick={() => setMode(item)}
@@ -109,10 +111,10 @@ export function ManualRaceCalculator({
           ))}
         </div>
 
-        <label className="mt-5 grid gap-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <label className="ui-label mt-5 grid gap-3">
           <span className="flex items-center justify-between gap-3">
             Distance (km)
-            <span className="font-mono text-2xl text-white">
+            <span className="font-mono text-2xl text-[var(--bone)]">
               {distanceValue.toFixed(1)}
             </span>
           </span>
@@ -125,7 +127,7 @@ export function ManualRaceCalculator({
             type="range"
             value={distance}
           />
-          <span className="flex justify-between font-mono text-[0.68rem] text-gray-500">
+          <span className="flex justify-between font-mono text-[0.68rem] text-[var(--muted-foreground)]">
             <span>0.1</span>
             <span>42.2</span>
           </span>
@@ -133,20 +135,20 @@ export function ManualRaceCalculator({
 
         {mode === "time" ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <label className="grid gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <label className="ui-label grid gap-2">
               Minutes
               <input
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-2xl text-white"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-2xl text-[var(--bone)]"
                 min="0"
                 onChange={(event) => setMinutes(event.target.value)}
                 type="number"
                 value={minutes}
               />
             </label>
-            <label className="grid gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <label className="ui-label grid gap-2">
               Seconds
               <input
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-2xl text-white"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-2xl text-[var(--bone)]"
                 max="59"
                 min="0"
                 onChange={(event) => setSeconds(event.target.value)}
@@ -157,20 +159,20 @@ export function ManualRaceCalculator({
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <label className="grid gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <label className="ui-label grid gap-2">
               Pace min/km
               <input
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-2xl text-white"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-2xl text-[var(--bone)]"
                 min="0"
                 onChange={(event) => setPaceMinutes(event.target.value)}
                 type="number"
                 value={paceMinutes}
               />
             </label>
-            <label className="grid gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <label className="ui-label grid gap-2">
               Pace sec/km
               <input
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-2xl text-white"
+                className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-2xl text-[var(--bone)]"
                 max="59"
                 min="0"
                 onChange={(event) => setPaceSeconds(event.target.value)}
@@ -183,7 +185,7 @@ export function ManualRaceCalculator({
 
         <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
           <div>
-            <div className="text-xs uppercase tracking-wide text-gray-500">
+            <div className="ui-label">
               {mode === "time" ? "Pace" : "Finish time"}
             </div>
             <div className="mt-1 font-mono text-xl font-semibold">
@@ -193,9 +195,7 @@ export function ManualRaceCalculator({
             </div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wide text-gray-500">
-              VDOT est.
-            </div>
+            <div className="ui-label">VDOT est.</div>
             <div className="mt-1 font-mono text-xl font-semibold">
               {vdot?.toFixed(1) ?? "-"}
             </div>
@@ -204,10 +204,43 @@ export function ManualRaceCalculator({
       </Card>
 
       <Card subtitle="Across every standard distance.">
-        <h2 className="font-semibold text-gray-950 dark:text-white">
+        <h2 className="instrument-heading text-2xl text-[var(--bone)]">
           Projected times
         </h2>
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4 grid gap-3 md:hidden">
+          {projections.map((projection) => (
+            <article
+              className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+              key={projection.key}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium text-[var(--bone)]">
+                  {projection.label}
+                </p>
+                <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                  {projection.distance.toFixed(3).replace(/\.0+$/, "")} km
+                </p>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="ui-label">Time</dt>
+                  <dd className="mt-1 font-mono text-[var(--bone)]">
+                    {projection.predictedTime
+                      ? formatDuration(projection.predictedTime)
+                      : "-"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="ui-label">Pace</dt>
+                  <dd className="mt-1 font-mono text-[var(--bone)]">
+                    {projection.pace ? formatPace(projection.pace) : "-"}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          ))}
+        </div>
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
               <tr>
@@ -235,7 +268,7 @@ export function ManualRaceCalculator({
             </tbody>
           </table>
         </div>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <p className="ui-label mt-4">
           Model · Riegel exponent 1.06 · Assumes equal fitness and flat course.
         </p>
       </Card>

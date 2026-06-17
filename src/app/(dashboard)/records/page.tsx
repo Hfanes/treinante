@@ -82,7 +82,7 @@ function formatDate(date: string | null) {
 function RecordsHero() {
   return (
     <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-      <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+      <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
         Every best.{" "}
         <em className="font-normal text-[var(--primary)]">
           Every breakthrough.
@@ -214,10 +214,45 @@ export default async function RecordsPage() {
 
         {distanceRecords.length > 0 ? (
           <Card subtitle="Single-run bests and fixed-duration distance records.">
-            <h2 className="font-semibold text-gray-950 dark:text-white">
+            <h2 className="instrument-heading text-2xl text-[var(--bone)]">
               Distance bests
             </h2>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 grid gap-3 md:hidden">
+              {distanceRecords.map(({ type, label, format, record }) => {
+                if (!record) return null;
+                const run = record.run_id ? runMap.get(record.run_id) : null;
+
+                return (
+                  <article
+                    className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                    key={type}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-[var(--bone)]">
+                          {label}
+                        </p>
+                        <p className="mt-1 font-mono text-lg text-[var(--bone)]">
+                          {format(record.value)}
+                        </p>
+                      </div>
+                      <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                        {formatDate(record.achieved_at)}
+                      </p>
+                    </div>
+                    {run ? (
+                      <Link
+                        className="mt-3 inline-flex min-h-11 items-center text-sm text-[var(--primary)] no-underline"
+                        href={`/runs/${run.id}`}
+                      >
+                        Open run
+                      </Link>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   <tr>
@@ -263,10 +298,45 @@ export default async function RecordsPage() {
 
         {listRecords.length > 0 ? (
           <Card subtitle="Same personal records as a dense list for layout comparison.">
-            <h2 className="font-semibold text-gray-950 dark:text-white">
+            <h2 className="instrument-heading text-2xl text-[var(--bone)]">
               PR list
             </h2>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 grid gap-3 md:hidden">
+              {listRecords.map((record) => (
+                <article
+                  className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                  key={record.type}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-[var(--bone)]">
+                        {record.label}
+                      </p>
+                      {record.detail ? (
+                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                          {record.detail}
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                      {record.date}
+                    </p>
+                  </div>
+                  <p className="mt-3 font-mono text-xl text-[var(--bone)]">
+                    {record.value}
+                  </p>
+                  {record.run ? (
+                    <Link
+                      className="mt-3 inline-flex min-h-11 items-center text-sm text-[var(--primary)] no-underline"
+                      href={`/runs/${record.run.id}`}
+                    >
+                      Open run
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   <tr>

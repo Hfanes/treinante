@@ -146,10 +146,15 @@ export function AccountSettingsForm({ profile }: { profile: Profile }) {
         </label>
 
         <div className="flex flex-col justify-end gap-3 md:col-span-2 md:flex-row">
-          <Button type="button" variant="secondary" onClick={handleSignOut}>
+          <Button
+            className="w-full sm:w-auto"
+            type="button"
+            variant="secondary"
+            onClick={handleSignOut}
+          >
             Sign out
           </Button>
-          <Button type="submit" disabled={pending}>
+          <Button className="w-full sm:w-auto" type="submit" disabled={pending}>
             {pending ? "Saving..." : "Save settings"}
           </Button>
         </div>

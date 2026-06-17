@@ -268,10 +268,10 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
 
   return (
     <div>
-      <div className="h-[320px] w-full">
+      <div className="h-[240px] w-full sm:h-[320px]">
         <Chart type="line" data={data} options={options} />
       </div>
-      <div className="mx-auto mt-8 grid max-w-3xl grid-cols-[1fr_1fr] gap-8 border-b border-[var(--border)] pb-4 text-center">
+      <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[1fr_1fr] gap-4 border-b border-[var(--border)] pb-4 text-center sm:mt-8 sm:gap-8">
         <MetricToggle
           checked={showPace}
           label="Pace"
@@ -284,7 +284,7 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
           onChange={() => setShowHr((value) => !value)}
         />
       </div>
-      <div className="mx-auto grid max-w-3xl grid-cols-[1fr_1fr_1fr] gap-8 py-3 text-center">
+      <div className="mx-auto grid max-w-3xl grid-cols-[1fr_1fr_1fr] gap-3 py-3 text-center sm:gap-8">
         <div className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--bone)]">
           Avg
         </div>
@@ -315,13 +315,13 @@ function MetricToggle({
       <div className="text-sm text-[var(--bone)]">{label}</div>
       <button
         aria-pressed={checked}
-        className={`relative h-4 w-9 rounded-full border border-[var(--border)] transition disabled:cursor-not-allowed disabled:opacity-40 ${checked ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}
+        className={`relative h-6 w-11 rounded-full border border-[var(--border)] transition disabled:cursor-not-allowed disabled:opacity-40 ${checked ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}
         disabled={disabled}
         onClick={onChange}
         type="button"
       >
         <span
-          className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-[var(--border)] bg-[var(--bone)] transition ${checked ? "left-[calc(100%-1.25rem)]" : "left-[-1px]"}`}
+          className={`absolute top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-[var(--border)] bg-[var(--bone)] transition ${checked ? "left-[calc(100%-1.5rem)]" : "left-[-1px]"}`}
         />
         {checked ? (
           <span className="absolute left-1 top-1/2 -translate-y-1/2 font-mono text-[0.55rem] uppercase text-[var(--primary-foreground)]">

@@ -89,10 +89,17 @@ textarea {
 input,
 select,
 textarea {
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 2px;
   background: color-mix(in oklch, var(--background) 84%, black);
   color: var(--bone);
+}
+
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: auto;
 }
 
 input:focus,

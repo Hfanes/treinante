@@ -204,11 +204,63 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
         ) : null}
 
         {analysis.splits.length > 0 ? (
-          <details className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <summary className="cursor-pointer text-sm font-medium text-gray-950 dark:text-white">
+          <details className="rounded-[2px] border border-[var(--border)] bg-[var(--card)] p-4">
+            <summary className="min-h-11 cursor-pointer text-sm font-medium text-[var(--bone)]">
               Per-km splits table
             </summary>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 grid gap-3 md:hidden">
+              {analysis.splits.map((split) => (
+                <article
+                  className={`rounded-[2px] border border-[var(--border)] p-3 ${split.is_stop ? "bg-[var(--muted)]" : "bg-[color-mix(in_oklch,var(--card)_92%,black)]"}`}
+                  key={split.km}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="ui-label">Kilometer</p>
+                      <p className="mt-1 font-mono text-lg text-[var(--bone)]">
+                        {split.km}
+                      </p>
+                    </div>
+                    {split.is_stop ? (
+                      <Badge variant="neutral">Stop flag</Badge>
+                    ) : null}
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <dt className="ui-label">Pace</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {formatPace(split.pace)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">GAP</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.gap ? formatPace(split.gap) : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">HR</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.hr ? `${split.hr} bpm` : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">Elevation</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.elevation ? `${split.elevation} m` : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">D+/-</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {formatElevationDelta(split.elevationDelta)}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   <tr>

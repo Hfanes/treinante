@@ -23,11 +23,11 @@ import {
 import type { Profile, Run } from "@/types";
 
 const actionClass =
-  "inline-flex items-center justify-center rounded-[2px] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-sm font-medium !text-[var(--primary-foreground)] no-underline transition hover:opacity-90";
+  "inline-flex min-h-11 items-center justify-center rounded-[2px] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-sm font-medium !text-[var(--primary-foreground)] no-underline transition hover:opacity-90";
 const secondaryActionClass =
-  "inline-flex items-center justify-center rounded-[2px] border border-[var(--border)] bg-[var(--muted)] px-4 py-2 text-sm font-medium text-[var(--bone)] no-underline transition hover:border-[var(--primary)] hover:text-[var(--primary)]";
+  "inline-flex min-h-11 items-center justify-center rounded-[2px] border border-[var(--border)] bg-[var(--muted)] px-4 py-2 text-sm font-medium text-[var(--bone)] no-underline transition hover:border-[var(--primary)] hover:text-[var(--primary)]";
 const ghostActionClass =
-  "inline-flex items-center justify-center rounded-[2px] px-4 py-2 text-sm font-medium text-[var(--secondary)] no-underline transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]";
+  "inline-flex min-h-11 items-center justify-center rounded-[2px] px-4 py-2 text-sm font-medium text-[var(--secondary)] no-underline transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]";
 
 type SummaryRange = "week" | "month" | "90d" | "year";
 
@@ -147,10 +147,10 @@ function RangeSelector({
   setRange: (range: SummaryRange) => void;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap gap-2">
+    <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap md:mb-8">
       {summaryRanges.map((item) => (
         <button
-          className={`rounded-[2px] border px-3 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition ${
+          className={`min-h-11 rounded-[2px] border px-3 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition ${
             range === item.key
               ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
               : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -179,13 +179,13 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
 
   return (
     <div className="py-6">
-      <div className="grid grid-cols-[4rem_1fr] gap-4">
-        <div className="grid h-72 grid-rows-3 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+      <div className="grid grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
+        <div className="grid h-56 grid-rows-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:h-72 sm:text-[0.68rem] sm:tracking-[0.14em]">
           <span>{Math.ceil(max)} km</span>
           <span className="self-center">{mid} km</span>
           <span className="self-end">0 km</span>
         </div>
-        <div className="relative h-72 border-b border-l border-[var(--border)] pl-2">
+        <div className="relative h-56 border-b border-l border-[var(--border)] pl-2 sm:h-72">
           <div className="absolute inset-0 flex items-end gap-[3px]">
             {buckets.map((bucket) => (
               <Link
@@ -267,13 +267,13 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
 
   return (
     <div className="py-6">
-      <div className="grid grid-cols-[4rem_1fr] gap-4">
-        <div className="grid h-72 grid-rows-3 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+      <div className="grid grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
+        <div className="grid h-56 grid-rows-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:h-72 sm:text-[0.68rem] sm:tracking-[0.14em]">
           <span>{maxCount} runs</span>
           <span className="self-center">{midCount} runs</span>
           <span className="self-end">0 runs</span>
         </div>
-        <div className="relative h-72 border-b border-l border-[var(--border)] pl-2">
+        <div className="relative h-56 border-b border-l border-[var(--border)] pl-2 sm:h-72">
           <div className="absolute inset-0 flex items-end gap-[3px]">
             {buckets.map((bucket) => (
               <div
@@ -314,7 +314,7 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
           </svg>
         </div>
       </div>
-      <div className="ml-[5rem] mt-2 grid grid-cols-3 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+      <div className="ml-[4rem] mt-2 grid grid-cols-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:ml-[5rem] sm:text-[0.68rem] sm:tracking-[0.14em]">
         <span>1 km</span>
         <span className="text-center">{midDistance} km</span>
         <span className="text-right">{maxDistance} km</span>
@@ -631,22 +631,22 @@ export function DashboardRunsClient({
   }
 
   return (
-    <div className="grid gap-16">
-      <section className="grid min-h-[32rem] gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <div className="min-h-[30rem]">
+    <div className="grid gap-10 md:gap-16">
+      <section className="grid gap-8 md:min-h-[32rem] md:gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="md:min-h-[30rem]">
           <p className="ui-label">[01 / Field Journal]</p>
-          <h2 className="instrument-heading mt-8 max-w-3xl text-7xl leading-[0.9] md:text-8xl xl:text-9xl">
+          <h2 className="instrument-heading mt-5 max-w-3xl text-5xl leading-[0.94] sm:text-6xl md:mt-8 md:text-8xl xl:text-9xl">
             Where every stride is measured
           </h2>
           {weekLongestRun ? (
-            <p className="ui-label mt-12">
+            <p className="ui-label mt-6 md:mt-12">
               Week long run · {weekLongestRun.distance.toFixed(1)} km ·{" "}
               {weekLongestRun.elevation_gain.toFixed(0)} m ↑
             </p>
           ) : null}
         </div>
 
-        <div className="pt-8">
+        <div className="md:pt-8">
           <RangeSelector range={summaryRange} setRange={setSummaryRange} />
           <div className="grid grid-cols-2 gap-x-12 gap-y-10">
             <JournalMetric
@@ -682,8 +682,8 @@ export function DashboardRunsClient({
               value={latestFitness?.ctl ?? "-"}
             />
           </div>
-          <p className="mt-10 max-w-xl font-serif text-xl leading-8 text-[var(--foreground)]">
-            Import any run — road, trail, track. RunMetrics draws the full
+          <p className="mt-8 max-w-xl font-serif text-lg leading-7 text-[var(--foreground)] md:mt-10 md:text-xl md:leading-8">
+            Import any run — road, trail, track. Treinante draws the full
             picture: splits, climbs, fitness, fatigue, predictions, reports, and
             records.
           </p>
@@ -750,7 +750,7 @@ export function DashboardRunsClient({
         <Card subtitle="Last 60 days, with GAP when elevation splits exist.">
           <h2 className="instrument-heading text-2xl">Pace trend</h2>
           {dashboard.paceHistory.length >= 4 ? (
-            <div className="mt-4 h-[320px]">
+            <div className="mt-4 h-[240px] sm:h-[320px]">
               <PaceTrendChart points={dashboard.paceHistory} />
             </div>
           ) : (
@@ -781,7 +781,7 @@ export function DashboardRunsClient({
                 </span>
               </div>
             </div>
-            <div className="mt-4 h-[300px]">
+            <div className="mt-4 h-[240px] sm:h-[300px]">
               <HrTrendChart
                 points={dashboard.hrHistory}
                 maxHr={profile?.max_hr ?? null}
@@ -800,7 +800,7 @@ export function DashboardRunsClient({
             </Link>
           </div>
           {dashboard.fitnessPreview.length > 0 ? (
-            <div className="mt-4 h-[300px]">
+            <div className="mt-4 h-[240px] sm:h-[300px]">
               <FitnessPreviewChart points={dashboard.fitnessPreview} />
             </div>
           ) : (
@@ -815,7 +815,7 @@ export function DashboardRunsClient({
         <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <div>
             <p className="ui-label">[05 / Latest Efforts]</p>
-            <h2 className="instrument-heading mt-4 text-6xl leading-none md:text-7xl">
+            <h2 className="instrument-heading mt-4 text-5xl leading-none md:text-7xl">
               Every
               <br />
               <em>distance</em>
@@ -823,7 +823,7 @@ export function DashboardRunsClient({
               accounted for.
             </h2>
             <p className="mt-8 max-w-sm text-sm leading-6 text-[var(--foreground)]">
-              RunMetrics scans your logbook and turns ordinary kilometres into a
+              Treinante scans your logbook and turns ordinary kilometres into a
               field record: every shake-out, long run, climb, and test effort
               preserved as part of the runner you are becoming.
             </p>
@@ -878,7 +878,7 @@ export function DashboardRunsClient({
       </section>
 
       <section className="grid items-end gap-6 pt-10 lg:grid-cols-[1fr_auto]">
-        <h2 className="instrument-heading text-5xl leading-none md:text-6xl">
+        <h2 className="instrument-heading text-4xl leading-none md:text-6xl">
           A complete picture of the runner you are —{" "}
           <em>and the one becoming.</em>
         </h2>

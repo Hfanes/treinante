@@ -216,10 +216,10 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
 
   return (
     <div className="mt-5 grid gap-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap">
         {RANGES.map((item) => (
           <button
-            className={`rounded-[2px] border px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] transition ${
+            className={`min-h-11 rounded-[2px] border px-2 py-2 font-mono text-[0.68rem] uppercase tracking-[0.14em] transition sm:px-3 ${
               item.label === range.label
                 ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
                 : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -254,11 +254,11 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
             </span>
           </div>
         </div>
-        <div className="h-[340px]">
+        <div className="h-[240px] sm:h-[340px]">
           <Line data={lineData} options={lineOptions} />
         </div>
       </div>
-      <div className="h-[220px] rounded-[2px] border border-[var(--border)] p-3">
+      <div className="h-[180px] rounded-[2px] border border-[var(--border)] p-3 sm:h-[220px]">
         <Bar data={barData} options={barOptions} />
       </div>
     </div>

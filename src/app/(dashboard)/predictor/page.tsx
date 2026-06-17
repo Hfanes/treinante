@@ -334,7 +334,7 @@ export default async function PredictorPage() {
     <PageShell title="Race Predictor">
       <div className="grid gap-5">
         <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
-          <h2 className="instrument-heading max-w-5xl text-6xl leading-[0.92] tracking-[-0.03em] text-[var(--primary)] sm:text-7xl lg:text-8xl">
+          <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
             From one effort,{" "}
             <em className="font-normal text-[var(--primary)]">
               the whole season.
@@ -349,7 +349,7 @@ export default async function PredictorPage() {
           <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
             <div>
               <p className="ui-label">Working VO2max</p>
-              <div className="instrument-heading mt-4 mb-4 text-7xl leading-none text-[var(--primary)] md:text-8xl">
+              <div className="instrument-heading mt-4 mb-4 text-6xl leading-none text-[var(--primary)] sm:text-7xl md:text-8xl">
                 {workingVo2max?.toFixed(1) ?? "-"}
               </div>
               <p className="mt-4 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
@@ -453,53 +453,104 @@ export default async function PredictorPage() {
             </div>
           ) : null}
           {predictions.length > 0 ? (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  <tr>
-                    <th className="py-2">Distance</th>
-                    <th>km</th>
-                    <th>Predicted time</th>
-                    <th>Pace</th>
-                    <th>Personal best</th>
-                    <th>PR delta</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {predictions.map((prediction) => (
-                    <tr key={prediction.key}>
-                      <td className="py-3 font-medium text-gray-950 dark:text-white">
-                        {prediction.label}
-                      </td>
-                      <td>
-                        {prediction.distance.toFixed(3).replace(/\.0+$/, "")}
-                      </td>
-                      <td>
-                        {prediction.predictedTime
-                          ? formatDuration(prediction.predictedTime)
-                          : "-"}
-                      </td>
-                      <td>
-                        {prediction.pace ? formatPace(prediction.pace) : "-"}
-                      </td>
-                      <td>{formatBest(prediction.prTime)}</td>
-                      <td>
-                        {prediction.prGap !== null ? (
-                          <Badge
-                            variant={
-                              prediction.prGap < 0 ? "optimal" : "neutral"
-                            }
-                          >
-                            {formatDelta(prediction.prGap)}
-                          </Badge>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
+            <div className="mt-4">
+              <div className="grid gap-3 md:hidden">
+                {predictions.map((prediction) => (
+                  <article
+                    className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                    key={prediction.key}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-[var(--bone)]">
+                          {prediction.label}
+                        </p>
+                        <p className="mt-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                          {prediction.distance.toFixed(3).replace(/\.0+$/, "")}{" "}
+                          km
+                        </p>
+                      </div>
+                      {prediction.prGap !== null ? (
+                        <Badge
+                          variant={prediction.prGap < 0 ? "optimal" : "neutral"}
+                        >
+                          {formatDelta(prediction.prGap)}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <dt className="ui-label">Predicted</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {prediction.predictedTime
+                            ? formatDuration(prediction.predictedTime)
+                            : "-"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="ui-label">Pace</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {prediction.pace ? formatPace(prediction.pace) : "-"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="ui-label">Personal best</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {formatBest(prediction.prTime)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full min-w-[680px] text-left text-sm">
+                  <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    <tr>
+                      <th className="py-2">Distance</th>
+                      <th>km</th>
+                      <th>Predicted time</th>
+                      <th>Pace</th>
+                      <th>Personal best</th>
+                      <th>PR delta</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                    {predictions.map((prediction) => (
+                      <tr key={prediction.key}>
+                        <td className="py-3 font-medium text-gray-950 dark:text-white">
+                          {prediction.label}
+                        </td>
+                        <td>
+                          {prediction.distance.toFixed(3).replace(/\.0+$/, "")}
+                        </td>
+                        <td>
+                          {prediction.predictedTime
+                            ? formatDuration(prediction.predictedTime)
+                            : "-"}
+                        </td>
+                        <td>
+                          {prediction.pace ? formatPace(prediction.pace) : "-"}
+                        </td>
+                        <td>{formatBest(prediction.prTime)}</td>
+                        <td>
+                          {prediction.prGap !== null ? (
+                            <Badge
+                              variant={
+                                prediction.prGap < 0 ? "optimal" : "neutral"
+                              }
+                            >
+                              {formatDelta(prediction.prGap)}
+                            </Badge>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 Model · Riegel exponent 1.06 · Assumes equal fitness and flat
                 course.

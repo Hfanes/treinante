@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNavClient } from "@/components/layout/mobile-nav-client";
 import { OnboardingModal } from "@/components/auth/onboarding-modal";
 import { ensurePreviousWeeklyReport } from "@/lib/reportEngine";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
-import Link from "next/link";
 
 async function getProfile() {
   const supabase = await createServerClient();
@@ -40,23 +40,7 @@ export default async function DashboardLayout({
       {profile && !profile.onboarding_complete ? (
         <OnboardingModal initialProfile={profile} />
       ) : null}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] font-mono text-[0.6rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] md:hidden">
-        <Link className="p-3 text-center no-underline" href="/dashboard">
-          Dashboard
-        </Link>
-        <Link className="p-3 text-center no-underline" href="/runs">
-          Runs
-        </Link>
-        <Link className="p-3 text-center no-underline" href="/tools">
-          Tools
-        </Link>
-        <Link className="p-3 text-center no-underline" href="/fitness">
-          Fitness
-        </Link>
-        <Link className="p-3 text-center no-underline" href="/settings">
-          More
-        </Link>
-      </nav>
+      <MobileNavClient />
     </div>
   );
 }
