@@ -108,7 +108,7 @@ Three voices. Never substitute. Never mix roles.
 ┌───────────────────────────────────────────────────┐
 │  Sidebar (240px fixed)  │  Main content (flex-1)  │
 │                         │                         │
-│  [Logo: RunMetrics]     │  [Top bar]              │
+│  [Logo: Treinante]      │  [Top bar]              │
 │                         │                         │
 │  [Nav items]            │  [Page content]         │
 │                         │   scrollable            │

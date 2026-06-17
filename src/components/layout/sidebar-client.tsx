@@ -14,7 +14,7 @@ import {
   Activity,
   ChevronLeft,
   FileText,
-  Flame,
+  HeartPulse,
   LayoutDashboard,
   LogIn,
   MapPin,
@@ -27,10 +27,10 @@ import {
 } from "lucide-react";
 
 const primaryNavItems = [
-  ["Dashboard", "/dashboard", LayoutDashboard],
+  ["Home", "/dashboard", LayoutDashboard],
   ["Runs", "/runs", Activity],
   ["Records", "/records", Trophy],
-  ["Fitness", "/fitness", Flame],
+  ["Fitness", "/fitness", HeartPulse],
   ["Predictor", "/predictor", TrendingUp],
   ["Segments", "/segments", MapPin],
   ["Reports", "/reports", FileText],
@@ -207,13 +207,13 @@ export function SidebarClient({
 
   useEffect(() => {
     setCollapsed(
-      localStorage.getItem("runmetrics-sidebar-collapsed") === "true"
+      localStorage.getItem("treinante-sidebar-collapsed") === "true"
     );
   }, []);
 
   function toggleCollapsed() {
     const next = !collapsed;
-    localStorage.setItem("runmetrics-sidebar-collapsed", String(next));
+    localStorage.setItem("treinante-sidebar-collapsed", String(next));
     setCollapsed(next);
   }
 
@@ -249,7 +249,7 @@ export function SidebarClient({
       const nextCollapsed = latestWidthRef.current < snapMidpoint;
       if (nextCollapsed !== collapsed) {
         localStorage.setItem(
-          "runmetrics-sidebar-collapsed",
+          "treinante-sidebar-collapsed",
           String(nextCollapsed)
         );
         setCollapsed(nextCollapsed);
@@ -306,7 +306,7 @@ export function SidebarClient({
     >
       <div className="flex items-start justify-between gap-3">
         <Link
-          aria-label="RunMetrics home"
+          aria-label="Treinante home"
           className="flex min-w-0 items-start gap-3 no-underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
           href={isLoggedIn ? "/dashboard" : "/tools"}
         >
@@ -329,7 +329,7 @@ export function SidebarClient({
             style={dragWordmarkStyle}
           >
             <span className="instrument-heading block text-3xl leading-none">
-              RunMetrics
+              Treinante
             </span>
             <span className="ui-label mt-2 block">Training Instrument</span>
           </span>

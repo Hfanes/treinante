@@ -21,8 +21,13 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RunMetrics",
+  applicationName: "Treinante",
+  title: "Treinante",
   description: "Running analytics for every runner.",
+  icons: {
+    icon: "/images/bg-removed-logo.png",
+    apple: "/images/bg-removed-logo.png",
+  },
 };
 
 export default function RootLayout({

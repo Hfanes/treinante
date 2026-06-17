@@ -1,4 +1,4 @@
-# RunMetrics — PRD Index
+# Treinante — PRD Index
 
 A general-purpose running analytics platform. Any runner — road, trail, track, or mixed — can sign up, import their runs, and get a complete picture of their training: metrics, progress, fitness trends, and tools.
 

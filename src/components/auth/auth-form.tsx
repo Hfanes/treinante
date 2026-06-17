@@ -72,7 +72,7 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
       }
     >
       <div className="mb-6">
-        <p className="ui-label">RunMetrics</p>
+        <p className="ui-label">Treinante</p>
         <h1 className="instrument-heading mt-2 text-4xl">
           {isLogin ? "Log in" : "Create account"}
         </h1>

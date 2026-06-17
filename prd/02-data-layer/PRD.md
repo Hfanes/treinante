@@ -173,7 +173,7 @@ interface RunDB extends DBSchema {
   sync_meta: { key: string; value: { key: string; value: string } };
 }
 
-export const db = openDB<RunDB>("runmetrics", 1, {
+export const db = openDB<RunDB>("treinante", 1, {
   upgrade(db) {
     const runs = db.createObjectStore("runs", { keyPath: "id" });
     runs.createIndex("by_date", "date");
