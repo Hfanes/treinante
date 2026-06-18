@@ -357,18 +357,18 @@ export function HrTrendChart({
 
 export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
   return (
-    <div className="vbars-dense h-full rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-4">
-      <div className="mb-3 flex flex-wrap justify-end gap-5 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[#f3d49b]">
+    <div className="vbars-dense flex h-full min-w-0 flex-col rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-3 sm:p-4">
+      <div className="mb-2 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-[#f3d49b] sm:mb-3 sm:justify-end sm:gap-5 sm:text-[0.68rem] sm:tracking-[0.14em]">
         <span className="inline-flex items-center gap-2">
-          <span className="h-px w-8 bg-[#f3d49b]" aria-hidden="true" />
+          <span className="h-px w-5 bg-[#f3d49b] sm:w-8" aria-hidden="true" />
           CTL - Fitness
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-px w-8 bg-[#7f6d4d]" aria-hidden="true" />
+          <span className="h-px w-5 bg-[#7f6d4d] sm:w-8" aria-hidden="true" />
           ATL - Fatigue
         </span>
       </div>
-      <div className="h-[calc(100%-2.25rem)]">
+      <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         <Line
           data={{
             labels: points.map((point) => point.date.slice(5)),

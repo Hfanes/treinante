@@ -51,13 +51,15 @@ function MobileNavLink({
   return (
     <Link
       aria-current={active ? "page" : undefined}
-      className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 font-mono text-[0.52rem] leading-none uppercase tracking-[0.12em] no-underline transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--primary)] ${
+      className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 overflow-hidden px-1 py-2 font-mono text-[0.52rem] leading-none uppercase tracking-[0.08em] no-underline transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--primary)] ${
         active ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
       }`}
       href={href}
     >
       <Icon aria-hidden="true" className="size-5 shrink-0" strokeWidth={1.6} />
-      <span className="text-[0.52rem] leading-none">{label}</span>
+      <span className="max-w-full truncate text-[0.52rem] leading-none">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -76,7 +78,7 @@ export function MobileNavClient() {
             onClick={() => setMoreOpen(false)}
             type="button"
           />
-          <div className="absolute inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] mx-2 rounded-t-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] p-5 shadow-2xl">
+          <div className="absolute bottom-[calc(4.25rem+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-1rem)] max-w-md -translate-x-1/2 rounded-t-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] p-4 shadow-2xl sm:p-5">
             <div className="mx-auto mb-8 h-1 w-10 rounded-[2px] bg-[var(--border)]" />
             <div className="mb-5 flex items-center justify-between">
               <p className="ui-label">More</p>
@@ -95,7 +97,7 @@ export function MobileNavClient() {
                   aria-current={
                     isActivePath(pathname, href) ? "page" : undefined
                   }
-                  className={`flex items-center gap-2 rounded-[2px] border border-[var(--border)] px-4 py-4 font-mono text-[0.68rem] uppercase tracking-[0.18em] no-underline transition hover:border-[var(--primary)] hover:text-[var(--primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--primary)] ${
+                  className={`flex min-w-0 items-center gap-2 rounded-[2px] border border-[var(--border)] px-3 py-4 font-mono text-[0.64rem] uppercase tracking-[0.1em] no-underline transition hover:border-[var(--primary)] hover:text-[var(--primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--primary)] sm:px-4 sm:text-[0.68rem] sm:tracking-[0.14em] ${
                     isActivePath(pathname, href)
                       ? "text-[var(--primary)]"
                       : "text-[var(--muted-foreground)]"
@@ -106,10 +108,10 @@ export function MobileNavClient() {
                 >
                   <Icon
                     aria-hidden="true"
-                    className="size-4"
+                    className="size-4 shrink-0"
                     strokeWidth={1.6}
                   />
-                  {label}
+                  <span className="min-w-0 truncate">{label}</span>
                 </Link>
               ))}
             </div>
@@ -117,7 +119,7 @@ export function MobileNavClient() {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4.25rem+env(safe-area-inset-bottom))] grid-cols-5 border-t border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] pb-[env(safe-area-inset-bottom)] text-[var(--muted-foreground)] md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid h-[calc(4.25rem+env(safe-area-inset-bottom))] max-w-full grid-cols-5 overflow-hidden border-t border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_94%,black)] pb-[env(safe-area-inset-bottom)] text-[var(--muted-foreground)] md:hidden">
         {primaryItems.slice(0, 3).map(([label, href, Icon]) => (
           <MobileNavLink
             active={isActivePath(pathname, href)}
@@ -136,7 +138,7 @@ export function MobileNavClient() {
         <button
           aria-expanded={moreOpen}
           aria-label="Open more navigation"
-          className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 font-mono text-[0.52rem] leading-none uppercase tracking-[0.12em] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--primary)] ${
+          className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 overflow-hidden px-1 py-2 font-mono text-[0.52rem] leading-none uppercase tracking-[0.08em] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--primary)] ${
             moreOpen
               ? "text-[var(--primary)]"
               : "text-[var(--muted-foreground)]"
@@ -149,7 +151,9 @@ export function MobileNavClient() {
             className="size-5"
             strokeWidth={1.6}
           />
-          <span className="text-[0.52rem] leading-none">More</span>
+          <span className="max-w-full truncate text-[0.52rem] leading-none">
+            More
+          </span>
         </button>
       </nav>
     </>

@@ -17,7 +17,7 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`instrument-card metric-card p-4 sm:p-5 md:p-6 ${className}`}
+      className={`instrument-card metric-card min-w-0 max-w-full p-4 sm:p-5 md:p-6 ${className}`}
     >
       {label ? <div className="metric-label">{label}</div> : null}
       {value !== undefined ? (

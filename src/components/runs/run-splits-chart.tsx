@@ -268,7 +268,7 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
 
   return (
     <div>
-      <div className="h-[240px] w-full sm:h-[320px]">
+      <div className="h-[240px] min-w-0 overflow-hidden sm:h-[320px]">
         <Chart type="line" data={data} options={options} />
       </div>
       <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[1fr_1fr] gap-4 border-b border-[var(--border)] pb-4 text-center sm:mt-8 sm:gap-8">

@@ -150,7 +150,7 @@ function RangeSelector({
     <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap md:mb-8">
       {summaryRanges.map((item) => (
         <button
-          className={`min-h-11 rounded-[2px] border px-3 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition ${
+          className={`min-h-6 rounded-[2px] border px-2 py-1 font-mono text-[0.4rem] uppercase tracking-[0.02em] transition sm:min-h-8 sm:px-2.5 sm:text-[0.4rem] sm:tracking-[0.08em] ${
             range === item.key
               ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
               : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -179,13 +179,13 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
 
   return (
     <div className="py-6">
-      <div className="grid grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
+      <div className="grid min-w-0 grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
         <div className="grid h-56 grid-rows-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:h-72 sm:text-[0.68rem] sm:tracking-[0.14em]">
           <span>{Math.ceil(max)} km</span>
           <span className="self-center">{mid} km</span>
           <span className="self-end">0 km</span>
         </div>
-        <div className="relative h-56 border-b border-l border-[var(--border)] pl-2 sm:h-72">
+        <div className="relative h-56 min-w-0 overflow-visible border-b border-l border-[var(--border)] pl-2 sm:h-72">
           <div className="absolute inset-0 flex items-end gap-[3px]">
             {buckets.map((bucket) => (
               <Link
@@ -194,12 +194,15 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
                 href={`/runs?dateFrom=${bucket.start}&dateTo=${bucket.end}`}
                 key={bucket.start}
               >
-                <span className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max -translate-x-1/2 border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                  {bucket.label} · {bucket.totalKm.toFixed(1)} km ·{" "}
-                  {bucket.runs} runs
-                  {bucket.elevationGain
-                    ? ` · ${bucket.elevationGain} m D+`
-                    : ""}
+                <span className="pointer-events-none absolute top-2 left-1/2 z-10 hidden w-40 -translate-x-1/2 border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100 sm:grid sm:gap-1">
+                  <span>{bucket.label}</span>
+                  <span>{bucket.totalKm.toFixed(1)} km</span>
+                  <span>
+                    {bucket.runs} runs
+                    {bucket.elevationGain
+                      ? ` · ${bucket.elevationGain} m D+`
+                      : ""}
+                  </span>
                 </span>
                 <span
                   className="block w-full bg-[var(--primary)] opacity-55 transition group-hover:opacity-90 group-focus-visible:opacity-90"
@@ -215,7 +218,7 @@ function WeeklyJournalBars({ buckets }: { buckets: WeeklyBucket[] }) {
           </div>
           <svg
             aria-label="Weekly volume trend line"
-            className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+            className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden"
             preserveAspectRatio="none"
             role="img"
             viewBox="0 0 100 100"
@@ -267,13 +270,13 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
 
   return (
     <div className="py-6">
-      <div className="grid grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
+      <div className="grid min-w-0 grid-cols-[3rem_1fr] gap-3 sm:grid-cols-[4rem_1fr] sm:gap-4">
         <div className="grid h-56 grid-rows-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:h-72 sm:text-[0.68rem] sm:tracking-[0.14em]">
           <span>{maxCount} runs</span>
           <span className="self-center">{midCount} runs</span>
           <span className="self-end">0 runs</span>
         </div>
-        <div className="relative h-56 border-b border-l border-[var(--border)] pl-2 sm:h-72">
+        <div className="relative h-56 min-w-0 overflow-visible border-b border-l border-[var(--border)] pl-2 sm:h-72">
           <div className="absolute inset-0 flex items-end gap-[3px]">
             {buckets.map((bucket) => (
               <div
@@ -281,7 +284,7 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
                 className="group relative flex h-full flex-1 items-end"
                 key={bucket.distance}
               >
-                <span className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max -translate-x-1/2 border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100">
+                <span className="pointer-events-none absolute top-2 left-1/2 z-10 hidden max-w-[10rem] -translate-x-1/2 whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 sm:block">
                   {bucket.distance} km · {bucket.count}{" "}
                   {bucket.count === 1 ? "run" : "runs"}
                 </span>
@@ -299,7 +302,7 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
           </div>
           <svg
             aria-label="Distance distribution overlay curve"
-            className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+            className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden"
             preserveAspectRatio="none"
             role="img"
             viewBox="0 0 100 100"
@@ -314,7 +317,7 @@ function DistanceDistribution({ runs }: { runs: Run[] }) {
           </svg>
         </div>
       </div>
-      <div className="ml-[4rem] mt-2 grid grid-cols-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:ml-[5rem] sm:text-[0.68rem] sm:tracking-[0.14em]">
+      <div className="mt-2 grid grid-cols-3 pl-[4rem] font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--muted-foreground)] sm:pl-[5rem] sm:text-[0.68rem] sm:tracking-[0.14em]">
         <span>1 km</span>
         <span className="text-center">{midDistance} km</span>
         <span className="text-right">{maxDistance} km</span>
@@ -355,8 +358,8 @@ function HeartZoneDistribution({
   ];
 
   return (
-    <Card className="lg:col-span-2">
-      <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+    <Card className="order-3 lg:order-none lg:col-span-2">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <h2 className="ui-label">Heart Rate Zone Distribution</h2>
           <div className="mt-6 grid gap-4">
@@ -365,7 +368,7 @@ function HeartZoneDistribution({
                 const pct = Math.round((row.value / total) * 100);
                 return (
                   <div
-                    className="grid grid-cols-[3rem_1fr_3rem] items-center gap-4"
+                    className="grid min-w-0 grid-cols-[3rem_1fr_3rem] items-center gap-3 sm:gap-4"
                     key={row.label}
                   >
                     <span className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--bone)]">
@@ -439,10 +442,10 @@ function ThisWeekPaceTrend({ runs, streak }: { runs: Run[]; streak: number }) {
   const ticks = [min, min + range / 3, min + (range * 2) / 3, max];
 
   return (
-    <Card>
+    <Card className="order-4 lg:order-none">
       <h2 className="ui-label">This Week Pace Trend</h2>
       {points.length >= 2 ? (
-        <div className="mt-6 grid grid-cols-[3rem_1fr] gap-3">
+        <div className="mt-6 grid min-w-0 grid-cols-[3rem_1fr] gap-3">
           <div className="grid h-40 grid-rows-4 font-mono text-[0.68rem] text-[var(--secondary)]">
             {ticks.toReversed().map((tick) => (
               <span key={tick}>{formatDashboardPace(Math.round(tick))}</span>
@@ -451,7 +454,7 @@ function ThisWeekPaceTrend({ runs, streak }: { runs: Run[]; streak: number }) {
           <div>
             <svg
               aria-label="This week pace trend"
-              className="h-40 w-full overflow-visible border-b border-l border-[var(--border)]"
+              className="h-40 w-full overflow-hidden border-b border-l border-[var(--border)]"
               preserveAspectRatio="none"
               role="img"
               viewBox="0 0 100 100"
@@ -572,7 +575,6 @@ export function DashboardRunsClient({
   > | null;
 }) {
   const [runs, setRuns] = useState(initialRuns);
-  const [showMoreTrends, setShowMoreTrends] = useState(false);
   const [summaryRange, setSummaryRange] = useState<SummaryRange>("week");
 
   useEffect(() => {
@@ -631,9 +633,9 @@ export function DashboardRunsClient({
   }
 
   return (
-    <div className="grid gap-10 md:gap-16">
-      <section className="grid gap-8 md:min-h-[32rem] md:gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <div className="md:min-h-[30rem]">
+    <div className="grid min-w-0 gap-10 md:gap-16">
+      <section className="grid min-w-0 gap-8 md:min-h-[32rem] md:gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="min-w-0 md:min-h-[30rem]">
           <p className="ui-label">[01 / Field Journal]</p>
           <h2 className="instrument-heading mt-5 max-w-3xl text-5xl leading-[0.94] sm:text-6xl md:mt-8 md:text-8xl xl:text-9xl">
             Where every stride is measured
@@ -646,9 +648,9 @@ export function DashboardRunsClient({
           ) : null}
         </div>
 
-        <div className="md:pt-8">
+        <div className="min-w-0 md:pt-8">
           <RangeSelector range={summaryRange} setRange={setSummaryRange} />
-          <div className="grid grid-cols-2 gap-x-12 gap-y-10">
+          <div className="grid min-w-0 grid-cols-2 gap-x-8 gap-y-10 sm:gap-x-12">
             <JournalMetric
               label="Distance"
               unit="km"
@@ -698,7 +700,7 @@ export function DashboardRunsClient({
         </div>
       </section>
 
-      <section>
+      <section className="min-w-0">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="ui-label">[02 / Training Load]</p>
@@ -711,7 +713,7 @@ export function DashboardRunsClient({
         <WeeklyJournalBars buckets={dashboard.weeklyBuckets} />
       </section>
 
-      <section>
+      <section className="min-w-0">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="ui-label">[03 / Distance Library]</p>
@@ -724,33 +726,18 @@ export function DashboardRunsClient({
         <DistanceDistribution runs={runs} />
       </section>
 
-      <button
-        className="text-left font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--primary)] md:hidden"
-        type="button"
-        onClick={() => setShowMoreTrends((value) => !value)}
-      >
-        {showMoreTrends ? "Hide extra trends" : "Show HR and fitness trends"}
-      </button>
-
-      <section
-        className={`${showMoreTrends ? "grid" : "hidden"} gap-5 md:grid lg:grid-cols-2`}
-      >
-        <div className="lg:col-span-2">
+      <section className="grid min-w-0 gap-4 sm:gap-5 lg:grid-cols-2">
+        <div className="order-0 lg:col-span-2">
           <p className="ui-label">[04 / Signals]</p>
+          <h2 className="instrument-heading mt-2 text-4xl">Trends</h2>
         </div>
-        <HeartZoneDistribution
-          currentForm={dashboard.summary.currentForm}
-          maxHr={profile?.max_hr}
-          runs={runs}
-        />
-        <ThisWeekPaceTrend
-          runs={runs}
-          streak={dashboard.summary.longestStreak}
-        />
-        <Card subtitle="Last 60 days, with GAP when elevation splits exist.">
+        <Card
+          className="order-5 lg:order-none"
+          subtitle="Last 60 days, with GAP when elevation splits exist."
+        >
           <h2 className="instrument-heading text-2xl">Pace trend</h2>
           {dashboard.paceHistory.length >= 4 ? (
-            <div className="mt-4 h-[240px] sm:h-[320px]">
+            <div className="mt-4 h-[210px] min-w-0 overflow-hidden sm:h-[320px]">
               <PaceTrendChart points={dashboard.paceHistory} />
             </div>
           ) : (
@@ -761,27 +748,30 @@ export function DashboardRunsClient({
         </Card>
 
         {showHrChart ? (
-          <Card subtitle="7-run rolling average, last 60 days.">
+          <Card
+            className="order-1 lg:order-none"
+            subtitle="7-run rolling average, last 60 days."
+          >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <h2 className="instrument-heading text-2xl">Heart rate trend</h2>
-              <div className="flex flex-wrap gap-4 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+              <div className="flex flex-wrap gap-3 font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--secondary)] sm:gap-4 sm:text-[0.68rem] sm:tracking-[0.14em]">
                 <span className="inline-flex items-center gap-2">
                   <span
                     aria-hidden="true"
-                    className="h-px w-8 border-t-2 border-dashed border-[#38f27d]"
+                    className="h-px w-6 border-t-2 border-dashed border-[#38f27d] sm:w-8"
                   />
                   Z2 ceiling
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span
                     aria-hidden="true"
-                    className="h-px w-8 border-t-2 border-dashed border-[#ffb21a]"
+                    className="h-px w-6 border-t-2 border-dashed border-[#ffb21a] sm:w-8"
                   />
                   Z4 floor
                 </span>
               </div>
             </div>
-            <div className="mt-4 h-[240px] sm:h-[300px]">
+            <div className="mt-4 h-[210px] min-w-0 overflow-hidden sm:h-[300px]">
               <HrTrendChart
                 points={dashboard.hrHistory}
                 maxHr={profile?.max_hr ?? null}
@@ -789,18 +779,27 @@ export function DashboardRunsClient({
             </div>
           </Card>
         ) : dashboard.hasHrData ? null : (
-          <Card subtitle="Connect a heart rate monitor or import from Strava to see HR trends." />
+          <Card
+            className="order-1 lg:order-none"
+            subtitle="Connect a heart rate monitor or import from Strava to see HR trends."
+          />
         )}
 
-        <Card subtitle="Compact preview. Hover the curve for daily CTL and ATL.">
-          <div className="flex items-center justify-between gap-3">
+        <Card
+          className="order-2 lg:order-none"
+          subtitle="Compact preview of CTL and ATL."
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <h2 className="instrument-heading text-2xl">Fitness preview</h2>
-            <Link className="text-sm text-[var(--primary)]" href="/fitness">
+            <Link
+              className="text-sm text-[var(--primary)] no-underline"
+              href="/fitness"
+            >
               View full fitness chart
             </Link>
           </div>
           {dashboard.fitnessPreview.length > 0 ? (
-            <div className="mt-4 h-[240px] sm:h-[300px]">
+            <div className="mt-4 h-[210px] min-w-0 overflow-hidden sm:h-[300px]">
               <FitnessPreviewChart points={dashboard.fitnessPreview} />
             </div>
           ) : (
@@ -809,11 +808,21 @@ export function DashboardRunsClient({
             </p>
           )}
         </Card>
+
+        <HeartZoneDistribution
+          currentForm={dashboard.summary.currentForm}
+          maxHr={profile?.max_hr}
+          runs={runs}
+        />
+        <ThisWeekPaceTrend
+          runs={runs}
+          streak={dashboard.summary.longestStreak}
+        />
       </section>
 
-      <section>
-        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <div>
+      <section className="min-w-0">
+        <div className="grid min-w-0 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <div className="min-w-0">
             <p className="ui-label">[05 / Latest Efforts]</p>
             <h2 className="instrument-heading mt-4 text-5xl leading-none md:text-7xl">
               Every
@@ -829,7 +838,7 @@ export function DashboardRunsClient({
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="mb-4 flex justify-end">
               <Link className="ui-label no-underline" href="/runs">
                 All runs →
@@ -843,11 +852,11 @@ export function DashboardRunsClient({
 
                 return (
                   <Link
-                    className="grid grid-cols-2 gap-3 border-b border-[var(--border)] py-5 text-sm no-underline last:border-b-0 md:grid-cols-[0.65fr_0.75fr_0.75fr_0.75fr] md:items-center"
+                    className="grid min-w-0 grid-cols-2 gap-3 border-b border-[var(--border)] py-5 text-sm no-underline last:border-b-0 md:grid-cols-[0.65fr_0.75fr_0.75fr_0.75fr] md:items-center"
                     href={`/runs/${run.id}`}
                     key={run.id}
                   >
-                    <span className="flex items-center gap-3 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                    <span className="flex min-w-0 items-center gap-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--secondary)] sm:gap-3 sm:tracking-[0.14em]">
                       {run.date.slice(5)}
                       {prBadgeLabel ? (
                         <span
@@ -859,13 +868,13 @@ export function DashboardRunsClient({
                         </span>
                       ) : null}
                     </span>
-                    <span className="font-mono text-[var(--bone)]">
+                    <span className="min-w-0 truncate font-mono text-[var(--bone)]">
                       {run.distance.toFixed(1)} km
                     </span>
-                    <span className="font-mono text-[var(--bone)]">
+                    <span className="min-w-0 truncate font-mono text-[var(--bone)]">
                       {formatDashboardPace(run.avg_pace)}
                     </span>
-                    <span className="font-mono text-[var(--bone)]">
+                    <span className="min-w-0 truncate font-mono text-[var(--bone)]">
                       {formatDurationShort(run.moving_time)}
                     </span>
                   </Link>
@@ -877,7 +886,7 @@ export function DashboardRunsClient({
         <YearProgress runs={runs} weeklyGoal={dashboard.summary.weeklyGoal} />
       </section>
 
-      <section className="grid items-end gap-6 pt-10 lg:grid-cols-[1fr_auto]">
+      <section className="grid min-w-0 items-end gap-6 pt-10 lg:grid-cols-[1fr_auto]">
         <h2 className="instrument-heading text-4xl leading-none md:text-6xl">
           A complete picture of the runner you are —{" "}
           <em>and the one becoming.</em>

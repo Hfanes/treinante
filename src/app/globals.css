@@ -59,7 +59,13 @@
   box-shadow: none;
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
+  overflow-x: clip;
+  width: 100%;
   min-height: 100vh;
   background:
     radial-gradient(
@@ -86,9 +92,18 @@ textarea {
   font: inherit;
 }
 
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
 input,
 select,
 textarea {
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 2px;

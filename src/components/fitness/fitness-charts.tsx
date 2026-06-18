@@ -215,11 +215,11 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
   };
 
   return (
-    <div className="mt-5 grid gap-4">
+    <div className="mt-5 grid min-w-0 gap-4">
       <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap">
         {RANGES.map((item) => (
           <button
-            className={`min-h-11 rounded-[2px] border px-2 py-2 font-mono text-[0.68rem] uppercase tracking-[0.14em] transition sm:px-3 ${
+            className={`min-h-7 rounded-[2px] border px-2 py-1 font-mono text-[0.4rem] leading-none uppercase tracking-[0.02em] mb-2 transition sm:min-h-8 sm:px-2.5 sm:text-[0.4rem] sm:tracking-[0.06em] ${
               item.label === range.label
                 ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
                 : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -233,7 +233,7 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
         ))}
       </div>
 
-      <div className="vbars-dense rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-5 sm:p-6">
+      <div className="vbars-dense min-w-0 overflow-hidden rounded-[2px] bg-[color-mix(in_oklch,var(--card)_88%,black)] p-4 sm:p-6">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="ui-label text-[#f3d49b]">
@@ -254,11 +254,11 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
             </span>
           </div>
         </div>
-        <div className="h-[240px] sm:h-[340px]">
+        <div className="h-[240px] min-w-0 overflow-hidden sm:h-[340px]">
           <Line data={lineData} options={lineOptions} />
         </div>
       </div>
-      <div className="h-[180px] rounded-[2px] border border-[var(--border)] p-3 sm:h-[220px]">
+      <div className="h-[180px] min-w-0 overflow-hidden rounded-[2px] border border-[var(--border)] p-3 sm:h-[220px]">
         <Bar data={barData} options={barOptions} />
       </div>
     </div>

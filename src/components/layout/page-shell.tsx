@@ -10,8 +10,8 @@ export function PageShell({
   eyebrow?: string;
 }) {
   return (
-    <main className="min-h-screen flex-1 px-4 pb-24 pt-8 sm:pt-10 md:px-8 md:py-16">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 md:gap-8">
+    <main className="min-w-0 flex-1 overflow-x-clip px-4 pb-24 pt-8 sm:pt-10 md:px-8 md:py-16">
+      <div className="mx-auto flex min-w-0 max-w-7xl flex-col gap-6 md:gap-8">
         <header className="grid gap-5 border-b border-[var(--border)] pb-6 md:pb-8 lg:grid-cols-[7fr_5fr] lg:items-end">
           <div>
             <p className="ui-label">{eyebrow}</p>

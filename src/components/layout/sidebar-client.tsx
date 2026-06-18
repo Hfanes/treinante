@@ -87,7 +87,7 @@ function SidebarTooltip({
   if (!collapsed) return null;
 
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 w-max -translate-y-1/2 border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+    <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 max-w-[12rem] -translate-y-1/2 whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
       {label}
     </span>
   );

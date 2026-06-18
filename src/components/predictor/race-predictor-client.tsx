@@ -89,12 +89,12 @@ export function ManualRaceCalculator({
   const projections = buildRacePredictions(anchorTime, distanceValue);
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
+    <section className="grid min-w-0 gap-4 lg:grid-cols-[360px_1fr]">
       <Card
         className="bg-[color-mix(in_oklch,var(--background)_82%,black)] text-[var(--bone)]"
         subtitle="Anchor performance"
       >
-        <div className="grid grid-cols-2 rounded-[2px] bg-[var(--muted)] p-1 text-sm">
+        <div className="grid min-w-0 grid-cols-2 rounded-[2px] bg-[var(--muted)] p-1 text-sm">
           {(["time", "pace"] as const).map((item) => (
             <button
               className={`min-h-11 rounded-[2px] px-3 py-2 font-medium ${
@@ -127,14 +127,14 @@ export function ManualRaceCalculator({
             type="range"
             value={distance}
           />
-          <span className="flex justify-between font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+          <span className="flex min-w-0 justify-between font-mono text-[0.68rem] text-[var(--muted-foreground)]">
             <span>0.1</span>
             <span>42.2</span>
           </span>
         </label>
 
         {mode === "time" ? (
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid min-w-0 grid-cols-2 gap-3">
             <label className="ui-label grid gap-2">
               Minutes
               <input
@@ -158,7 +158,7 @@ export function ManualRaceCalculator({
             </label>
           </div>
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid min-w-0 grid-cols-2 gap-3">
             <label className="ui-label grid gap-2">
               Pace min/km
               <input
@@ -183,7 +183,7 @@ export function ManualRaceCalculator({
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
+        <div className="mt-6 grid min-w-0 grid-cols-2 gap-3 border-t border-white/10 pt-5">
           <div>
             <div className="ui-label">
               {mode === "time" ? "Pace" : "Finish time"}

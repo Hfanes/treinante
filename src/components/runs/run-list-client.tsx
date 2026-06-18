@@ -178,7 +178,7 @@ function MobileRunCard({
         </div>
       ) : null}
 
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+      <dl className="mt-4 grid min-w-0 grid-cols-2 gap-3 text-sm">
         <div>
           <dt className="ui-label">Distance</dt>
           <dd className="mt-1 font-mono text-[var(--bone)]">
@@ -213,7 +213,7 @@ function MobileRunCard({
         ) : null}
         <div>
           <dt className="ui-label">Splits</dt>
-          <dd className="mt-1">
+          <dd className="mt-1 max-w-full overflow-hidden">
             <SplitsSparkline run={run} />
           </dd>
         </div>

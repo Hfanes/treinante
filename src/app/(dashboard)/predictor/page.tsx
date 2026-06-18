@@ -207,12 +207,12 @@ function Vo2TrendChart({
   const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
 
   return (
-    <div className="grid gap-3">
-      <div className="rounded-[2px] border border-[var(--border)] p-3">
-        <div className="relative h-36">
+    <div className="grid min-w-0 gap-3">
+      <div className="min-w-0 rounded-[2px] border border-[var(--border)] p-3">
+        <div className="relative h-36 overflow-hidden">
           <svg
             aria-label="VO2max trend"
-            className="pointer-events-none h-full w-full overflow-visible"
+            className="pointer-events-none h-full w-full overflow-hidden"
             preserveAspectRatio="none"
             role="img"
             viewBox="0 0 100 100"
@@ -243,7 +243,7 @@ function Vo2TrendChart({
                 style={{ left: `${left}%`, width: `${right - left}%` }}
               >
                 <span
-                  className="pointer-events-none absolute z-10 w-max -translate-x-1/2 -translate-y-full border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100"
+                  className="pointer-events-none absolute z-10 hidden max-w-[12rem] -translate-x-1/2 -translate-y-full whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 sm:block"
                   style={{ left: `${hitX}%`, top: `${point.y}%` }}
                 >
                   {point.month} · {point.vo2max.toFixed(1)} VO2max
@@ -252,13 +252,13 @@ function Vo2TrendChart({
             );
           })}
         </div>
-        <div className="mt-2 flex justify-between gap-2">
+        <div className="mt-2 grid min-w-0 grid-cols-3 gap-2 sm:flex sm:justify-between">
           {points.map((point) => (
-            <div className="text-center" key={point.month}>
-              <div className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+            <div className="min-w-0 text-center" key={point.month}>
+              <div className="truncate font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:text-[0.68rem] sm:tracking-[0.14em]">
                 {formatMonthLabel(point.month)}
               </div>
-              <div className="mt-1 font-mono text-[0.68rem] text-[var(--bone)]">
+              <div className="mt-1 truncate font-mono text-[0.62rem] text-[var(--bone)] sm:text-[0.68rem]">
                 VO2 {point.vo2max.toFixed(1)}
               </div>
             </div>
@@ -346,8 +346,8 @@ export default async function PredictorPage() {
           className="vbars overflow-hidden bg-[color-mix(in_oklch,var(--background)_84%,black)]"
           subtitle="Training reference only - not a medical measurement."
         >
-          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-            <div>
+          <div className="grid min-w-0 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+            <div className="min-w-0">
               <p className="ui-label">Working VO2max</p>
               <div className="instrument-heading mt-4 mb-4 text-6xl leading-none text-[var(--primary)] sm:text-7xl md:text-8xl">
                 {workingVo2max?.toFixed(1) ?? "-"}
@@ -357,7 +357,7 @@ export default async function PredictorPage() {
               </p>
             </div>
 
-            <div className="grid gap-5">
+            <div className="grid min-w-0 gap-5">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="border-l border-[var(--border)] pl-4">
                   <p className="ui-label">Pace model</p>
