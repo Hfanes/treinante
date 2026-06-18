@@ -1,6 +1,13 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Badge, Button, Card } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,7 +23,7 @@ import { analyzeRun } from "@/lib/runAnalysis";
 import { createBrowserClient } from "@/lib/supabase";
 import type { Run, RunDraft, RunSource } from "@/types";
 
-const RUNS_PER_PAGE = 25;
+const PAGE_SIZE_OPTIONS = [5, 10, 25] as const;
 
 type SortKey =
   | "date"
@@ -157,11 +164,12 @@ function MobileRunCard({
 }) {
   return (
     <article className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0 overflow-hidden">
           <a
-            className="block truncate font-medium text-[var(--bone)] no-underline"
+            className="block max-w-full truncate font-medium text-[var(--bone)] no-underline"
             href={`/runs/${run.id}`}
+            title={run.title ?? "Untitled run"}
           >
             {run.title ?? "Untitled run"}
           </a>
@@ -169,7 +177,11 @@ function MobileRunCard({
             {run.date} · {run.source.toUpperCase()}
           </p>
         </div>
-        {zone ? <Badge variant={zone}>{zoneLabel(zone)}</Badge> : null}
+        {zone ? (
+          <span className="shrink-0">
+            <Badge variant={zone}>{zoneLabel(zone)}</Badge>
+          </span>
+        ) : null}
       </div>
 
       {prBadgeLabel ? (
@@ -263,6 +275,10 @@ export function RunListClient({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] =
+    useState<(typeof PAGE_SIZE_OPTIONS)[number]>(10);
+  const [pageSizeOpen, setPageSizeOpen] = useState(false);
+  const pageSizeRef = useRef<HTMLDivElement>(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualTitle, setManualTitle] = useState("");
   const [manualDate, setManualDate] = useState(
@@ -287,7 +303,21 @@ export function RunListClient({
     const params = new URLSearchParams(window.location.search);
     setDateFrom(params.get("dateFrom") ?? "");
     setDateTo(params.get("dateTo") ?? "");
+    setPageSize(window.matchMedia("(max-width: 639px)").matches ? 5 : 10);
   }, []);
+
+  useEffect(() => {
+    if (!pageSizeOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!pageSizeRef.current?.contains(event.target as Node)) {
+        setPageSizeOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [pageSizeOpen]);
 
   const displayRuns = runs.length > 0 || !loading ? runs : initialRuns;
   const stravaConnected = profile?.strava_connected ?? false;
@@ -308,7 +338,7 @@ export function RunListClient({
         return Number(bValue) - Number(aValue);
       });
   }, [dateFrom, dateTo, displayRuns, sortKey, sourceFilter]);
-  const pageCount = Math.max(1, Math.ceil(filteredRuns.length / RUNS_PER_PAGE));
+  const pageCount = Math.max(1, Math.ceil(filteredRuns.length / pageSize));
   const filteredTotals = useMemo(
     () => ({
       distance: filteredRuns.reduce((sum, run) => sum + run.distance, 0),
@@ -317,13 +347,13 @@ export function RunListClient({
     [filteredRuns]
   );
   const visibleRuns = filteredRuns.slice(
-    (currentPage - 1) * RUNS_PER_PAGE,
-    currentPage * RUNS_PER_PAGE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [dateFrom, dateTo, sortKey, sourceFilter]);
+  }, [dateFrom, dateTo, pageSize, sortKey, sourceFilter]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, pageCount));
@@ -870,11 +900,43 @@ export function RunListClient({
               </table>
             </div>
 
-            {filteredRuns.length > RUNS_PER_PAGE ? (
+            {filteredRuns.length > 0 ? (
               <div className="mt-4 flex flex-col gap-3 border-t border-[var(--border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Page {currentPage} of {pageCount}
-                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-sm">
+                    Page {currentPage} of {pageCount}
+                  </p>
+                  <div className="relative" ref={pageSizeRef}>
+                    <button
+                      aria-expanded={pageSizeOpen}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_84%,black)] px-3 py-2 text-[var(--bone)]"
+                      onClick={() => setPageSizeOpen((value) => !value)}
+                      type="button"
+                    >
+                      {pageSize}
+                      <span aria-hidden="true">▾</span>
+                    </button>
+                    {pageSizeOpen ? (
+                      <div className="absolute bottom-[calc(100%+0.25rem)] left-0 z-20 grid min-w-full overflow-hidden rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_84%,black)] text-[var(--bone)]">
+                        {PAGE_SIZE_OPTIONS.map((option) => (
+                          <button
+                            className={`px-3 py-2 text-left transition hover:bg-[var(--muted)] ${
+                              option === pageSize ? "bg-[var(--muted)]" : ""
+                            }`}
+                            key={option}
+                            onClick={() => {
+                              setPageSize(option);
+                              setPageSizeOpen(false);
+                            }}
+                            type="button"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-2 sm:flex">
                   <Button
                     type="button"
