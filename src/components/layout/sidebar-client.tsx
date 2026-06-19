@@ -190,13 +190,7 @@ function AuthLink({
   );
 }
 
-export function SidebarClient({
-  isLoggedIn,
-  profileName,
-}: {
-  isLoggedIn: boolean;
-  profileName: string | null;
-}) {
+export function SidebarClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -359,7 +353,6 @@ export function SidebarClient({
             </span>
           </span>
         </Link>
-
       </div>
 
       <nav className="mt-10 flex flex-col gap-1">
@@ -405,10 +398,14 @@ export function SidebarClient({
           >
             {!layoutCollapsed && (
               <div className="min-w-0">
-                <p className="ui-label">Runner</p>
-                <p className="mt-2 truncate text-sm text-[var(--bone)]">
-                  {profileName ?? "Profile"}
-                </p>
+                <p className="ui-label">Powered by</p>
+                <Image
+                  src="/images/strava.svg"
+                  alt="Strava"
+                  width={45}
+                  height={10}
+                  className="mt-2 h-4 w-[60px]"
+                />
               </div>
             )}
             {collapseButton}
