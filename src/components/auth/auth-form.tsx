@@ -92,7 +92,17 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
-          Password
+          <span className="flex items-center justify-between gap-3">
+            Password
+            {isLogin ? (
+              <Link
+                className="text-xs font-medium text-brand-600 no-underline dark:text-brand-400"
+                href="/forgot-password"
+              >
+                Forgot password?
+              </Link>
+            ) : null}
+          </span>
           <input
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-950 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
             type="password"
