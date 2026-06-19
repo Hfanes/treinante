@@ -32,6 +32,7 @@ type SortKey =
   | "avg_pace"
   | "avg_hr"
   | "elevation_gain";
+type SortDirection = "asc" | "desc";
 
 interface PendingGpx {
   id: string;
@@ -311,6 +312,43 @@ function PrBadge({ label }: { label: string }) {
   );
 }
 
+function SortableHeader({
+  active,
+  children,
+  direction,
+  onClick,
+  padded = false,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  direction: SortDirection;
+  onClick: () => void;
+  padded?: boolean;
+}) {
+  return (
+    <th
+      aria-sort={
+        active ? (direction === "asc" ? "ascending" : "descending") : "none"
+      }
+      className={padded ? "py-2" : undefined}
+    >
+      <button
+        className="inline-flex items-center gap-1 text-left uppercase tracking-[0.14em] text-inherit transition hover:text-[var(--primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+        onClick={onClick}
+        type="button"
+      >
+        {children}
+        <span
+          aria-hidden="true"
+          className={active ? "opacity-100" : "opacity-35"}
+        >
+          {active && direction === "asc" ? "↑" : "↓"}
+        </span>
+      </button>
+    </th>
+  );
+}
+
 function MobileRunCard({
   onDelete,
   prBadgeLabel,
@@ -432,6 +470,7 @@ export function RunListClient({
   const [stravaSyncing, setStravaSyncing] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<RunSource | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -494,12 +533,16 @@ export function RunListClient({
       .filter((run) => !dateFrom || run.date >= dateFrom)
       .filter((run) => !dateTo || run.date <= dateTo)
       .sort((a, b) => {
-        if (sortKey === "date") return b.date.localeCompare(a.date);
+        const direction = sortDirection === "asc" ? 1 : -1;
+
+        if (sortKey === "date") {
+          return a.date.localeCompare(b.date) * direction;
+        }
         const aValue = a[sortKey] ?? -1;
         const bValue = b[sortKey] ?? -1;
-        return Number(bValue) - Number(aValue);
+        return (Number(aValue) - Number(bValue)) * direction;
       });
-  }, [dateFrom, dateTo, displayRuns, sortKey, sourceFilter]);
+  }, [dateFrom, dateTo, displayRuns, sortDirection, sortKey, sourceFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredRuns.length / pageSize));
   const filteredTotals = useMemo(
     () => ({
@@ -515,7 +558,7 @@ export function RunListClient({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [dateFrom, dateTo, pageSize, sortKey, sourceFilter]);
+  }, [dateFrom, dateTo, pageSize, sortDirection, sortKey, sourceFilter]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, pageCount));
@@ -726,6 +769,16 @@ export function RunListClient({
     }
   }
 
+  function sortBy(nextSortKey: SortKey) {
+    if (nextSortKey === sortKey) {
+      setSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(nextSortKey);
+    setSortDirection("desc");
+  }
+
   return (
     <div className="grid gap-4">
       <RunsLibraryHero />
@@ -929,7 +982,10 @@ export function RunListClient({
           <select
             className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             value={sortKey}
-            onChange={(event) => setSortKey(event.target.value as SortKey)}
+            onChange={(event) => {
+              setSortKey(event.target.value as SortKey);
+              setSortDirection("desc");
+            }}
           >
             <option value="date">Sort by date</option>
             <option value="distance">Sort by distance</option>
@@ -993,14 +1049,53 @@ export function RunListClient({
               <table className="w-full min-w-[960px] text-left text-sm">
                 <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
                   <tr>
-                    <th className="py-2">Date</th>
-                    <th>Distance</th>
-                    <th>Time</th>
-                    <th>Pace</th>
+                    <SortableHeader
+                      active={sortKey === "date"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("date")}
+                      padded
+                    >
+                      Date
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "distance"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("distance")}
+                    >
+                      Distance
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "moving_time"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("moving_time")}
+                    >
+                      Time
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "avg_pace"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("avg_pace")}
+                    >
+                      Pace
+                    </SortableHeader>
                     <th>Splits</th>
-                    <th>Avg HR</th>
+                    <SortableHeader
+                      active={sortKey === "avg_hr"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("avg_hr")}
+                    >
+                      Avg HR
+                    </SortableHeader>
                     <th>Zone</th>
-                    {showElevation ? <th>D+</th> : null}
+                    {showElevation ? (
+                      <SortableHeader
+                        active={sortKey === "elevation_gain"}
+                        direction={sortDirection}
+                        onClick={() => sortBy("elevation_gain")}
+                      >
+                        D+
+                      </SortableHeader>
+                    ) : null}
                     <th>Source</th>
                     <th>Actions</th>
                   </tr>
