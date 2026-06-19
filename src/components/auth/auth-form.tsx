@@ -90,7 +90,17 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium text-[var(--foreground)]">
-          Password
+          <span className="flex items-center justify-between gap-3">
+            Password
+            {isLogin ? (
+              <Link
+                className="text-xs font-medium text-[var(--primary)] no-underline"
+                href="/forgot-password"
+              >
+                Forgot password?
+              </Link>
+            ) : null}
+          </span>
           <input
             className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--bone)] transition focus:border-[var(--primary)]"
             type="password"
