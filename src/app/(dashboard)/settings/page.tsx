@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/layout/page-shell";
+import { AccountSecurityForm } from "@/components/settings/account-security-form";
 import { AccountSettingsForm } from "@/components/settings/account-settings-form";
 import { StravaIntegrationCard } from "@/components/settings/strava-integration-card";
 import { Card } from "@/components/ui";
@@ -28,6 +29,7 @@ export default async function SettingsPage() {
           </section>
 
           <AccountSettingsForm profile={profile as Profile} />
+          <AccountSecurityForm email={user?.email ?? null} />
           <StravaIntegrationCard profile={profile as Profile} />
         </div>
       ) : (
