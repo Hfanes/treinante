@@ -12,11 +12,24 @@ const TIME_RECORDS: Array<{
   label: string;
   km: number;
 }> = [
+  { type: "400m", label: "400 m", km: 0.4 },
+  { type: "half_mile", label: "1/2 mile", km: 0.804672 },
   { type: "1k", label: "1 km", km: 1 },
+  { type: "1_mile", label: "1 mile", km: 1.609344 },
+  { type: "2_mile", label: "2 mile", km: 3.218688 },
   { type: "5k", label: "5 km", km: 5 },
   { type: "10k", label: "10 km", km: 10 },
-  { type: "21k", label: "Half marathon", km: 21 },
-  { type: "42k", label: "Marathon", km: 42 },
+  { type: "15k", label: "15 km", km: 15 },
+  { type: "10_mile", label: "10 mile", km: 16.09344 },
+  { type: "20k", label: "20 km", km: 20 },
+  { type: "half_marathon", label: "Half marathon", km: 21.0975 },
+  { type: "30k", label: "30 km", km: 30 },
+  { type: "marathon", label: "Marathon", km: 42.195 },
+  { type: "50k", label: "50 km", km: 50 },
+  { type: "50_mile", label: "50 mile", km: 80.4672 },
+  { type: "100k", label: "100 km", km: 100 },
+  { type: "100_mile", label: "100 mile", km: 160.9344 },
+  { type: "200k", label: "200 km", km: 200 },
 ];
 
 const DISTANCE_RECORDS: Array<{
@@ -30,6 +43,11 @@ const DISTANCE_RECORDS: Array<{
     format: (value) => `${value.toFixed(1)} km`,
   },
   {
+    type: "longest_duration",
+    label: "Longest duration",
+    format: formatDuration,
+  },
+  {
     type: "most_elevation",
     label: "Most elevation",
     format: (value) => `${value.toFixed(0)} m D+`,
@@ -39,6 +57,16 @@ const DISTANCE_RECORDS: Array<{
     label: "Best D+/km",
     format: (value) => `${value.toFixed(1)} m/km`,
   },
+  {
+    type: "24h",
+    label: "24h distance",
+    format: (value) => `${value.toFixed(1)} km`,
+  },
+  {
+    type: "48h",
+    label: "48h distance",
+    format: (value) => `${value.toFixed(1)} km`,
+  },
 ];
 
 function formatDate(date: string | null) {
@@ -46,8 +74,22 @@ function formatDate(date: string | null) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${date}T00:00:00Z`));
+}
+
+function RecordsHero() {
+  return (
+    <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+      <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
+        Every best.{" "}
+        <em className="font-normal text-[var(--primary)]">
+          Every breakthrough.
+        </em>
+      </h2>
+    </section>
+  );
 }
 
 export default async function RecordsPage() {
@@ -66,7 +108,7 @@ export default async function RecordsPage() {
   let personalRecords = (records ?? []) as unknown as PersonalRecord[];
   const typedRuns = (runs ?? []) as unknown as Run[];
 
-  if (user && personalRecords.length === 0 && typedRuns.length > 0) {
+  if (user && typedRuns.length > 0) {
     personalRecords = await recalculatePersonalRecords(supabase, user.id);
   }
 
@@ -82,12 +124,42 @@ export default async function RecordsPage() {
     ...config,
     record: byType.get(config.type),
   })).filter((item) => item.record);
+  const listRecords = [
+    ...timeRecords.map(({ type, label, km, record }) => {
+      const run = record?.run_id ? runMap.get(record.run_id) : null;
+      const estimated = Boolean(run && run.distance < km);
+
+      return {
+        type,
+        label,
+        value: record
+          ? `${estimated ? "~" : ""}${formatDuration(record.value)}`
+          : "-",
+        date: record ? formatDate(record.achieved_at) : "-",
+        run,
+        detail:
+          estimated && run
+            ? `Estimated from ${run.distance.toFixed(1)} km`
+            : null,
+      };
+    }),
+    ...distanceRecords.map(({ type, label, format, record }) => ({
+      type,
+      label,
+      value: record ? format(record.value) : "-",
+      date: record ? formatDate(record.achieved_at) : "-",
+      run: record?.run_id ? runMap.get(record.run_id) : null,
+      detail: null,
+    })),
+  ];
 
   return (
     <PageShell title="Records">
       <div className="grid gap-5">
+        <RecordsHero />
+
         {personalRecords.length === 0 ? (
-          <Card subtitle="Import GPX or Strava runs with split data to unlock time records. Manual runs still count for longest run and elevation bests.">
+          <Card subtitle="Import GPX or Strava runs with split data to unlock standard distance PRs. Manual runs use whole-run pace estimates.">
             <p className="text-sm text-gray-600 dark:text-gray-300">
               No personal records yet.
             </p>
@@ -141,11 +213,46 @@ export default async function RecordsPage() {
         ) : null}
 
         {distanceRecords.length > 0 ? (
-          <Card subtitle="Single-run bests across distance and climbing.">
-            <h2 className="font-semibold text-gray-950 dark:text-white">
+          <Card subtitle="Single-run bests and fixed-duration distance records.">
+            <h2 className="instrument-heading text-2xl text-[var(--bone)]">
               Distance bests
             </h2>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 grid gap-3 md:hidden">
+              {distanceRecords.map(({ type, label, format, record }) => {
+                if (!record) return null;
+                const run = record.run_id ? runMap.get(record.run_id) : null;
+
+                return (
+                  <article
+                    className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                    key={type}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-[var(--bone)]">
+                          {label}
+                        </p>
+                        <p className="mt-1 font-mono text-lg text-[var(--bone)]">
+                          {format(record.value)}
+                        </p>
+                      </div>
+                      <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                        {formatDate(record.achieved_at)}
+                      </p>
+                    </div>
+                    {run ? (
+                      <Link
+                        className="mt-3 inline-flex min-h-11 items-center text-sm text-[var(--primary)] no-underline"
+                        href={`/runs/${run.id}`}
+                      >
+                        Open run
+                      </Link>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   <tr>
@@ -183,6 +290,93 @@ export default async function RecordsPage() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        ) : null}
+
+        {listRecords.length > 0 ? (
+          <Card subtitle="Same personal records as a dense list for layout comparison.">
+            <h2 className="instrument-heading text-2xl text-[var(--bone)]">
+              PR list
+            </h2>
+            <div className="mt-4 grid gap-3 md:hidden">
+              {listRecords.map((record) => (
+                <article
+                  className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                  key={record.type}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-[var(--bone)]">
+                        {record.label}
+                      </p>
+                      {record.detail ? (
+                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                          {record.detail}
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                      {record.date}
+                    </p>
+                  </div>
+                  <p className="mt-3 font-mono text-xl text-[var(--bone)]">
+                    {record.value}
+                  </p>
+                  {record.run ? (
+                    <Link
+                      className="mt-3 inline-flex min-h-11 items-center text-sm text-[var(--primary)] no-underline"
+                      href={`/runs/${record.run.id}`}
+                    >
+                      Open run
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="py-2">Record</th>
+                    <th>Value</th>
+                    <th>Date</th>
+                    <th>Run</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {listRecords.map((record) => (
+                    <tr key={record.type}>
+                      <td className="py-3">
+                        <div className="font-medium text-gray-950 dark:text-white">
+                          {record.label}
+                        </div>
+                        {record.detail ? (
+                          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {record.detail}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="font-mono text-[var(--bone)]">
+                        {record.value}
+                      </td>
+                      <td>{record.date}</td>
+                      <td>
+                        {record.run ? (
+                          <Link
+                            className="text-brand-600 dark:text-brand-400"
+                            href={`/runs/${record.run.id}`}
+                          >
+                            Open
+                          </Link>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

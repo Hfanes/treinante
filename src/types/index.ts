@@ -1,5 +1,6 @@
 export type RunSource = "gpx" | "strava" | "manual";
 export type EffortZone = "z2" | "z3" | "z4";
+export type HrZoneMethod = "max_hr" | "lthr";
 
 export interface Split {
   km: number;
@@ -56,21 +57,40 @@ export type RunDraft = Omit<
 export interface Profile {
   id: string;
   name: string | null;
+  unit_preference: "metric" | "imperial";
   weekly_km_goal: number;
   max_hr: number | null;
   resting_hr: number | null;
+  lthr: number | null;
+  hr_zone_method: HrZoneMethod;
   ftp_pace: number | null;
   strava_connected: boolean;
   onboarding_complete: boolean;
 }
 
 export type PersonalRecordType =
+  | "400m"
+  | "half_mile"
   | "1k"
+  | "1_mile"
+  | "2_mile"
   | "5k"
   | "10k"
-  | "21k"
-  | "42k"
+  | "15k"
+  | "10_mile"
+  | "20k"
+  | "half_marathon"
+  | "30k"
+  | "marathon"
+  | "50k"
+  | "50_mile"
+  | "100k"
+  | "100_mile"
+  | "200k"
+  | "24h"
+  | "48h"
   | "longest_run"
+  | "longest_duration"
   | "most_elevation"
   | "best_d_plus_per_km";
 

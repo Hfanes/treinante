@@ -1,25 +1,36 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { RunListClient } from "@/components/runs/run-list-client";
 import { createServerClient } from "@/lib/supabase-server";
-import type { Run } from "@/types";
+import type { PersonalRecord, Run } from "@/types";
 
-async function getInitialRuns() {
+async function getRunsPageData() {
   const supabase = await createServerClient();
-  const { data } = await supabase
-    .from("runs")
-    .select("*")
-    .order("date", { ascending: false })
-    .limit(100);
+  const [{ data: runs }, { data: personalRecords }] = await Promise.all([
+    supabase.from("runs").select("*").order("date", { ascending: false }),
+    supabase
+      .from("personal_records")
+      .select("run_id,type")
+      .not("run_id", "is", null),
+  ]);
 
-  return (data ?? []) as unknown as Run[];
+  return {
+    currentPrRecords: (personalRecords ?? []) as Pick<
+      PersonalRecord,
+      "run_id" | "type"
+    >[],
+    initialRuns: (runs ?? []) as unknown as Run[],
+  };
 }
 
 export default async function RunsPage() {
-  const initialRuns = await getInitialRuns();
+  const { currentPrRecords, initialRuns } = await getRunsPageData();
 
   return (
     <PageShell title="Runs">
-      <RunListClient initialRuns={initialRuns} />
+      <RunListClient
+        currentPrRecords={currentPrRecords}
+        initialRuns={initialRuns}
+      />
     </PageShell>
   );
 }

@@ -6,6 +6,12 @@ import { formatDuration, formatPace } from "@/lib/runAnalysis";
 import { createServerClient } from "@/lib/supabase-server";
 import type { WeeklyReport } from "@/types";
 
+const LIMIT_OPTIONS = [5, 10, 25] as const;
+const WEEK_OPTIONS = [4, 8, 12, 26, 52] as const;
+const DEFAULT_DESKTOP_LIMIT = 10;
+const DEFAULT_MOBILE_LIMIT = 5;
+const DEFAULT_WEEKS = 12;
+
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -20,8 +26,21 @@ function addDays(date: string, days: number) {
   return next.toISOString().slice(0, 10);
 }
 
+function subtractWeeks(date: string, weeks: number) {
+  return addDays(date, -(weeks - 1) * 7);
+}
+
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function selectedOption<T extends readonly number[]>(
+  value: string | string[] | undefined,
+  options: T,
+  fallback: T[number]
+) {
+  const next = Number(firstParam(value));
+  return options.includes(next as T[number]) ? (next as T[number]) : fallback;
 }
 
 function formatKm(value: number) {
@@ -219,6 +238,159 @@ function ReportCard({ report }: { report: WeeklyReport }) {
   );
 }
 
+function ReportControls({
+  explicitLimit,
+  limit,
+  weeks,
+}: {
+  explicitLimit: boolean;
+  limit: number;
+  weeks: number;
+}) {
+  const selectClass =
+    "min-h-11 rounded-[2px] border border-[var(--border)] bg-[var(--background)] py-2 pr-8 pl-3 text-[var(--bone)]";
+  const mobileLimit = explicitLimit ? limit : DEFAULT_MOBILE_LIMIT;
+
+  return (
+    <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+      <div>
+        <h2 className="font-semibold text-gray-950 dark:text-white">
+          Report history
+        </h2>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          Select how many reports to show and how far back to look.
+        </p>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <form className="grid grid-cols-2 gap-2 md:hidden">
+          <label className="grid gap-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Show
+            <select
+              className={selectClass}
+              name="limit"
+              defaultValue={mobileLimit}
+            >
+              {LIMIT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Period
+            <select className={selectClass} name="weeks" defaultValue={weeks}>
+              {WEEK_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option} weeks
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button className="col-span-2" type="submit" variant="secondary">
+            Apply filters
+          </Button>
+          {!explicitLimit ? (
+            <p className="col-span-2 text-xs text-gray-500 dark:text-gray-400">
+              Mobile defaults to {DEFAULT_MOBILE_LIMIT}; desktop defaults to{" "}
+              {DEFAULT_DESKTOP_LIMIT}.
+            </p>
+          ) : null}
+        </form>
+
+        <form className="hidden gap-2 md:grid md:grid-cols-[9rem_10rem_auto]">
+          <label className="grid gap-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Show
+            <select className={selectClass} name="limit" defaultValue={limit}>
+              {LIMIT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Period
+            <select className={selectClass} name="weeks" defaultValue={weeks}>
+              {WEEK_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option} weeks
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button className="self-end" type="submit" variant="secondary">
+            Apply
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ReportDesktopList({ reports }: { reports: WeeklyReport[] }) {
+  return (
+    <div className="hidden overflow-x-auto md:block">
+      <table className="w-full min-w-[860px] text-left text-sm">
+        <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+          <tr>
+            <th className="py-2">Week</th>
+            <th>Distance</th>
+            <th>Runs</th>
+            <th>Time</th>
+            <th>Avg pace</th>
+            <th>Avg HR</th>
+            <th>TSB</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--border)]">
+          {reports.map((report) => {
+            const weekEnd = addDays(report.week_start, 6);
+            const totalKm = numberValue(report.total_km);
+            const totalTime = numberValue(report.total_time);
+            const avgPace = numberValue(report.avg_pace);
+            const avgHr = nullableNumberValue(report.avg_hr);
+            const tsbEnd = nullableNumberValue(report.tsb_end);
+            const priorKm =
+              report.vs_prev_km_delta === null
+                ? null
+                : totalKm - numberValue(report.vs_prev_km_delta);
+            const kmDelta = formatDelta(report.vs_prev_km_delta, "km");
+
+            return (
+              <tr key={report.id} className="align-middle">
+                <td className="py-3 font-medium text-[var(--bone)]">
+                  Week of {formatDate(report.week_start)} -{" "}
+                  {formatDate(weekEnd)}
+                </td>
+                <td>{formatKm(totalKm)}</td>
+                <td>{report.num_runs}</td>
+                <td>{formatDuration(totalTime)}</td>
+                <td>{formatPace(avgPace)}</td>
+                <td>{avgHr !== null ? `${Math.round(avgHr)} bpm` : "-"}</td>
+                <td>{tsbEnd !== null ? tsbEnd.toFixed(1) : "-"}</td>
+                <td>
+                  <span
+                    className={`font-medium ${deltaTone(
+                      report.vs_prev_km_delta,
+                      priorKm
+                    )}`}
+                  >
+                    {deltaLabel(report.vs_prev_km_delta, priorKm)}
+                    {kmDelta ? ` ${kmDelta}` : ""}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default async function ReportsPage({
   searchParams,
 }: {
@@ -232,12 +404,22 @@ export default async function ReportsPage({
   const previousWeekEnd = addDays(previousWeekStart, 6);
   const params = (await searchParams) ?? {};
   const reportStatus = firstParam(params.report);
+  const explicitLimit = firstParam(params.limit) !== undefined;
+  const limit = selectedOption(
+    params.limit,
+    LIMIT_OPTIONS,
+    DEFAULT_DESKTOP_LIMIT
+  );
+  const weeks = selectedOption(params.weeks, WEEK_OPTIONS, DEFAULT_WEEKS);
+  const earliestWeekStart = subtractWeeks(previousWeekStart, weeks);
   const [{ data }, previousWeekRuns] = user
     ? await Promise.all([
         supabase
           .from("weekly_reports")
           .select("*")
           .eq("user_id", user.id)
+          .gte("week_start", earliestWeekStart)
+          .limit(limit)
           .order("week_start", { ascending: false }),
         supabase
           .from("runs")
@@ -248,14 +430,26 @@ export default async function ReportsPage({
       ])
     : [{ data: [] }, { count: 0 }];
   const reports = (data ?? []) as unknown as WeeklyReport[];
+  const mobileReportCount = explicitLimit
+    ? reports.length
+    : Math.min(reports.length, DEFAULT_MOBILE_LIMIT);
   const previousWeekHadRuns = (previousWeekRuns.count ?? 0) > 0;
 
   return (
     <PageShell title="Reports">
       <div className="grid gap-4">
+        <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+          <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
+            Every week,{" "}
+            <em className="font-normal text-[var(--primary)]">made legible.</em>
+          </h2>
+        </section>
+
         <Card subtitle="Weekly summaries are generated automatically after each completed week with at least one run.">
           <form action={generateLastWeekReport} className="mt-4">
-            <Button type="submit">Generate last week's report</Button>
+            <Button className="w-full sm:w-auto" type="submit">
+              Generate last week's report
+            </Button>
           </form>
         </Card>
 
@@ -268,15 +462,46 @@ export default async function ReportsPage({
           </div>
         ) : null}
 
-        {reports.length > 0 ? (
-          <div className="grid gap-3">
-            {reports.map((report) => (
-              <ReportCard key={report.id} report={report} />
-            ))}
-          </div>
-        ) : (
-          <Card subtitle="Reports are generated automatically every Monday after your first full week of running. Come back then to see your summary." />
-        )}
+        <div className="grid gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <ReportControls
+            explicitLimit={explicitLimit}
+            limit={limit}
+            weeks={weeks}
+          />
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            <span className="md:hidden">
+              Showing {mobileReportCount} reports from the last {weeks} weeks.
+            </span>
+            <span className="hidden md:inline">
+              Showing {reports.length} reports from the last {weeks} weeks.
+            </span>
+          </p>
+
+          {reports.length > 0 ? (
+            <>
+              <ReportDesktopList reports={reports} />
+              <div className="grid gap-3 md:hidden">
+                {reports.map((report, index) => (
+                  <div
+                    className={
+                      !explicitLimit && index >= DEFAULT_MOBILE_LIMIT
+                        ? "hidden"
+                        : undefined
+                    }
+                    key={report.id}
+                  >
+                    <ReportCard report={report} />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              No reports match this period yet. Reports are generated
+              automatically every Monday after a completed week with runs.
+            </p>
+          )}
+        </div>
       </div>
     </PageShell>
   );

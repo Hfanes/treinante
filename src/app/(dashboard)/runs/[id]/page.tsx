@@ -32,6 +32,12 @@ function zoneLabel(zone: RunAnalysisZone) {
   return zone === "z2" ? "Z2" : zone === "z3" ? "Z3" : "Z4+";
 }
 
+function formatElevationDelta(value: number | null) {
+  if (value === null) return "-";
+  if (Math.round(value) === 0) return "0 m";
+  return `${value > 0 ? "+" : ""}${Math.round(value)} m`;
+}
+
 type RunAnalysisZone = NonNullable<ReturnType<typeof analyzeRun>["zone"]>;
 
 function driftCopy(drift: CardiacDrift) {
@@ -69,13 +75,19 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const supabase = await createServerClient();
   const [{ data: run }, { data: profile }] = await Promise.all([
     supabase.from("runs").select("*").eq("id", id).single(),
-    supabase.from("profiles").select("max_hr,ftp_pace").single(),
+    supabase
+      .from("profiles")
+      .select("max_hr,lthr,hr_zone_method,ftp_pace")
+      .single(),
   ]);
 
   if (!run) notFound();
 
   const typedRun = run as unknown as Run;
-  const typedProfile = profile as Pick<Profile, "max_hr" | "ftp_pace"> | null;
+  const typedProfile = profile as Pick<
+    Profile,
+    "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"
+  > | null;
   const analysis = analyzeRun(typedRun, typedProfile);
   const hasElevation =
     typedRun.elevation_gain >= 10 ||
@@ -83,6 +95,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const showMovingTime =
     Math.abs(typedRun.total_time - typedRun.moving_time) > 30;
   const drift = analysis.cardiacDrift ? driftCopy(analysis.cardiacDrift) : null;
+  const hasStopFlags = analysis.splits.some((split) => split.is_stop);
 
   return (
     <PageShell title={typedRun.title ?? "Run detail"}>
@@ -197,11 +210,63 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
         ) : null}
 
         {analysis.splits.length > 0 ? (
-          <details className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <summary className="cursor-pointer text-sm font-medium text-gray-950 dark:text-white">
+          <details className="rounded-[2px] border border-[var(--border)] bg-[var(--card)] p-4">
+            <summary className="min-h-11 cursor-pointer text-sm font-medium text-[var(--bone)]">
               Per-km splits table
             </summary>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 grid gap-3 md:hidden">
+              {analysis.splits.map((split) => (
+                <article
+                  className={`rounded-[2px] border border-[var(--border)] p-3 ${split.is_stop ? "bg-[var(--muted)]" : "bg-[color-mix(in_oklch,var(--card)_92%,black)]"}`}
+                  key={split.km}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="ui-label">Kilometer</p>
+                      <p className="mt-1 font-mono text-lg text-[var(--bone)]">
+                        {split.km}
+                      </p>
+                    </div>
+                    {split.is_stop ? (
+                      <Badge variant="neutral">Stop flag</Badge>
+                    ) : null}
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <dt className="ui-label">Pace</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {formatPace(split.pace)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">GAP</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.gap ? formatPace(split.gap) : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">HR</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.hr ? `${split.hr} bpm` : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">Elevation</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {split.elevation ? `${split.elevation} m` : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="ui-label">D+/-</dt>
+                      <dd className="mt-1 font-mono text-[var(--bone)]">
+                        {formatElevationDelta(split.elevationDelta)}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   <tr>
@@ -210,7 +275,8 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
                     <th>GAP</th>
                     <th>HR</th>
                     <th>Elevation</th>
-                    <th>Note</th>
+                    <th>D+/-</th>
+                    {hasStopFlags ? <th>Flag</th> : null}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -228,7 +294,10 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
                       <td>{split.gap ? formatPace(split.gap) : "-"}</td>
                       <td>{split.hr ? `${split.hr} bpm` : "-"}</td>
                       <td>{split.elevation ? `${split.elevation} m` : "-"}</td>
-                      <td>{split.is_stop ? "Stop" : ""}</td>
+                      <td>{formatElevationDelta(split.elevationDelta)}</td>
+                      {hasStopFlags ? (
+                        <td>{split.is_stop ? "Possible stop" : ""}</td>
+                      ) : null}
                     </tr>
                   ))}
                 </tbody>

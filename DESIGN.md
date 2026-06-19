@@ -61,16 +61,16 @@ Permitted exceptions to the single-hue rule.
   --zone3: #f59e0b; /* Vibrant amber  — threshold */
   --zone4: #ef4444; /* Vibrant red    — hard / Z4+ */
 
-  /* Performance Management Chart */
-  --ctl: #60a5fa; /* Blue  — chronic training load (fitness) */
-  --atl: #f87171; /* Red   — acute training load (fatigue) */
-  --tsb-positive: #4ade80; /* Green — TSB positive / fresh */
-  --tsb-negative: #f87171; /* Red   — TSB negative / fatigued */
+  /* Performance Management Chart — high contrast warm pair */
+  --ctl: #f3d49b; /* Bright sand — chronic training load (fitness) */
+  --atl: #7f6d4d; /* Dark bronze — acute training load (fatigue) */
+  --tsb-positive: #f3d49b; /* Bright sand — TSB positive / fresh */
+  --tsb-negative: #6f674d; /* Deep olive — TSB negative / fatigued */
 
   /* Chart series */
-  --chart-pace: oklch(0.78 0.075 78); /* Sand — primary pace line */
-  --chart-gap: oklch(0.62 0.05 78); /* Dimmed sand — GAP dashed line */
-  --chart-hr: #f87171; /* Warm red — HR line */
+  --chart-pace: #f3d49b; /* Bright sand — primary pace line */
+  --chart-gap: #7f6d4d; /* Dark bronze — GAP dashed line */
+  --chart-hr: #8f815f; /* Olive — HR line */
   --chart-elev: oklch(0.45 0.03 80); /* Muted olive — elevation fill */
 
   /* Trends & feedback */
@@ -80,6 +80,11 @@ Permitted exceptions to the single-hue rule.
   --pr-gold: #fbbf24; /* Gold — PR toast, trophy icon */
 }
 ```
+
+Two-series charts must use deliberate light/dark separation, not adjacent
+midtones. Preferred pair: `--ctl` / `--atl` or `--chart-pace` /
+`--chart-gap`. If both series share hue, differentiate with value, stroke
+weight, and dash pattern.
 
 ---
 

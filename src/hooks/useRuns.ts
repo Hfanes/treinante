@@ -35,7 +35,7 @@ function downloadJSON(file: ExportFile) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `runmetrics-export-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `treinante-export-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -64,6 +64,7 @@ export function useRuns(): {
   syncing: boolean;
   addRun: (run: Run) => Promise<void>;
   deleteRun: (id: string) => Promise<void>;
+  syncRuns: () => Promise<void>;
   getRun: (id: string) => Run | undefined;
   exportJSON: () => void;
   importJSON: (file: File) => Promise<void>;
@@ -247,6 +248,7 @@ export function useRuns(): {
     syncing,
     addRun,
     deleteRun,
+    syncRuns,
     getRun,
     exportJSON,
     importJSON,

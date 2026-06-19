@@ -66,7 +66,13 @@ describe("dashboard analysis", () => {
         }),
         run({ date: "2026-05-20", distance: 10 }),
       ],
-      { weekly_km_goal: 30, max_hr: 180, ftp_pace: null },
+      {
+        weekly_km_goal: 30,
+        max_hr: 180,
+        lthr: null,
+        hr_zone_method: "max_hr",
+        ftp_pace: null,
+      },
       new Date("2026-06-09T12:00:00Z")
     );
 
@@ -80,7 +86,13 @@ describe("dashboard analysis", () => {
   it("builds 12 weekly buckets", () => {
     const data = buildDashboardData(
       [run({ date: "2026-06-09", distance: 7 })],
-      { weekly_km_goal: 30, max_hr: null, ftp_pace: null },
+      {
+        weekly_km_goal: 30,
+        max_hr: null,
+        lthr: null,
+        hr_zone_method: "max_hr",
+        ftp_pace: null,
+      },
       new Date("2026-06-09T12:00:00Z")
     );
 

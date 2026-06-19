@@ -39,9 +39,12 @@ const user = { id: "user-1", email: "runner@example.com" } as User;
 const profile: Profile = {
   id: user.id,
   name: "Runner",
+  unit_preference: "metric",
   weekly_km_goal: 42,
   max_hr: 190,
   resting_hr: 48,
+  lthr: 170,
+  hr_zone_method: "max_hr",
   ftp_pace: 270,
   strava_connected: false,
   onboarding_complete: true,

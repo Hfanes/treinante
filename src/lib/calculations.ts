@@ -14,12 +14,17 @@ const RIEGEL_EXPONENT = 1.06;
 const PREDICTOR_ROLLING_WINDOWS = [21, 10, 5, 3] as const;
 
 export const RACE_TARGETS = [
-  { key: "mile", label: "1 mile", distance: 1.609, prType: null },
+  { key: "mile", label: "1 mile", distance: 1.609, prType: "1_mile" },
   { key: "5k", label: "5 km", distance: 5, prType: "5k" },
   { key: "10k", label: "10 km", distance: 10, prType: "10k" },
-  { key: "half", label: "Half marathon", distance: 21.0975, prType: "21k" },
-  { key: "marathon", label: "Marathon", distance: 42.195, prType: "42k" },
-  { key: "50k", label: "50 km", distance: 50, prType: null },
+  {
+    key: "half",
+    label: "Half marathon",
+    distance: 21.0975,
+    prType: "half_marathon",
+  },
+  { key: "marathon", label: "Marathon", distance: 42.195, prType: "marathon" },
+  { key: "50k", label: "50 km", distance: 50, prType: "50k" },
 ] as const;
 
 export interface PredictorAnchor {
@@ -279,12 +284,18 @@ export function getWorkingVo2max(
 
 export function computeTrainingLoad(
   run: Pick<Run, "moving_time" | "avg_hr" | "avg_pace">,
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null
 ): number {
   const durationHours = run.moving_time / 3600;
+  const maxHrRatio = run.avg_hr && profile?.max_hr ? run.avg_hr / profile.max_hr : null;
+  const lthrRatio = run.avg_hr && profile?.lthr ? run.avg_hr / profile.lthr : null;
+  const preferredHrRatio =
+    profile?.hr_zone_method === "lthr"
+      ? lthrRatio ?? maxHrRatio
+      : maxHrRatio ?? lthrRatio;
   const hrRatio =
-    run.avg_hr && profile?.max_hr
-      ? run.avg_hr / profile.max_hr
+    preferredHrRatio !== null
+      ? preferredHrRatio
       : profile?.ftp_pace && run.avg_pace > 0
         ? profile.ftp_pace / run.avg_pace
         : 0.75;
@@ -297,7 +308,7 @@ export function computeTrainingLoad(
 
 export function computeFitnessTimeSeries(
   runs: Run[],
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null,
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null,
   today = new Date()
 ): FitnessPoint[] {
   const sorted = [...runs].sort((a, b) => a.date.localeCompare(b.date));

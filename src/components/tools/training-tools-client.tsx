@@ -43,31 +43,29 @@ function PaceCalculator({ pace }: { pace: number }) {
     <Card className="overflow-hidden" subtitle="Target pace to finish time.">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-950 dark:text-white">
-            Pace calculator
-          </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          <h2 className="instrument-heading text-2xl">Pace calculator</h2>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             One pace, every common target distance.
           </p>
         </div>
         <Badge>{paceLabel(pace)}</Badge>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      <div className="mt-5 overflow-hidden rounded-[2px] border border-[var(--border)]">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
+          <thead className="bg-[var(--muted)] font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
             <tr>
               <th className="px-3 py-2">Distance</th>
               <th className="px-3 py-2">Finish time</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody className="divide-y divide-[var(--border)]">
             {TOOL_DISTANCES.map((distance) => (
               <tr key={distance.key}>
-                <td className="px-3 py-3 font-medium text-gray-950 dark:text-white">
+                <td className="px-3 py-3 font-medium text-[var(--bone)]">
                   {distance.label}
                 </td>
-                <td className="px-3 py-3 font-mono">
+                <td className="px-3 py-3 font-mono text-[var(--bone)]">
                   {formatDuration(finishSeconds(pace, distance.distanceKm))}
                 </td>
               </tr>
@@ -93,12 +91,17 @@ function GelTimeline({
         x2="95%"
         y1="34"
         y2="34"
-        className="stroke-gray-300 dark:stroke-gray-700"
+        className="stroke-[var(--border)]"
         strokeWidth="4"
         strokeLinecap="round"
       />
-      <circle cx="5%" cy="34" r="5" className="fill-gray-500" />
-      <circle cx="95%" cy="34" r="5" className="fill-brand-600" />
+      <circle
+        cx="5%"
+        cy="34"
+        r="5"
+        className="fill-[var(--muted-foreground)]"
+      />
+      <circle cx="95%" cy="34" r="5" className="fill-[var(--primary)]" />
       {gels.map((gel) => {
         const x = 5 + Math.min(90, (gel.minute * 60 * 90) / finishTime);
         return (
@@ -108,7 +111,7 @@ function GelTimeline({
               x={`${x}%`}
               y="18"
               textAnchor="middle"
-              className="fill-gray-600 text-[10px] dark:fill-gray-300"
+              className="fill-[var(--secondary)] font-mono text-[10px]"
             >
               {gel.minute}
             </text>
@@ -129,31 +132,37 @@ function GelCalculator({ pace }: { pace: number }) {
     <Card subtitle="Simple fueling checkpoints for long efforts.">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-950 dark:text-white">
-            Gel timing
-          </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          <h2 className="instrument-heading text-2xl">Gel timing</h2>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             {distance.label} at {paceLabel(pace)} - finish{" "}
             {formatDuration(finishTime)}.
           </p>
         </div>
-        <select
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-950"
-          value={distanceKey}
-          onChange={(event) =>
-            setDistanceKey(event.target.value as ToolDistanceKey)
-          }
-        >
-          {TOOL_DISTANCES.map((item) => (
-            <option key={item.key} value={item.key}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+        <span className="relative inline-flex">
+          <select
+            className="appearance-none rounded-[2px] border border-[var(--border)] bg-[var(--background)] py-2 pr-9 pl-4 text-sm text-[var(--bone)]"
+            value={distanceKey}
+            onChange={(event) =>
+              setDistanceKey(event.target.value as ToolDistanceKey)
+            }
+          >
+            {TOOL_DISTANCES.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--bone)]"
+          >
+            ▾
+          </span>
+        </span>
       </div>
 
       {gels.length === 0 ? (
-        <p className="mt-5 rounded-lg bg-gray-50 p-3 text-sm text-gray-600 dark:bg-gray-950 dark:text-gray-300">
+        <p className="mt-5 rounded-[2px] bg-[var(--muted)] p-3 text-sm text-[var(--muted-foreground)]">
           Effort too short for gels.
         </p>
       ) : (
@@ -162,28 +171,30 @@ function GelCalculator({ pace }: { pace: number }) {
           <div className="mt-4 grid gap-2">
             {gels.map((gel) => (
               <div
-                className="grid grid-cols-[1fr_auto_auto] gap-3 rounded-lg bg-gray-50 p-3 text-sm dark:bg-gray-950"
+                className="grid gap-2 rounded-[2px] bg-[var(--muted)] p-3 text-sm sm:grid-cols-[1fr_auto_auto] sm:gap-3"
                 key={gel.label}
               >
                 <div>
-                  <span className="font-medium text-gray-950 dark:text-white">
+                  <span className="font-medium text-[var(--bone)]">
                     {gel.label}
                   </span>{" "}
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-[var(--muted-foreground)]">
                     ({gel.type.toLowerCase()}){gel.optional ? " optional" : ""}
                   </span>
                 </div>
-                <div className="font-mono">
+                <div className="font-mono text-[var(--bone)]">
                   {formatDuration(gel.minute * 60)}
                 </div>
-                <div className="font-mono">km {gel.km?.toFixed(1)}</div>
+                <div className="font-mono text-[var(--bone)]">
+                  km {gel.km?.toFixed(1)}
+                </div>
               </div>
             ))}
           </div>
         </>
       )}
 
-      <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
+      <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-[var(--muted-foreground)]">
         <li>Take gels 15-20 min before you feel you need them.</li>
         <li>Wash down with water, not sports drink.</li>
         <li>Practice gel timing in training before race day.</li>
@@ -202,24 +213,22 @@ function HillCalculator() {
 
   return (
     <Card subtitle="Convert climb stats into training intent.">
-      <h2 className="text-lg font-semibold text-gray-950 dark:text-white">
-        Hill gradient
-      </h2>
+      <h2 className="instrument-heading text-2xl">Hill gradient</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="grid gap-1 text-sm font-medium text-[var(--foreground)]">
           Elevation gain (m)
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             min="0"
             type="number"
             value={elevation}
             onChange={(event) => setElevation(event.target.value)}
           />
         </label>
-        <label className="grid gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <label className="grid gap-1 text-sm font-medium text-[var(--foreground)]">
           Distance (m)
           <input
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             min="1"
             type="number"
             value={distance}
@@ -228,29 +237,31 @@ function HillCalculator() {
         </label>
       </div>
 
-      <div className="mt-5 grid gap-3 rounded-xl bg-gray-950 p-4 text-white dark:bg-black">
+      <div className="mt-5 grid gap-3 rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--background)_82%,black)] p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-300">Gradient</span>
-          <span className="font-mono text-xl font-semibold">
+          <span className="ui-label">Gradient</span>
+          <span className="font-mono text-xl text-[var(--bone)]">
             {result.gradient.toFixed(1)}%
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-300">D+/km</span>
-          <span className="font-mono text-xl font-semibold">
+          <span className="ui-label">D+/km</span>
+          <span className="font-mono text-xl text-[var(--bone)]">
             {Math.round(result.dPlusPerKm)} m/km
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-300">Classification</span>
-          <span className="font-semibold">{result.classification.label}</span>
+          <span className="ui-label">Classification</span>
+          <span className="text-[var(--bone)]">
+            {result.classification.label}
+          </span>
         </div>
       </div>
 
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+      <p className="mt-4 text-sm text-[var(--muted-foreground)]">
         {result.classification.description}
       </p>
-      <div className="mt-4 grid gap-2 text-sm text-gray-700 dark:text-gray-300">
+      <div className="mt-4 grid gap-2 text-sm text-[var(--foreground)]">
         <div>
           Hill repeats (6-10%): {result.suitableForHillRepeats ? "Yes" : "No"}
         </div>
@@ -276,20 +287,18 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
     <Card subtitle="Use a hard 20-minute test to set practical HR zones.">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-950 dark:text-white">
-            Zone 2 HR
-          </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          <h2 className="instrument-heading text-2xl">Zone 2 HR</h2>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             Run or cycle as hard as you can sustain for 20 minutes.
           </p>
         </div>
         <Badge variant="z2">Z2 focus</Badge>
       </div>
 
-      <label className="mt-4 grid gap-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+      <label className="mt-4 grid gap-1 text-sm font-medium text-[var(--foreground)]">
         20-min average HR
         <input
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+          className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
           min="1"
           type="number"
           value={lthr}
@@ -297,25 +306,20 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
         />
       </label>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      <div className="mt-4 overflow-hidden rounded-[2px] border border-[var(--border)]">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
+          <thead className="bg-[var(--muted)] font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
             <tr>
               <th className="px-3 py-2">Zone</th>
               <th className="px-3 py-2">Range</th>
               <th className="px-3 py-2">Use</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody className="divide-y divide-[var(--border)]">
             {Object.entries(zones).map(([key, zone]) => (
-              <tr
-                className={
-                  key === "z2" ? "bg-green-50 dark:bg-green-950/30" : ""
-                }
-                key={key}
-              >
+              <tr className={key === "z2" ? "bg-[#15803d22]" : ""} key={key}>
                 <td className="px-3 py-3 font-semibold uppercase">{key}</td>
-                <td className="px-3 py-3 font-mono">
+                <td className="px-3 py-3 font-mono text-[var(--bone)]">
                   {key === "z5" ? `${zone.min}+` : `${zone.min} - ${zone.max}`}{" "}
                   bpm
                 </td>
@@ -328,7 +332,7 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
         </table>
       </div>
 
-      <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-200">
+      <p className="mt-4 rounded-[2px] border border-[#22c55e44] bg-[#15803d22] p-3 text-sm text-[#22c55e]">
         Zone 2 target: {zones.z2.min} - {zones.z2.max} bpm. Keep easy runs below{" "}
         {zones.z2.max} bpm.
       </p>
@@ -338,7 +342,11 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"
       >
         <input name="lthr" type="hidden" value={lthrValue} />
-        <Button disabled={!isLoggedIn || pending} type="submit">
+        <Button
+          className="w-full sm:w-auto"
+          disabled={!isLoggedIn || pending}
+          type="submit"
+        >
           {pending
             ? "Saving..."
             : estimatedMaxHr
@@ -346,7 +354,7 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
               : "Save as my max HR"}
         </Button>
         {!isLoggedIn ? (
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm text-[var(--muted-foreground)]">
             Sign in to save your zone settings and personalise predictions.
           </span>
         ) : null}
@@ -367,19 +375,17 @@ export function TrainingToolsClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <div className="grid gap-5">
-      <Card className="border-gray-950 bg-gray-950 text-white dark:border-gray-800 dark:bg-black">
+      <Card className="vbars bg-[color-mix(in_oklch,var(--background)_78%,black)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-gray-400">
-              Shared pace input
-            </div>
-            <div className="mt-2 text-3xl font-semibold">{paceLabel(pace)}</div>
+            <div className="ui-label">Shared pace input</div>
+            <div className="metric-value mt-2 text-4xl">{paceLabel(pace)}</div>
           </div>
-          <label className="grid flex-1 gap-2 text-sm text-gray-300 lg:max-w-2xl">
+          <label className="grid flex-1 gap-2 text-sm text-[var(--foreground)] lg:max-w-2xl">
             Pace per km
             <input
               aria-label="Pace per kilometer"
-              className="accent-brand-500"
+              className="accent-[var(--primary)]"
               max="600"
               min="240"
               step="5"
@@ -387,7 +393,7 @@ export function TrainingToolsClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               value={pace}
               onChange={(event) => setPace(Number(event.target.value))}
             />
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
               <span>4:00/km</span>
               <span>10:00/km</span>
             </div>

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   analyzeRun,
   classifyZone,
+  classifyZoneByLthr,
   classifyZoneByPace,
   computeCardiacDrift,
   computeGap,
@@ -76,7 +77,7 @@ const baseRun: Run = {
       lng: null,
     },
   ],
-  raw_source: {},
+  raw_source: { start_elevation: 0 },
   training_load: null,
   ctl_at_date: null,
   atl_at_date: null,
@@ -113,11 +114,33 @@ describe("run analysis", () => {
   });
 
   it("builds a run analysis summary", () => {
-    const analysis = analyzeRun(baseRun, { max_hr: 180, ftp_pace: null });
+    const analysis = analyzeRun(baseRun, {
+      max_hr: 180,
+      lthr: null,
+      hr_zone_method: "max_hr",
+      ftp_pace: null,
+    });
 
     expect(analysis.zone).toBe("z3");
     expect(analysis.wholeRunGap).toBeLessThan(baseRun.avg_pace);
     expect(analysis.dPlusPerKm).toBe(25);
     expect(analysis.stopCount).toBe(0);
+  });
+
+  it("classifies zones from LTHR", () => {
+    expect(classifyZoneByLthr(145, 170)).toBe("z2");
+    expect(classifyZoneByLthr(155, 170)).toBe("z3");
+    expect(classifyZoneByLthr(165, 170)).toBe("z4");
+  });
+
+  it("uses the selected HR method before threshold pace", () => {
+    expect(
+      analyzeRun(baseRun, {
+        max_hr: 190,
+        lthr: 160,
+        hr_zone_method: "lthr",
+        ftp_pace: 300,
+      }).zone
+    ).toBe("z4");
   });
 });

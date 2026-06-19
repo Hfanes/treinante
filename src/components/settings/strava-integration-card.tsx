@@ -180,10 +180,11 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               : "Connect with activity read permission to import your runs."}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {connected ? (
             <>
               <Button
+                className="w-full sm:w-auto"
                 type="button"
                 disabled={pending}
                 onClick={() => void sync()}
@@ -191,6 +192,7 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
                 {pendingAction === "sync" ? "Syncing..." : "Sync now"}
               </Button>
               <Button
+                className="w-full sm:w-auto"
                 type="button"
                 variant="secondary"
                 disabled={pending}
@@ -201,6 +203,7 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
                   : "Resync all history"}
               </Button>
               <Button
+                className="w-full sm:w-auto"
                 type="button"
                 variant="secondary"
                 disabled={pending}
@@ -211,6 +214,7 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
                   : "Delete Strava runs"}
               </Button>
               <Button
+                className="w-full sm:w-auto"
                 type="button"
                 variant="ghost"
                 disabled={pending}
@@ -222,7 +226,11 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               </Button>
             </>
           ) : (
-            <Button type="button" onClick={connect}>
+            <Button
+              className="w-full sm:w-auto"
+              type="button"
+              onClick={connect}
+            >
               Connect Strava
             </Button>
           )}

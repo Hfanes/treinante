@@ -1,4 +1,7 @@
-import { ManualRaceCalculator } from "@/components/predictor/race-predictor-client";
+import {
+  ManualRaceCalculator,
+  PredictorExplanationToggle,
+} from "@/components/predictor/race-predictor-client";
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge, Card } from "@/components/ui";
 import {
@@ -20,6 +23,13 @@ function formatDate(date: string) {
     day: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${date}T00:00:00Z`));
+}
+
+function formatMonthLabel(month: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${month}-01T00:00:00Z`));
 }
 
 function formatDelta(seconds: number) {
@@ -197,45 +207,59 @@ function Vo2TrendChart({
   const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
 
   return (
-    <div className="grid gap-3">
-      <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-        <svg
-          aria-label="VO2max trend"
-          className="h-36 w-full overflow-visible"
-          preserveAspectRatio="none"
-          role="img"
-          viewBox="0 0 100 100"
-        >
-          <polyline
-            fill="none"
-            points={polyline}
-            stroke="rgb(37, 99, 235)"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-            vectorEffect="non-scaling-stroke"
-          />
-          {points.map((point) => (
-            <circle
-              cx={point.x}
-              cy={point.y}
-              fill="rgb(37, 99, 235)"
-              key={point.month}
-              r="2.8"
+    <div className="grid min-w-0 gap-3">
+      <div className="min-w-0 rounded-[2px] border border-[var(--border)] p-3">
+        <div className="relative h-36 overflow-hidden">
+          <svg
+            aria-label="VO2max trend"
+            className="pointer-events-none h-full w-full overflow-hidden"
+            preserveAspectRatio="none"
+            role="img"
+            viewBox="0 0 100 100"
+          >
+            <polyline
+              fill="none"
+              points={polyline}
+              stroke="var(--chart-pace)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
               vectorEffect="non-scaling-stroke"
-            >
-              <title>{`${point.month}: ${point.vo2max.toFixed(1)}`}</title>
-            </circle>
-          ))}
-        </svg>
-        <div className="mt-2 flex justify-between gap-2">
+            />
+          </svg>
+          {points.map((point, index) => {
+            const previousX = points[index - 1]?.x ?? 0;
+            const nextX = points[index + 1]?.x ?? 100;
+            const left = index === 0 ? 0 : (previousX + point.x) / 2;
+            const right =
+              index === points.length - 1 ? 100 : (point.x + nextX) / 2;
+            const hitX = ((point.x - left) / (right - left)) * 100;
+
+            return (
+              <span
+                aria-label={`${point.month}: ${point.vo2max.toFixed(1)} VO2max`}
+                className="group absolute top-0 h-full"
+                key={point.month}
+                style={{ left: `${left}%`, width: `${right - left}%` }}
+              >
+                <span
+                  className="pointer-events-none absolute z-10 hidden max-w-[12rem] -translate-x-1/2 -translate-y-full whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 sm:block"
+                  style={{ left: `${hitX}%`, top: `${point.y}%` }}
+                >
+                  {point.month} · {point.vo2max.toFixed(1)} VO2max
+                </span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="mt-2 grid min-w-0 grid-cols-3 gap-2 sm:flex sm:justify-between">
           {points.map((point) => (
-            <div className="text-center" key={point.month}>
-              <div className="text-[10px] text-gray-500 dark:text-gray-400">
-                {point.month.slice(5)}
+            <div className="min-w-0 text-center" key={point.month}>
+              <div className="truncate font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:text-[0.68rem] sm:tracking-[0.14em]">
+                {formatMonthLabel(point.month)}
               </div>
-              <div className="font-mono text-[10px] text-gray-700 dark:text-gray-300">
-                {point.vo2max.toFixed(1)}
+              <div className="mt-1 truncate font-mono text-[0.62rem] text-[var(--bone)] sm:text-[0.68rem]">
+                VO2 {point.vo2max.toFixed(1)}
               </div>
             </div>
           ))}
@@ -309,80 +333,86 @@ export default async function PredictorPage() {
   return (
     <PageShell title="Race Predictor">
       <div className="grid gap-5">
-        <Card subtitle="Automatically estimated from your best recent anchor effort. Training reference only - not a medical measurement.">
-          <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Working VO2max
-              </div>
-              <div className="mt-1 font-mono text-4xl font-semibold text-gray-950 dark:text-white">
+        <section className="overflow-hidden py-6 sm:py-8 lg:py-10">
+          <h2 className="instrument-heading max-w-5xl text-4xl leading-[0.95] tracking-[-0.03em] text-[var(--primary)] sm:text-6xl lg:text-8xl">
+            From one effort,{" "}
+            <em className="font-normal text-[var(--primary)]">
+              the whole season.
+            </em>
+          </h2>
+        </section>
+
+        <Card
+          className="vbars overflow-hidden bg-[color-mix(in_oklch,var(--background)_84%,black)]"
+          subtitle="Training reference only - not a medical measurement."
+        >
+          <div className="grid min-w-0 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+            <div className="min-w-0">
+              <p className="ui-label">Working VO2max</p>
+              <div className="instrument-heading mt-4 mb-4 text-6xl leading-none text-[var(--primary)] sm:text-7xl md:text-8xl">
                 {workingVo2max?.toFixed(1) ?? "-"}
               </div>
-              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                ml/kg/min
-              </div>
-              {anchor ? (
-                <div className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-gray-300">
-                  <p>
-                    Pace-based means estimated from running speed. This uses{" "}
-                    {anchorLabel(anchor)} at {formatPace(anchor.pace)}.
-                  </p>
-                  <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <h2 className="font-semibold text-gray-950 dark:text-white">
-                      What rolling window means
-                    </h2>
-                    <p className="mt-2">
-                      The app slides a fixed-distance window across your splits
-                      and finds the fastest consecutive block. A 5 km rolling
-                      window checks km 1-5, then 2-6, then 3-7, and so on.
-                    </p>
-                    <p className="mt-2">
-                      It only uses the last 90 days so the estimate reflects
-                      current fitness. It also checks longer windows first: 21
-                      km, then 10 km, then 5 km, then 3 km. A longer clean
-                      effort is more honest about aerobic capacity than a short
-                      fast burst.
-                    </p>
-                    <p className="mt-2 font-medium text-gray-800 dark:text-gray-100">
-                      Your selected anchor: {anchorLabel(anchor)} at{" "}
-                      {formatPace(anchor.pace)}.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-                  Import runs to see your VO2max estimate.
-                </p>
-              )}
+              <p className="mt-4 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                ml/kg/min · current estimate
+              </p>
             </div>
 
-            <div className="grid gap-3">
-              <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                <h2 className="font-semibold text-gray-950 dark:text-white">
-                  HR-based VO2max
-                </h2>
-                <div className="mt-2 font-mono text-3xl font-semibold text-gray-950 dark:text-white">
-                  {hrVo2max?.toFixed(1) ?? "-"}
+            <div className="grid min-w-0 gap-5">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="border-l border-[var(--border)] pl-4">
+                  <p className="ui-label">Pace model</p>
+                  <p className="mt-3 font-mono text-2xl text-[var(--bone)]">
+                    {paceVo2max?.toFixed(1) ?? "-"}
+                  </p>
                 </div>
-                <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                  HR-based uses the Uth-Sorensen formula: 15 x max HR divided by
-                  resting HR. Max HR comes from Settings first, then your
-                  highest imported run max HR if Settings is empty.
-                </p>
-                {!hrVo2max ? (
-                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    Set resting HR in Settings. Max HR can come from Settings or
-                    run history.
+                <div className="border-l border-[var(--border)] pl-4">
+                  <p className="ui-label">HR model</p>
+                  <p className="mt-3 font-mono text-2xl text-[var(--bone)]">
+                    {hrVo2max?.toFixed(1) ?? "-"}
                   </p>
-                ) : hrSource ? (
-                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    HR-based uses {hrSource} and resting HR from Settings.
+                  <p className="mt-1 font-mono text-[0.58rem] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
+                    {hrSource
+                      ? `Uses ${hrSource} + resting HR`
+                      : "Set max HR + resting HR"}
                   </p>
-                ) : null}
+                </div>
+                <div className="border-l border-[var(--border)] pl-4">
+                  <p className="ui-label">Reference</p>
+                  <div className="mt-3 grid gap-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                    <span>
+                      <span className="text-[var(--bone)]">35-45</span>{" "}
+                      recreational
+                    </span>
+                    <span>
+                      <span className="text-[var(--bone)]">50-60</span> amateur
+                    </span>
+                    <span>
+                      <span className="text-[var(--bone)]">70+</span> elite
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Recreational 35-45 · Amateur 50-60 · Elite 70+.
-              </p>
+
+              <div className="border-t border-[var(--border)] pt-5">
+                {anchor ? (
+                  <>
+                    <p className="max-w-3xl text-sm leading-6 text-[var(--foreground)]">
+                      Based on {anchorLabel(anchor)} at{" "}
+                      {formatPace(anchor.pace)}. Rolling anchors scan recent
+                      splits for the best clean 21 km, 10 km, 5 km, then 3 km
+                      effort.
+                    </p>
+                    <PredictorExplanationToggle
+                      anchorLabel={anchorLabel(anchor)}
+                      anchorPace={formatPace(anchor.pace)}
+                    />
+                  </>
+                ) : (
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Import runs to see your VO2max estimate.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </Card>
@@ -423,53 +453,104 @@ export default async function PredictorPage() {
             </div>
           ) : null}
           {predictions.length > 0 ? (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  <tr>
-                    <th className="py-2">Distance</th>
-                    <th>km</th>
-                    <th>Predicted time</th>
-                    <th>Pace</th>
-                    <th>Personal best</th>
-                    <th>PR delta</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {predictions.map((prediction) => (
-                    <tr key={prediction.key}>
-                      <td className="py-3 font-medium text-gray-950 dark:text-white">
-                        {prediction.label}
-                      </td>
-                      <td>
-                        {prediction.distance.toFixed(3).replace(/\.0+$/, "")}
-                      </td>
-                      <td>
-                        {prediction.predictedTime
-                          ? formatDuration(prediction.predictedTime)
-                          : "-"}
-                      </td>
-                      <td>
-                        {prediction.pace ? formatPace(prediction.pace) : "-"}
-                      </td>
-                      <td>{formatBest(prediction.prTime)}</td>
-                      <td>
-                        {prediction.prGap !== null ? (
-                          <Badge
-                            variant={
-                              prediction.prGap < 0 ? "optimal" : "neutral"
-                            }
-                          >
-                            {formatDelta(prediction.prGap)}
-                          </Badge>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
+            <div className="mt-4">
+              <div className="grid gap-3 md:hidden">
+                {predictions.map((prediction) => (
+                  <article
+                    className="rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklch,var(--card)_92%,black)] p-3"
+                    key={prediction.key}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-[var(--bone)]">
+                          {prediction.label}
+                        </p>
+                        <p className="mt-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                          {prediction.distance.toFixed(3).replace(/\.0+$/, "")}{" "}
+                          km
+                        </p>
+                      </div>
+                      {prediction.prGap !== null ? (
+                        <Badge
+                          variant={prediction.prGap < 0 ? "optimal" : "neutral"}
+                        >
+                          {formatDelta(prediction.prGap)}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <dt className="ui-label">Predicted</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {prediction.predictedTime
+                            ? formatDuration(prediction.predictedTime)
+                            : "-"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="ui-label">Pace</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {prediction.pace ? formatPace(prediction.pace) : "-"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="ui-label">Personal best</dt>
+                        <dd className="mt-1 font-mono text-[var(--bone)]">
+                          {formatBest(prediction.prTime)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full min-w-[680px] text-left text-sm">
+                  <thead className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    <tr>
+                      <th className="py-2">Distance</th>
+                      <th>km</th>
+                      <th>Predicted time</th>
+                      <th>Pace</th>
+                      <th>Personal best</th>
+                      <th>PR delta</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                    {predictions.map((prediction) => (
+                      <tr key={prediction.key}>
+                        <td className="py-3 font-medium text-gray-950 dark:text-white">
+                          {prediction.label}
+                        </td>
+                        <td>
+                          {prediction.distance.toFixed(3).replace(/\.0+$/, "")}
+                        </td>
+                        <td>
+                          {prediction.predictedTime
+                            ? formatDuration(prediction.predictedTime)
+                            : "-"}
+                        </td>
+                        <td>
+                          {prediction.pace ? formatPace(prediction.pace) : "-"}
+                        </td>
+                        <td>{formatBest(prediction.prTime)}</td>
+                        <td>
+                          {prediction.prGap !== null ? (
+                            <Badge
+                              variant={
+                                prediction.prGap < 0 ? "optimal" : "neutral"
+                              }
+                            >
+                              {formatDelta(prediction.prGap)}
+                            </Badge>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 Model · Riegel exponent 1.06 · Assumes equal fitness and flat
                 course.

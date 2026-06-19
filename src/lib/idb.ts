@@ -9,7 +9,7 @@ import type {
   WeeklyReport,
 } from "@/types";
 
-interface RunMetricsDB extends DBSchema {
+interface TreinanteDB extends DBSchema {
   runs: {
     key: string;
     value: Run;
@@ -34,12 +34,12 @@ interface RunMetricsDB extends DBSchema {
   sync_meta: { key: string; value: { key: string; value: string } };
 }
 
-export function openRunMetricsDB() {
+export function openTreinanteDB() {
   if (typeof indexedDB === "undefined") {
     throw new Error("IndexedDB is only available in the browser");
   }
 
-  return openDB<RunMetricsDB>("runmetrics", 1, {
+  return openDB<TreinanteDB>("treinante", 1, {
     upgrade(db) {
       const runs = db.createObjectStore("runs", { keyPath: "id" });
       runs.createIndex("by_date", "date");
@@ -67,10 +67,10 @@ export function openRunMetricsDB() {
   });
 }
 
-let dbPromise: ReturnType<typeof openRunMetricsDB> | null = null;
+let dbPromise: ReturnType<typeof openTreinanteDB> | null = null;
 
 function getDB() {
-  dbPromise ??= openRunMetricsDB();
+  dbPromise ??= openTreinanteDB();
   return dbPromise;
 }
 

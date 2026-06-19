@@ -8,18 +8,34 @@ Automatically extract and track personal records across all distances and catego
 
 ## PR types
 
-| Key                  | Description             | Unit    | Method                                       |
-| -------------------- | ----------------------- | ------- | -------------------------------------------- |
-| `1k`                 | Fastest 1 km            | seconds | Best single split                            |
-| `5k`                 | Fastest 5 km            | seconds | Best rolling 5-split window                  |
-| `10k`                | Fastest 10 km           | seconds | Best rolling 10-split window                 |
-| `21k`                | Fastest half marathon   | seconds | Best rolling 21-split window or interpolated |
-| `42k`                | Fastest marathon        | seconds | Best rolling 42-split window or interpolated |
-| `longest_run`        | Longest run by distance | km      | Max `runs.distance`                          |
-| `most_elevation`     | Most D+ in a single run | metres  | Max `runs.elevation_gain`                    |
-| `best_d_plus_per_km` | Best elevation density  | m/km    | Max `elevation_gain / distance`              |
+| Key                  | Description             | Unit    | Method                                     |
+| -------------------- | ----------------------- | ------- | ------------------------------------------ |
+| `400m`               | Fastest 400 m           | seconds | Best rolling split window or pace estimate |
+| `half_mile`          | Fastest 1/2 mile        | seconds | Best rolling split window or pace estimate |
+| `1k`                 | Fastest 1 km            | seconds | Best rolling split window or pace estimate |
+| `1_mile`             | Fastest 1 mile          | seconds | Best rolling split window or pace estimate |
+| `2_mile`             | Fastest 2 mile          | seconds | Best rolling split window or pace estimate |
+| `5k`                 | Fastest 5 km            | seconds | Best rolling split window or pace estimate |
+| `10k`                | Fastest 10 km           | seconds | Best rolling split window or pace estimate |
+| `15k`                | Fastest 15 km           | seconds | Best rolling split window or pace estimate |
+| `10_mile`            | Fastest 10 mile         | seconds | Best rolling split window or pace estimate |
+| `20k`                | Fastest 20 km           | seconds | Best rolling split window or pace estimate |
+| `half_marathon`      | Fastest half marathon   | seconds | Best rolling split window or pace estimate |
+| `30k`                | Fastest 30 km           | seconds | Best rolling split window or pace estimate |
+| `marathon`           | Fastest marathon        | seconds | Best rolling split window or pace estimate |
+| `50k`                | Fastest 50 km           | seconds | Best rolling split window or pace estimate |
+| `50_mile`            | Fastest 50 mile         | seconds | Best rolling split window or pace estimate |
+| `100k`               | Fastest 100 km          | seconds | Best rolling split window or pace estimate |
+| `100_mile`           | Fastest 100 mile        | seconds | Best rolling split window or pace estimate |
+| `200k`               | Fastest 200 km          | seconds | Best rolling split window or pace estimate |
+| `24h`                | Best 24h distance       | km      | Max distance inside 24 hours               |
+| `48h`                | Best 48h distance       | km      | Max distance inside 48 hours               |
+| `longest_run`        | Longest run by distance | km      | Max `runs.distance`                        |
+| `longest_duration`   | Longest run duration    | seconds | Max `runs.moving_time`                     |
+| `most_elevation`     | Most D+ in a single run | metres  | Max `runs.elevation_gain`                  |
+| `best_d_plus_per_km` | Best elevation density  | m/km    | Max `elevation_gain / distance`            |
 
-**Adaptive display:** PRs for distances the user has never run near are not shown. A `21k` PR only appears once the user has at least one run ≥ 15 km. A `42k` PR only appears after a run ≥ 35 km. `most_elevation` and `best_d_plus_per_km` are only shown if at least one run has elevation data > 0.
+**Adaptive display:** PRs for distances the user has never run near are not shown. A fixed-distance PR appears when a run covers at least 95% of that distance. A duration PR appears when a run lasts at least 95% of that duration. Longest run, longest duration, most elevation, and best D+/km are also tracked as PR-style bests.
 
 ---
 
@@ -46,22 +62,12 @@ function bestTimeForDistance(splits: Split[], targetKm: number): number | null {
 }
 ```
 
-### Interpolation for distances longer than the run
+### Estimates from coarse split data
 
-If the user's best run is 18 km and we want a 21k estimate, use Riegel interpolation:
-
-```typescript
-// T2 = T1 × (D2 / D1) ^ 1.06
-function interpolatePR(
-  knownTime: number,
-  knownDist: number,
-  targetDist: number
-): number {
-  return knownTime * Math.pow(targetDist / knownDist, 1.06);
-}
-```
-
-Interpolated PRs are marked with `~` prefix: "~1:32:10" and a tooltip: "Estimated from your 18 km run — run a longer distance for an actual time."
+Until PRD 13 adds high-resolution streams, fractional distances such as 400 m
+and 1 mile are estimated proportionally from the stored split elapsed seconds.
+Manual runs and imports without enough split detail use whole-run average pace
+when the run covers at least 95% of the target distance.
 
 ### Post-import update
 
@@ -71,23 +77,28 @@ export async function extractAndUpdatePRs(
   userId: string,
   profile: Profile
 ) {
-  if (!run.raw_splits?.length) {
-    // Manual run — only check longest_run and most_elevation
-    await checkDistancePRs(run, userId);
-    return;
-  }
-
   const splits = run.raw_splits;
   const candidates = {
+    "400m": bestTimeForDistance(splits, 0.4),
+    half_mile: bestTimeForDistance(splits, 0.804672),
     "1k": bestTimeForDistance(splits, 1),
+    "1_mile": bestTimeForDistance(splits, 1.609344),
+    "2_mile": bestTimeForDistance(splits, 3.218688),
     "5k": bestTimeForDistance(splits, 5),
     "10k": bestTimeForDistance(splits, 10),
-    "21k": bestTimeForDistance(splits, 21),
-    "42k": bestTimeForDistance(splits, 42),
-    longest_run: run.distance,
-    most_elevation: run.elevation_gain,
-    best_d_plus_per_km:
-      run.distance > 0 ? run.elevation_gain / run.distance : 0,
+    "15k": bestTimeForDistance(splits, 15),
+    "10_mile": bestTimeForDistance(splits, 16.09344),
+    "20k": bestTimeForDistance(splits, 20),
+    half_marathon: bestTimeForDistance(splits, 21.0975),
+    "30k": bestTimeForDistance(splits, 30),
+    marathon: bestTimeForDistance(splits, 42.195),
+    "50k": bestTimeForDistance(splits, 50),
+    "50_mile": bestTimeForDistance(splits, 80.4672),
+    "100k": bestTimeForDistance(splits, 100),
+    "100_mile": bestTimeForDistance(splits, 160.9344),
+    "200k": bestTimeForDistance(splits, 200),
+    "24h": bestDistanceForDuration(run, 24 * 60 * 60),
+    "48h": bestDistanceForDuration(run, 48 * 60 * 60),
   };
 
   for (const [type, value] of Object.entries(candidates)) {
@@ -115,9 +126,9 @@ export async function extractAndUpdatePRs(
 A responsive grid of cards showing each applicable PR:
 
 ```
-[1 km]      [5 km]       [10 km]      [Half marathon]  [Marathon]
-3:45        19:22        40:14        1:28:32           ~3:05:00 est.
-Jan 14      Nov 3        Nov 3        Oct 12            — (interpolated)
+[400 m]     [1 mile]     [5 km]       [Half marathon]  [24h distance]
+1:12        5:21         19:22        1:28:32           143.5 km
+Jan 14      Nov 3        Nov 3        Oct 12            Dec 2
 ```
 
 Each card:
@@ -125,8 +136,7 @@ Each card:
 - Distance label
 - Time formatted as MM:SS or HH:MM:SS
 - Date achieved
-- "~" prefix and muted style for interpolated values
-- Click → opens that run detail (or tooltip for interpolated)
+- Click → opens that run detail
 
 Cards for distances never reached are hidden entirely.
 
@@ -152,17 +162,16 @@ If only one PR for a distance: show the dot with message "Run more to see progre
 
 ---
 
-## Distance bests section
+## Duration PR section
 
-Below the time PR cards:
+Below the fixed-distance PR cards:
 
-| Best           | Value      | Run | Date   |
-| -------------- | ---------- | --- | ------ |
-| Longest run    | 28.4 km    | [→] | Dec 8  |
-| Most elevation | 1,840 m D+ | [→] | Nov 22 |
-| Best D+/km     | 84 m/km    | [→] | Nov 22 |
+| Best         | Value    | Run | Date   |
+| ------------ | -------- | --- | ------ |
+| 24h distance | 143.5 km | [→] | Dec 8  |
+| 48h distance | 251.2 km | [→] | Nov 22 |
 
-Elevation rows hidden if no elevation data in history.
+Duration rows hidden until a run lasts at least 95% of that duration.
 
 ---
 

@@ -152,3 +152,30 @@ Reviewed: 2026-06-15
 ### Intentional Product Choices
 
 - The full automatic race predictor remains on protected `/predictor`; `/tools` provides public race-pace utilities and fueling guidance instead of duplicating personalized predictor data.
+
+## PRD 12 — UI/UX: Layout, Design System, Dark Mode, Mobile
+
+Reviewed: 2026-06-15
+
+### Implemented
+
+- Dark-first instrument-grade token foundation is implemented in `src/app/globals.css` with olive-brown surfaces, sand primary accents, Space Mono metric/label rules, vertical-bar texture utilities, skeleton shimmer, and staggered metric-card entrance animation.
+- Google fonts are loaded through `next/font/google` for Inter, Cormorant Garamond, and Space Mono, with the root document permanently dark-first.
+- Shared UI primitives (`Card`, `Button`, `Badge`, `Skeleton`) now use the PRD 12 tokens, 2px radius, no shadows, mono metric labels, and data-only badge colors.
+- Protected app shell now uses a fixed 240px desktop sidebar, bottom mobile nav, PRD 12 page hero layout, profile name in the sidebar, and dark olive-brown surfaces.
+- Dashboard, run import/list, training tools, auth, onboarding, settings form, and Chart.js-based charts were restyled toward the PRD 12 visual system without changing feature behavior.
+- Chart.js defaults now use dark tooltip styling, Space Mono labels, sand/semantic series colors, square bars, and `easeOutQuart` 600ms animation on updated dashboard, fitness, and run-split charts.
+
+### Partial Implementations
+
+- Some feature pages still contain legacy Tailwind gray/brand utility classes. A temporary global legacy utility bridge maps the visible old gray/brand classes onto PRD 12 tokens, but future UI work should continue replacing those with semantic component classes.
+- Mobile uses the required 5-item bottom nav, but the "More" destination links to Settings instead of opening a drawer for secondary navigation.
+- Sidebar badge indicators for overreaching Fitness state and recent Records PR state are not wired yet; current data is available in feature pages but not exposed to the shell without extra queries.
+- Tablet compact icon-only sidebar is not implemented; the current breakpoint switches from bottom nav to the full 240px sidebar at `md`.
+- Chart accessibility summaries are partially covered by existing chart roles/labels, but Chart.js instances do not yet all provide the detailed PRD text summaries.
+
+### Not Implemented Yet
+
+- Theme toggle with `localStorage` values `'light' | 'dark' | 'system'` is not implemented. v1 remains dark-first as the design direction requires; light-mode overrides are still intentionally absent.
+- Global toast infrastructure, PR toast variant, and Supabase cold-start toast are not implemented yet; existing success/error feedback remains inline.
+- First-visit onboarding callouts per section are not implemented.

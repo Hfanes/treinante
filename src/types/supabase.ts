@@ -88,34 +88,43 @@ export type Database = {
         Row: {
           created_at: string;
           ftp_pace: number | null;
+          hr_zone_method: "max_hr" | "lthr";
           id: string;
+          lthr: number | null;
           max_hr: number | null;
           name: string | null;
           onboarding_complete: boolean;
           resting_hr: number | null;
           strava_connected: boolean;
+          unit_preference: "metric" | "imperial";
           weekly_km_goal: number;
         };
         Insert: {
           created_at?: string;
           ftp_pace?: number | null;
+          hr_zone_method?: "max_hr" | "lthr";
           id: string;
+          lthr?: number | null;
           max_hr?: number | null;
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
           strava_connected?: boolean;
+          unit_preference?: "metric" | "imperial";
           weekly_km_goal?: number;
         };
         Update: {
           created_at?: string;
           ftp_pace?: number | null;
+          hr_zone_method?: "max_hr" | "lthr";
           id?: string;
+          lthr?: number | null;
           max_hr?: number | null;
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
           strava_connected?: boolean;
+          unit_preference?: "metric" | "imperial";
           weekly_km_goal?: number;
         };
         Relationships: [];

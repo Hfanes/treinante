@@ -12,21 +12,40 @@ interface PrCandidate {
   achievedAt: string;
 }
 
-const TIME_PRS: Array<{ type: PersonalRecordType; km: number }> = [
+const FIXED_DISTANCE_PRS: Array<{ type: PersonalRecordType; km: number }> = [
+  { type: "400m", km: 0.4 },
+  { type: "half_mile", km: 0.804672 },
   { type: "1k", km: 1 },
+  { type: "1_mile", km: 1.609344 },
+  { type: "2_mile", km: 3.218688 },
   { type: "5k", km: 5 },
   { type: "10k", km: 10 },
-  { type: "21k", km: 21 },
-  { type: "42k", km: 42 },
+  { type: "15k", km: 15 },
+  { type: "10_mile", km: 16.09344 },
+  { type: "20k", km: 20 },
+  { type: "half_marathon", km: 21.0975 },
+  { type: "30k", km: 30 },
+  { type: "marathon", km: 42.195 },
+  { type: "50k", km: 50 },
+  { type: "50_mile", km: 80.4672 },
+  { type: "100k", km: 100 },
+  { type: "100_mile", km: 160.9344 },
+  { type: "200k", km: 200 },
 ];
 
-const ESTIMATE_THRESHOLDS: Partial<Record<PersonalRecordType, number>> = {
-  "21k": 15,
-  "42k": 35,
-};
+const DURATION_PRS: Array<{ type: PersonalRecordType; seconds: number }> = [
+  { type: "24h", seconds: 24 * 60 * 60 },
+  { type: "48h", seconds: 48 * 60 * 60 },
+];
+
+const MIN_DURATION_COMPLETION_RATIO = 0.95;
+
+function distanceToleranceKm(targetKm: number) {
+  return Math.min(0.02, targetKm * 0.001);
+}
 
 function isTimePr(type: PersonalRecordType) {
-  return ["1k", "5k", "10k", "21k", "42k"].includes(type);
+  return FIXED_DISTANCE_PRS.some((record) => record.type === type);
 }
 
 function isImprovement(
@@ -47,18 +66,67 @@ function betterCandidate(
   return current;
 }
 
+function splitDistance(splits: Split[], index: number) {
+  const previousKm = index > 0 ? splits[index - 1].km : 0;
+  return Math.max(0, splits[index].km - previousKm) || 1;
+}
+
 export function bestTimeForDistance(splits: Split[], targetKm: number) {
-  if (splits.length < targetKm) return null;
+  if (splits.length === 0 || targetKm <= 0) return null;
 
   let best = Infinity;
-  for (let index = 0; index <= splits.length - targetKm; index += 1) {
-    const window = splits.slice(index, index + targetKm);
-    if (window.some((split) => split.is_stop)) continue;
-    const totalTime = window.reduce((sum, split) => sum + split.pace, 0);
-    if (totalTime < best) best = totalTime;
+  for (let start = 0; start < splits.length; start += 1) {
+    let distance = 0;
+    let totalTime = 0;
+
+    for (let index = start; index < splits.length; index += 1) {
+      const current = splits[index];
+      if (current.is_stop) break;
+
+      const currentDistance = splitDistance(splits, index);
+      const remaining = targetKm - distance;
+      const usedDistance = Math.min(currentDistance, remaining);
+      totalTime += current.pace * (usedDistance / currentDistance);
+      distance += usedDistance;
+
+      if (distance >= targetKm) {
+        best = Math.min(best, Math.round(totalTime));
+        break;
+      }
+    }
   }
 
   return best === Infinity ? null : best;
+}
+
+function estimatedTimeForDistance(run: Run, targetKm: number) {
+  if (run.distance < targetKm - distanceToleranceKm(targetKm)) return null;
+  if (run.distance <= 0 || run.moving_time <= 0) return null;
+  return Math.round((run.moving_time / run.distance) * targetKm);
+}
+
+function bestDistanceForDuration(run: Run, targetSeconds: number) {
+  if (run.moving_time <= 0) return null;
+  if (run.moving_time < targetSeconds * MIN_DURATION_COMPLETION_RATIO) {
+    return null;
+  }
+  if (run.moving_time <= targetSeconds) return run.distance;
+
+  let elapsed = 0;
+  let distance = 0;
+  for (let index = 0; index < run.raw_splits.length; index += 1) {
+    const current = run.raw_splits[index];
+    const currentDistance = splitDistance(run.raw_splits, index);
+    if (elapsed + current.pace > targetSeconds) {
+      return (
+        distance + currentDistance * ((targetSeconds - elapsed) / current.pace)
+      );
+    }
+    elapsed += current.pace;
+    distance += currentDistance;
+  }
+
+  return run.distance * (targetSeconds / run.moving_time);
 }
 
 export function interpolatePrTime(
@@ -73,27 +141,23 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
   const best = new Map<PersonalRecordType, PrCandidate>();
 
   for (const run of runs) {
-    for (const { type, km } of TIME_PRS) {
-      const exact = bestTimeForDistance(run.raw_splits, km);
-      let candidate: PrCandidate | null = exact
-        ? { type, value: exact, runId: run.id, achievedAt: run.date }
+    for (const { type, km } of FIXED_DISTANCE_PRS) {
+      const value =
+        bestTimeForDistance(run.raw_splits, km) ??
+        estimatedTimeForDistance(run, km);
+      const candidate: PrCandidate | null = value
+        ? { type, value, runId: run.id, achievedAt: run.date }
         : null;
-      const estimateThreshold = ESTIMATE_THRESHOLDS[type];
 
-      if (
-        !candidate &&
-        estimateThreshold &&
-        run.distance >= estimateThreshold &&
-        run.distance < km
-      ) {
-        candidate = {
-          type,
-          value: interpolatePrTime(run.moving_time, run.distance, km),
-          runId: run.id,
-          achievedAt: run.date,
-        };
-      }
+      const nextBest = betterCandidate(type, best.get(type) ?? null, candidate);
+      if (nextBest) best.set(type, nextBest);
+    }
 
+    for (const { type, seconds } of DURATION_PRS) {
+      const value = bestDistanceForDuration(run, seconds);
+      const candidate: PrCandidate | null = value
+        ? { type, value, runId: run.id, achievedAt: run.date }
+        : null;
       const nextBest = betterCandidate(type, best.get(type) ?? null, candidate);
       if (nextBest) best.set(type, nextBest);
     }
@@ -106,6 +170,19 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
         runId: run.id,
         achievedAt: run.date,
       })!
+    );
+    best.set(
+      "longest_duration",
+      betterCandidate(
+        "longest_duration",
+        best.get("longest_duration") ?? null,
+        {
+          type: "longest_duration",
+          value: run.moving_time,
+          runId: run.id,
+          achievedAt: run.date,
+        }
+      )!
     );
 
     if (run.elevation_gain > 0) {
