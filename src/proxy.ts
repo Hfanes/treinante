@@ -11,6 +11,7 @@ const protectedPrefixes = [
   "/segments",
   "/reports",
   "/settings",
+  "/update-password",
 ];
 
 export async function proxy(req: NextRequest) {
@@ -62,5 +63,6 @@ export const config = {
     "/segments/:path*",
     "/reports/:path*",
     "/settings/:path*",
+    "/update-password/:path*",
   ],
 };
