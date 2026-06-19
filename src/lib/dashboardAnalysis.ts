@@ -120,7 +120,7 @@ export function computeLongestStreak(runs: Run[]) {
 
 export function buildWeeklyBuckets(
   runs: Run[],
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null,
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null,
   today = new Date()
 ) {
   const currentWeek = startOfWeek(today);
@@ -156,7 +156,10 @@ export function buildWeeklyBuckets(
 
 export function buildDashboardData(
   runs: Run[],
-  profile: Pick<Profile, "weekly_km_goal" | "max_hr" | "ftp_pace"> | null,
+  profile: Pick<
+    Profile,
+    "weekly_km_goal" | "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"
+  > | null,
   today = new Date()
 ): DashboardData {
   const sortedDesc = [...runs].sort((a, b) => b.date.localeCompare(a.date));

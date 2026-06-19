@@ -102,9 +102,12 @@ Schema changes live in `supabase/migrations/*.sql` and are applied with `pnpm db
 create table public.profiles (
   id uuid references auth.users(id) on delete cascade primary key,
   name text,
+  unit_preference text not null default 'metric' check (unit_preference in ('metric', 'imperial')),
   weekly_km_goal numeric not null default 30,
   max_hr integer,
   resting_hr integer,
+  lthr integer check (lthr is null or lthr > 0),
+  hr_zone_method text not null default 'max_hr' check (hr_zone_method in ('max_hr', 'lthr')),
   ftp_pace integer,                    -- sec/km, functional threshold pace
   strava_connected boolean not null default false,
   onboarding_complete boolean not null default false,

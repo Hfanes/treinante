@@ -35,6 +35,27 @@ export function classifyZone(avgHr: number | null, maxHr: number | null) {
   return "z4";
 }
 
+export function classifyZoneByLthr(avgHr: number | null, lthr: number | null) {
+  if (!avgHr || !lthr) return null;
+  const pct = avgHr / lthr;
+  if (pct < 0.89) return "z2";
+  if (pct < 0.93) return "z3";
+  return "z4";
+}
+
+function classifyZoneByPreferredHr(
+  avgHr: number | null,
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method"> | null
+) {
+  if (!profile) return null;
+
+  return profile.hr_zone_method === "lthr"
+    ? classifyZoneByLthr(avgHr, profile.lthr) ??
+        classifyZone(avgHr, profile.max_hr)
+    : classifyZone(avgHr, profile.max_hr) ??
+        classifyZoneByLthr(avgHr, profile.lthr);
+}
+
 export function classifyZoneByPace(
   avgPace: number,
   ftpPace: number | null
@@ -111,11 +132,11 @@ export function computeCardiacDrift(
 
 export function analyzeRun(
   run: Run,
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null
 ): RunAnalysis {
   const splits = computeAnalyzedSplits(run);
   const zone =
-    classifyZone(run.avg_hr, profile?.max_hr ?? null) ??
+    classifyZoneByPreferredHr(run.avg_hr, profile) ??
     classifyZoneByPace(run.avg_pace, profile?.ftp_pace ?? null);
   const gaps = splits
     .map((split) => split.gap)

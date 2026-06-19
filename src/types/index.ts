@@ -1,5 +1,6 @@
 export type RunSource = "gpx" | "strava" | "manual";
 export type EffortZone = "z2" | "z3" | "z4";
+export type HrZoneMethod = "max_hr" | "lthr";
 
 export interface Split {
   km: number;
@@ -56,9 +57,12 @@ export type RunDraft = Omit<
 export interface Profile {
   id: string;
   name: string | null;
+  unit_preference: "metric" | "imperial";
   weekly_km_goal: number;
   max_hr: number | null;
   resting_hr: number | null;
+  lthr: number | null;
+  hr_zone_method: HrZoneMethod;
   ftp_pace: number | null;
   strava_connected: boolean;
   onboarding_complete: boolean;

@@ -75,13 +75,19 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const supabase = await createServerClient();
   const [{ data: run }, { data: profile }] = await Promise.all([
     supabase.from("runs").select("*").eq("id", id).single(),
-    supabase.from("profiles").select("max_hr,ftp_pace").single(),
+    supabase
+      .from("profiles")
+      .select("max_hr,lthr,hr_zone_method,ftp_pace")
+      .single(),
   ]);
 
   if (!run) notFound();
 
   const typedRun = run as unknown as Run;
-  const typedProfile = profile as Pick<Profile, "max_hr" | "ftp_pace"> | null;
+  const typedProfile = profile as Pick<
+    Profile,
+    "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"
+  > | null;
   const analysis = analyzeRun(typedRun, typedProfile);
   const hasElevation =
     typedRun.elevation_gain >= 10 ||

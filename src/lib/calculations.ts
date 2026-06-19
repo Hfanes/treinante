@@ -284,12 +284,18 @@ export function getWorkingVo2max(
 
 export function computeTrainingLoad(
   run: Pick<Run, "moving_time" | "avg_hr" | "avg_pace">,
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null
 ): number {
   const durationHours = run.moving_time / 3600;
+  const maxHrRatio = run.avg_hr && profile?.max_hr ? run.avg_hr / profile.max_hr : null;
+  const lthrRatio = run.avg_hr && profile?.lthr ? run.avg_hr / profile.lthr : null;
+  const preferredHrRatio =
+    profile?.hr_zone_method === "lthr"
+      ? lthrRatio ?? maxHrRatio
+      : maxHrRatio ?? lthrRatio;
   const hrRatio =
-    run.avg_hr && profile?.max_hr
-      ? run.avg_hr / profile.max_hr
+    preferredHrRatio !== null
+      ? preferredHrRatio
       : profile?.ftp_pace && run.avg_pace > 0
         ? profile.ftp_pace / run.avg_pace
         : 0.75;
@@ -302,7 +308,7 @@ export function computeTrainingLoad(
 
 export function computeFitnessTimeSeries(
   runs: Run[],
-  profile: Pick<Profile, "max_hr" | "ftp_pace"> | null,
+  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null,
   today = new Date()
 ): FitnessPoint[] {
   const sorted = [...runs].sort((a, b) => a.date.localeCompare(b.date));

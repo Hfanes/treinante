@@ -150,7 +150,7 @@ function RangeSelector({
     <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap md:mb-8">
       {summaryRanges.map((item) => (
         <button
-          className={`min-h-6 rounded-[2px] border px-2 py-1 font-mono text-[0.4rem] uppercase tracking-[0.02em] transition sm:min-h-8 sm:px-2.5 sm:text-[0.4rem] sm:tracking-[0.08em] ${
+          className={`min-h-6 rounded-[2px] border px-2 py-1 font-mono text-[0.7rem] uppercase tracking-[0.02em] transition sm:min-h-8 sm:px-2.5 sm:text-[0.8rem] sm:tracking-[0.08em] ${
             range === item.key
               ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
               : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
@@ -570,6 +570,8 @@ export function DashboardRunsClient({
     | "name"
     | "weekly_km_goal"
     | "max_hr"
+    | "lthr"
+    | "hr_zone_method"
     | "ftp_pace"
     | "strava_connected"
   > | null;

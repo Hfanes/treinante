@@ -21,9 +21,12 @@ import type { PersonalRecord, Profile, Run, Split } from "@/types";
 const profile: Profile = {
   id: "user-1",
   name: "Runner",
+  unit_preference: "metric",
   weekly_km_goal: 40,
   max_hr: 190,
   resting_hr: 45,
+  lthr: 170,
+  hr_zone_method: "max_hr",
   ftp_pace: 300,
   strava_connected: false,
   onboarding_complete: true,

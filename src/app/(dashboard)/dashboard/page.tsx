@@ -10,7 +10,9 @@ export default async function DashboardPage() {
       supabase.from("runs").select("*").order("date", { ascending: false }),
       supabase
         .from("profiles")
-        .select("id,name,weekly_km_goal,max_hr,ftp_pace,strava_connected")
+        .select(
+          "id,name,weekly_km_goal,max_hr,lthr,hr_zone_method,ftp_pace,strava_connected"
+        )
         .single(),
       supabase
         .from("personal_records")
@@ -28,6 +30,8 @@ export default async function DashboardPage() {
     | "name"
     | "weekly_km_goal"
     | "max_hr"
+    | "lthr"
+    | "hr_zone_method"
     | "ftp_pace"
     | "strava_connected"
   > | null;
