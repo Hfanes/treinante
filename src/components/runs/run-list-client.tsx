@@ -63,6 +63,168 @@ function formatPace(seconds: number) {
   return `${formatDuration(seconds)}/km`;
 }
 
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function monthLabel(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function addUtcDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function startOfUtcWeek(date: Date) {
+  const start = new Date(date);
+  const day = start.getUTCDay() || 7;
+  start.setUTCDate(start.getUTCDate() - day + 1);
+  return start;
+}
+
+function endOfUtcWeek(date: Date) {
+  return addUtcDays(startOfUtcWeek(date), 6);
+}
+
+function activityCountClass(count: number) {
+  if (count <= 0) return "bg-[color-mix(in_oklch,var(--muted)_82%,white)]";
+  if (count === 1) return "bg-[#65b54d]";
+  if (count === 2) return "bg-[#f6bd3f]";
+  if (count === 3) return "bg-[#ff8a1a]";
+  return "bg-[#ef1119]";
+}
+
+function ActivityCountHeatmap({ runs }: { runs: Run[] }) {
+  const today = new Date();
+  const monthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 11, 1)
+  );
+  const monthEnd = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0)
+  );
+  const start = startOfUtcWeek(monthStart);
+  const end = endOfUtcWeek(monthEnd);
+  const dayCount = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  const weekCount = Math.ceil(dayCount / 7);
+  const days = Array.from({ length: dayCount }, (_, index) =>
+    addUtcDays(start, index)
+  );
+  const counts = new Map<string, number>();
+
+  for (const run of runs) {
+    counts.set(run.date, (counts.get(run.date) ?? 0) + 1);
+  }
+
+  const monthLabels = Array.from({ length: 12 }, (_, index) => {
+    const month = new Date(
+      Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + index, 1)
+    );
+    return {
+      label: monthLabel(month),
+      column:
+        Math.floor((month.getTime() - start.getTime()) / 86400000 / 7) + 1,
+    };
+  });
+  const legend = [
+    ["No activities", 0],
+    ["1 activity", 1],
+    ["2 activities", 2],
+    ["3 activities", 3],
+    ["4+ activities", 4],
+  ] as const;
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="ui-label">Activity count</p>
+          <h2 className="instrument-heading mt-2 text-3xl">
+            {monthLabel(monthStart)} {monthStart.getUTCFullYear()} - {" "}
+            {monthLabel(monthEnd)} {monthEnd.getUTCFullYear()}
+          </h2>
+        </div>
+        <p className="max-w-sm text-sm text-[var(--muted-foreground)]">
+          Daily number of logged activities.
+        </p>
+      </div>
+
+      <div className="mt-8 overflow-x-auto pb-2">
+        <div className="min-w-[58rem]">
+          <div
+            className="ml-9 grid gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]"
+            style={{
+              gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))`,
+            }}
+          >
+            {monthLabels.map((month) => (
+              <span key={month.label} style={{ gridColumnStart: month.column }}>
+                {month.label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-[2rem_1fr] gap-3">
+            <div className="grid grid-rows-7 gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                (day) => (
+                  <span key={day}>{day}</span>
+                )
+              )}
+            </div>
+            <div
+              className="grid grid-flow-col grid-rows-7 gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))`,
+              }}
+            >
+              {days.map((day) => {
+                const key = dateKey(day);
+                const count = counts.get(key) ?? 0;
+                const inRange = day >= monthStart && day <= monthEnd;
+                const label = `${key}: ${count || "no"} ${
+                  count === 1 ? "activity" : "activities"
+                }`;
+                const cell = (
+                  <span
+                    aria-label={label}
+                    className={`block h-3.5 rounded-[2px] ${
+                      inRange ? activityCountClass(count) : "bg-transparent"
+                    }`}
+                    title={label}
+                  />
+                );
+
+                return count > 0 ? (
+                  <a href={`/runs?dateFrom=${key}&dateTo=${key}`} key={key}>
+                    {cell}
+                  </a>
+                ) : (
+                  <span key={key}>{cell}</span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+        {legend.map(([label, count]) => (
+          <span className="inline-flex items-center gap-2" key={label}>
+            <span
+              className={`h-3.5 w-5 rounded-[2px] ${activityCountClass(count)}`}
+            />
+            {label}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 type RunAnalysisZone = NonNullable<ReturnType<typeof analyzeRun>["zone"]>;
 
 function zoneLabel(zone: RunAnalysisZone) {
@@ -621,6 +783,8 @@ export function RunListClient({
       {error ? (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       ) : null}
+
+      <ActivityCountHeatmap runs={displayRuns} />
 
       {pendingGpx.length > 0 ? (
         <Card subtitle="Review parsed files before saving them to your run history.">

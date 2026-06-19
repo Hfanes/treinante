@@ -91,6 +91,34 @@ function daysAgo(days: number) {
   return date.toISOString().slice(0, 10);
 }
 
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function monthLabel(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function addUtcDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function startOfUtcWeek(date: Date) {
+  const start = new Date(date);
+  const day = start.getUTCDay() || 7;
+  start.setUTCDate(start.getUTCDate() - day + 1);
+  return start;
+}
+
+function endOfUtcWeek(date: Date) {
+  return addUtcDays(startOfUtcWeek(date), 6);
+}
+
 function rangeStart(range: SummaryRange) {
   if (range === "week") return startOfCurrentWeek();
   if (range === "month") return startOfMonth();
@@ -419,6 +447,132 @@ function HeartZoneDistribution({
   );
 }
 
+function intensityClass(score: number) {
+  if (score <= 0) return "bg-[color-mix(in_oklch,var(--muted)_82%,white)]";
+  if (score <= 33) return "bg-[#65b54d]";
+  if (score <= 66) return "bg-[#f6bd3f]";
+  if (score <= 100) return "bg-[#ff8a1a]";
+  return "bg-[#ef1119]";
+}
+
+function ActivityIntensity({ runs }: { runs: Run[] }) {
+  const today = new Date();
+  const monthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 11, 1)
+  );
+  const monthEnd = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0)
+  );
+  const start = startOfUtcWeek(monthStart);
+  const end = endOfUtcWeek(monthEnd);
+  const dayCount = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  const weekCount = Math.ceil(dayCount / 7);
+  const days = Array.from({ length: dayCount }, (_, index) =>
+    addUtcDays(start, index)
+  );
+  const scores = new Map<string, number>();
+
+  for (const run of runs) {
+    const score = run.training_load ?? run.distance * 10;
+    scores.set(run.date, (scores.get(run.date) ?? 0) + score);
+  }
+
+  const monthLabels = Array.from({ length: 12 }, (_, index) => {
+    const month = new Date(
+      Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + index, 1)
+    );
+    return {
+      label: monthLabel(month),
+      column:
+        Math.floor((month.getTime() - start.getTime()) / 86400000 / 7) + 1,
+    };
+  });
+  const legend = [
+    ["No activities", 0],
+    ["Low (0 - 33)", 20],
+    ["Medium (34 - 66)", 50],
+    ["High (67 - 100)", 80],
+    ["Very high (> 100)", 120],
+  ] as const;
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="ui-label">Activity intensity</p>
+          <h2 className="instrument-heading mt-2 text-3xl">
+            {monthLabel(monthStart)} {monthStart.getUTCFullYear()} - {" "}
+            {monthLabel(monthEnd)} {monthEnd.getUTCFullYear()}
+          </h2>
+        </div>
+        <p className="max-w-sm text-sm text-[var(--muted-foreground)]">
+          Daily training load, with distance used when load is missing.
+        </p>
+      </div>
+
+      <div className="mt-8 overflow-x-auto pb-2">
+        <div className="min-w-[58rem]">
+          <div
+            className="ml-9 grid gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]"
+            style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}
+          >
+            {monthLabels.map((month) => (
+              <span key={month.label} style={{ gridColumnStart: month.column }}>
+                {month.label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-[2rem_1fr] gap-3">
+            <div className="grid grid-rows-7 gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                (day) => (
+                  <span key={day}>{day}</span>
+                )
+              )}
+            </div>
+            <div
+              className="grid grid-flow-col grid-rows-7 gap-1"
+              style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}
+            >
+              {days.map((day) => {
+                const key = dateKey(day);
+                const score = scores.get(key) ?? 0;
+                const inRange = day >= monthStart && day <= monthEnd;
+                const cell = (
+                  <span
+                    aria-label={`${key}: ${score ? Math.round(score) : "no"} activity intensity`}
+                    className={`block h-3.5 rounded-[2px] ${
+                      inRange ? intensityClass(score) : "bg-transparent"
+                    }`}
+                    title={`${key}: ${score ? Math.round(score) : "no"} activity intensity`}
+                  />
+                );
+
+                return score > 0 ? (
+                  <Link href={`/runs?dateFrom=${key}&dateTo=${key}`} key={key}>
+                    {cell}
+                  </Link>
+                ) : (
+                  <span key={key}>{cell}</span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+        {legend.map(([label, score]) => (
+          <span className="inline-flex items-center gap-2" key={label}>
+            <span className={`h-3.5 w-5 rounded-[2px] ${intensityClass(score)}`} />
+            {label}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function ThisWeekPaceTrend({ runs, streak }: { runs: Run[]; streak: number }) {
   const weekStart = startOfCurrentWeek();
   const weekRuns = [...runs]
@@ -715,6 +869,8 @@ export function DashboardRunsClient({
         <WeeklyJournalBars buckets={dashboard.weeklyBuckets} />
       </section>
 
+      <ActivityIntensity runs={runs} />
+
       <section className="min-w-0">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
@@ -811,14 +967,14 @@ export function DashboardRunsClient({
           )}
         </Card>
 
+        <ThisWeekPaceTrend
+          runs={runs}
+          streak={dashboard.summary.longestStreak}
+        />
         <HeartZoneDistribution
           currentForm={dashboard.summary.currentForm}
           maxHr={profile?.max_hr}
           runs={runs}
-        />
-        <ThisWeekPaceTrend
-          runs={runs}
-          streak={dashboard.summary.longestStreak}
         />
       </section>
 
