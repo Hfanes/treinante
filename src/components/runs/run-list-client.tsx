@@ -145,7 +145,7 @@ function ActivityCountHeatmap({ runs }: { runs: Run[] }) {
         <div>
           <p className="ui-label">Activity count</p>
           <h2 className="instrument-heading mt-2 text-3xl">
-            {monthLabel(monthStart)} {monthStart.getUTCFullYear()} - {" "}
+            {monthLabel(monthStart)} {monthStart.getUTCFullYear()} -{" "}
             {monthLabel(monthEnd)} {monthEnd.getUTCFullYear()}
           </h2>
         </div>
@@ -170,11 +170,9 @@ function ActivityCountHeatmap({ runs }: { runs: Run[] }) {
           </div>
           <div className="mt-2 grid grid-cols-[2rem_1fr] gap-3">
             <div className="grid grid-rows-7 gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                (day) => (
-                  <span key={day}>{day}</span>
-                )
-              )}
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <span key={day}>{day}</span>
+              ))}
             </div>
             <div
               className="grid grid-flow-col grid-rows-7 gap-1"
@@ -1047,7 +1045,7 @@ export function RunListClient({
 
             <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[960px] text-left text-sm">
-                <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)] cursor-pointer">
                   <tr>
                     <SortableHeader
                       active={sortKey === "date"}
