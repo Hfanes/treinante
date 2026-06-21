@@ -171,3 +171,17 @@ Reviewed: 2026-06-15
 - Theme toggle with `localStorage` values `'light' | 'dark' | 'system'` is not implemented. v1 remains dark-first as the design direction requires; light-mode overrides are still intentionally absent.
 - Global toast infrastructure, PR toast variant, and Supabase cold-start toast are not implemented yet; existing success/error feedback remains inline.
 - First-visit onboarding callouts per section are not implemented.
+
+## PRD 14 — Strava Auto-Sync & Toast Notifications
+
+Reviewed: 2026-06-21
+
+### Implemented
+
+- Connected users auto-sync Strava on protected app pages while the app tab is visible and online.
+- New Strava imports show a styled toast and refresh current route data without a full browser reload.
+- `/runs` listens for Strava sync completion and refreshes its local run cache/state.
+
+### Intentional Product Choices
+
+- Auto-sync uses browser polling while the app is open, not Strava webhooks or Vercel Cron.

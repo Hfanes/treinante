@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Space_Mono } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { ToastProvider } from "@/components/toast-provider";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,6 +44,7 @@ export default function RootLayout({
       <body>
         <ServiceWorkerRegister />
         {children}
+        <ToastProvider />
       </body>
     </html>
   );

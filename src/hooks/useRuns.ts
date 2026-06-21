@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { STRAVA_SYNC_COMPLETE_EVENT } from "@/lib/strava-sync-events";
 import {
   deleteCachedRun,
   getCachedExport,
@@ -125,6 +126,21 @@ export function useRuns(): {
 
   useEffect(() => {
     void syncRuns();
+  }, [syncRuns]);
+
+  useEffect(() => {
+    function handleStravaSyncComplete() {
+      void syncRuns();
+    }
+
+    window.addEventListener(STRAVA_SYNC_COMPLETE_EVENT, handleStravaSyncComplete);
+
+    return () => {
+      window.removeEventListener(
+        STRAVA_SYNC_COMPLETE_EVENT,
+        handleStravaSyncComplete
+      );
+    };
   }, [syncRuns]);
 
   const addRun = useCallback(

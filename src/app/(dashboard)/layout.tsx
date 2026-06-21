@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNavClient } from "@/components/layout/mobile-nav-client";
 import { OnboardingModal } from "@/components/auth/onboarding-modal";
+import { StravaAutoSync } from "@/components/strava-auto-sync";
 import { ensurePreviousWeeklyReport } from "@/lib/reportEngine";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
@@ -40,6 +41,7 @@ export default async function DashboardLayout({
       {profile && !profile.onboarding_complete ? (
         <OnboardingModal initialProfile={profile} />
       ) : null}
+      <StravaAutoSync enabled={profile?.strava_connected ?? false} />
       <MobileNavClient />
     </div>
   );
