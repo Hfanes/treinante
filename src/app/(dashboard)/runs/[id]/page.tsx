@@ -10,6 +10,7 @@ import {
   formatPace,
   type CardiacDrift,
 } from "@/lib/runAnalysis";
+import { countTrainingDays } from "@/lib/calculations";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile, Run } from "@/types";
 
@@ -73,13 +74,15 @@ function driftCopy(drift: CardiacDrift) {
 export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const { id } = await params;
   const supabase = await createServerClient();
-  const [{ data: run }, { data: profile }] = await Promise.all([
-    supabase.from("runs").select("*").eq("id", id).single(),
-    supabase
-      .from("profiles")
-      .select("max_hr,lthr,hr_zone_method,ftp_pace")
-      .single(),
-  ]);
+  const [{ data: run }, { data: profile }, { data: runDates }] =
+    await Promise.all([
+      supabase.from("runs").select("*").eq("id", id).single(),
+      supabase
+        .from("profiles")
+        .select("max_hr,lthr,hr_zone_method,ftp_pace")
+        .single(),
+      supabase.from("runs").select("date"),
+    ]);
 
   if (!run) notFound();
 
@@ -96,6 +99,9 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
     Math.abs(typedRun.total_time - typedRun.moving_time) > 30;
   const drift = analysis.cardiacDrift ? driftCopy(analysis.cardiacDrift) : null;
   const hasStopFlags = analysis.splits.some((split) => split.is_stop);
+  const trainingDays = countTrainingDays(
+    (runDates ?? []) as Pick<Run, "date">[]
+  );
 
   return (
     <PageShell title={typedRun.title ?? "Run detail"}>
@@ -163,7 +169,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
           {analysis.wholeRunGap !== null ? (
             <Card label="GAP" value={formatPace(analysis.wholeRunGap)} />
           ) : null}
-          {typedRun.tsb_at_date !== null ? (
+          {typedRun.tsb_at_date !== null && trainingDays >= 7 ? (
             <Card label="TSB on day" value={Math.round(typedRun.tsb_at_date)} />
           ) : null}
         </div>

@@ -101,6 +101,7 @@ function NavLink({
   href,
   icon: Icon,
   label,
+  badge = false,
 }: {
   active: boolean;
   collapsed: boolean;
@@ -109,6 +110,7 @@ function NavLink({
   href: string;
   icon: LucideIcon;
   label: string;
+  badge?: boolean;
 }) {
   const content = (
     <>
@@ -118,6 +120,9 @@ function NavLink({
         dragStyle={dragLabelStyle}
         label={label}
       />
+      {badge ? (
+        <span className="ml-auto h-2 w-2 rounded-full bg-[var(--primary)]" />
+      ) : null}
       <SidebarTooltip collapsed={collapsed} label={label} />
     </>
   );
@@ -190,7 +195,15 @@ function AuthLink({
   );
 }
 
-export function SidebarClient({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SidebarClient({
+  hasFitnessBadge,
+  hasRecordsBadge,
+  isLoggedIn,
+}: {
+  hasFitnessBadge: boolean;
+  hasRecordsBadge: boolean;
+  isLoggedIn: boolean;
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -200,8 +213,14 @@ export function SidebarClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const latestWidthRef = useRef(openWidth);
 
   useEffect(() => {
+    const saved = localStorage.getItem("treinante-sidebar-collapsed");
+    if (saved !== null) {
+      setCollapsed(saved === "true");
+      return;
+    }
+
     setCollapsed(
-      localStorage.getItem("treinante-sidebar-collapsed") === "true"
+      window.matchMedia("(min-width: 768px) and (max-width: 1023px)").matches
     );
   }, []);
 
@@ -359,6 +378,10 @@ export function SidebarClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         {primaryNavItems.map(([label, href, Icon]) => (
           <NavLink
             active={isActivePath(pathname, href)}
+            badge={
+              (label === "Fitness" && hasFitnessBadge) ||
+              (label === "Records" && hasRecordsBadge)
+            }
             collapsed={layoutCollapsed}
             disabled={!isLoggedIn}
             dragLabelStyle={dragLabelStyle}
