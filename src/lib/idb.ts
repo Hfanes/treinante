@@ -97,6 +97,28 @@ export async function upsertCachedRun(run: Run) {
   await database.put("runs", run);
 }
 
+export async function upsertCachedPersonalRecords(records: PersonalRecord[]) {
+  const database = await getDB();
+  const tx = database.transaction("personal_records", "readwrite");
+  const userIds = new Set(records.map((record) => record.user_id));
+  const existing = await tx.store.getAll();
+
+  await Promise.all(
+    existing
+      .filter((record) => userIds.has(record.user_id))
+      .map((record) => tx.store.delete(record.id))
+  );
+  await Promise.all(records.map((record) => tx.store.put(record)));
+  await tx.done;
+}
+
+export async function upsertCachedWeeklyReports(reports: WeeklyReport[]) {
+  const database = await getDB();
+  const tx = database.transaction("weekly_reports", "readwrite");
+  await Promise.all(reports.map((report) => tx.store.put(report)));
+  await tx.done;
+}
+
 export async function deleteCachedRun(id: string) {
   const database = await getDB();
   await database.delete("runs", id);

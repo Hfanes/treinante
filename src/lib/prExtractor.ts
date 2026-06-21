@@ -4,12 +4,14 @@ import type { PersonalRecord, PersonalRecordType, Run, Split } from "@/types";
 import type { Database, TablesInsert } from "@/types/supabase";
 
 type PersonalRecordInsert = TablesInsert<"personal_records">;
+type PersonalRecordEventInsert = TablesInsert<"personal_record_events">;
 
 interface PrCandidate {
   type: PersonalRecordType;
   value: number;
   runId: string;
   achievedAt: string;
+  estimated: boolean;
 }
 
 const FIXED_DISTANCE_PRS: Array<{ type: PersonalRecordType; km: number }> = [
@@ -105,6 +107,20 @@ function estimatedTimeForDistance(run: Run, targetKm: number) {
   return Math.round((run.moving_time / run.distance) * targetKm);
 }
 
+function bestDistanceCandidate(run: Run, type: PersonalRecordType, km: number) {
+  const splitValue = bestTimeForDistance(run.raw_splits, km);
+  const value = splitValue ?? estimatedTimeForDistance(run, km);
+  return value
+    ? {
+        type,
+        value,
+        runId: run.id,
+        achievedAt: run.date,
+        estimated: !splitValue,
+      }
+    : null;
+}
+
 function bestDistanceForDuration(run: Run, targetSeconds: number) {
   if (run.moving_time <= 0) return null;
   if (run.moving_time < targetSeconds * MIN_DURATION_COMPLETION_RATIO) {
@@ -142,12 +158,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
 
   for (const run of runs) {
     for (const { type, km } of FIXED_DISTANCE_PRS) {
-      const value =
-        bestTimeForDistance(run.raw_splits, km) ??
-        estimatedTimeForDistance(run, km);
-      const candidate: PrCandidate | null = value
-        ? { type, value, runId: run.id, achievedAt: run.date }
-        : null;
+      const candidate = bestDistanceCandidate(run, type, km);
 
       const nextBest = betterCandidate(type, best.get(type) ?? null, candidate);
       if (nextBest) best.set(type, nextBest);
@@ -156,7 +167,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
     for (const { type, seconds } of DURATION_PRS) {
       const value = bestDistanceForDuration(run, seconds);
       const candidate: PrCandidate | null = value
-        ? { type, value, runId: run.id, achievedAt: run.date }
+        ? { type, value, runId: run.id, achievedAt: run.date, estimated: false }
         : null;
       const nextBest = betterCandidate(type, best.get(type) ?? null, candidate);
       if (nextBest) best.set(type, nextBest);
@@ -169,6 +180,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
         value: run.distance,
         runId: run.id,
         achievedAt: run.date,
+        estimated: false,
       })!
     );
     best.set(
@@ -181,6 +193,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
           value: run.moving_time,
           runId: run.id,
           achievedAt: run.date,
+          estimated: false,
         }
       )!
     );
@@ -193,6 +206,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
           value: run.elevation_gain,
           runId: run.id,
           achievedAt: run.date,
+          estimated: false,
         })!
       );
       best.set(
@@ -205,6 +219,7 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
             value: run.elevation_gain / Math.max(run.distance, 0.001),
             runId: run.id,
             achievedAt: run.date,
+            estimated: false,
           }
         )!
       );
@@ -217,7 +232,89 @@ export function computePersonalRecords(runs: Run[]): PersonalRecordInsert[] {
     value: record.value,
     run_id: record.runId,
     achieved_at: record.achievedAt,
+    estimated: record.estimated,
   }));
+}
+
+function computePersonalRecordEvents(runs: Run[]): PersonalRecordEventInsert[] {
+  const best = new Map<PersonalRecordType, PrCandidate>();
+  const events: PersonalRecordEventInsert[] = [];
+
+  function add(candidate: PrCandidate | null) {
+    if (!candidate) return;
+    const current = best.get(candidate.type) ?? null;
+    if (
+      current &&
+      !isImprovement(candidate.type, candidate.value, current.value)
+    ) {
+      return;
+    }
+
+    best.set(candidate.type, candidate);
+    events.push({
+      user_id: runs[0]?.user_id ?? "",
+      type: candidate.type,
+      value: candidate.value,
+      run_id: candidate.runId,
+      achieved_at: candidate.achievedAt,
+      estimated: candidate.estimated,
+    });
+  }
+
+  for (const run of [...runs].sort((a, b) => a.date.localeCompare(b.date))) {
+    for (const { type, km } of FIXED_DISTANCE_PRS) {
+      add(bestDistanceCandidate(run, type, km));
+    }
+
+    for (const { type, seconds } of DURATION_PRS) {
+      const value = bestDistanceForDuration(run, seconds);
+      add(
+        value
+          ? {
+              type,
+              value,
+              runId: run.id,
+              achievedAt: run.date,
+              estimated: false,
+            }
+          : null
+      );
+    }
+
+    add({
+      type: "longest_run",
+      value: run.distance,
+      runId: run.id,
+      achievedAt: run.date,
+      estimated: false,
+    });
+    add({
+      type: "longest_duration",
+      value: run.moving_time,
+      runId: run.id,
+      achievedAt: run.date,
+      estimated: false,
+    });
+
+    if (run.elevation_gain > 0) {
+      add({
+        type: "most_elevation",
+        value: run.elevation_gain,
+        runId: run.id,
+        achievedAt: run.date,
+        estimated: false,
+      });
+      add({
+        type: "best_d_plus_per_km",
+        value: run.elevation_gain / Math.max(run.distance, 0.001),
+        runId: run.id,
+        achievedAt: run.date,
+        estimated: false,
+      });
+    }
+  }
+
+  return events;
 }
 
 export async function recalculatePersonalRecords(
@@ -232,12 +329,28 @@ export async function recalculatePersonalRecords(
   if (error) throw error;
 
   const records = computePersonalRecords((data ?? []) as unknown as Run[]);
+  const events = computePersonalRecordEvents((data ?? []) as unknown as Run[]);
   const { error: deleteError } = await supabase
     .from("personal_records")
     .delete()
     .eq("user_id", userId);
 
   if (deleteError) throw deleteError;
+
+  const { error: deleteEventsError } = await supabase
+    .from("personal_record_events")
+    .delete()
+    .eq("user_id", userId);
+
+  if (deleteEventsError) throw deleteEventsError;
+
+  if (events.length > 0) {
+    const { error: eventsError } = await supabase
+      .from("personal_record_events")
+      .upsert(events);
+
+    if (eventsError) throw eventsError;
+  }
 
   if (records.length === 0) return [];
 

@@ -42,6 +42,7 @@ export type Database = {
       personal_records: {
         Row: {
           achieved_at: string | null;
+          estimated: boolean;
           id: string;
           run_id: string | null;
           type: string;
@@ -51,6 +52,7 @@ export type Database = {
         };
         Insert: {
           achieved_at?: string | null;
+          estimated?: boolean;
           id?: string;
           run_id?: string | null;
           type: string;
@@ -60,6 +62,7 @@ export type Database = {
         };
         Update: {
           achieved_at?: string | null;
+          estimated?: boolean;
           id?: string;
           run_id?: string | null;
           type?: string;
@@ -84,6 +87,54 @@ export type Database = {
           },
         ];
       };
+      personal_record_events: {
+        Row: {
+          achieved_at: string | null;
+          created_at: string;
+          estimated: boolean;
+          id: string;
+          run_id: string | null;
+          type: string;
+          user_id: string;
+          value: number;
+        };
+        Insert: {
+          achieved_at?: string | null;
+          created_at?: string;
+          estimated?: boolean;
+          id?: string;
+          run_id?: string | null;
+          type: string;
+          user_id: string;
+          value: number;
+        };
+        Update: {
+          achieved_at?: string | null;
+          created_at?: string;
+          estimated?: boolean;
+          id?: string;
+          run_id?: string | null;
+          type?: string;
+          user_id?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "personal_record_events_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_record_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -95,6 +146,7 @@ export type Database = {
           name: string | null;
           onboarding_complete: boolean;
           resting_hr: number | null;
+          strava_athlete_name: string | null;
           strava_connected: boolean;
           unit_preference: "metric" | "imperial";
           weekly_km_goal: number;
@@ -109,6 +161,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
+          strava_athlete_name?: string | null;
           strava_connected?: boolean;
           unit_preference?: "metric" | "imperial";
           weekly_km_goal?: number;
@@ -123,6 +176,7 @@ export type Database = {
           name?: string | null;
           onboarding_complete?: boolean;
           resting_hr?: number | null;
+          strava_athlete_name?: string | null;
           strava_connected?: boolean;
           unit_preference?: "metric" | "imperial";
           weekly_km_goal?: number;

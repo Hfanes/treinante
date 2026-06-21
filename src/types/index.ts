@@ -65,6 +65,7 @@ export interface Profile {
   hr_zone_method: HrZoneMethod;
   ftp_pace: number | null;
   strava_connected: boolean;
+  strava_athlete_name: string | null;
   onboarding_complete: boolean;
 }
 
@@ -101,7 +102,19 @@ export interface PersonalRecord {
   value: number;
   run_id: string | null;
   achieved_at: string | null;
+  estimated: boolean;
   updated_at: string;
+}
+
+export interface PersonalRecordEvent {
+  id: string;
+  user_id: string;
+  type: PersonalRecordType;
+  value: number;
+  run_id: string | null;
+  achieved_at: string | null;
+  estimated: boolean;
+  created_at: string;
 }
 
 export interface Segment {

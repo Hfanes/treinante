@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { bestTimeForDistance } from "@/lib/prExtractor";
 import type { FitnessPoint, PersonalRecord, Profile, Run } from "@/types";
 import type { Database, TablesUpdate } from "@/types/supabase";
 
@@ -193,32 +194,26 @@ export function findBestPredictorAnchor(runs: Run[], today = new Date()) {
     let bestRolling: PredictorAnchor | null = null;
 
     for (const run of recentRuns) {
-      if (run.raw_splits.length < targetDistance) continue;
+      if (run.distance < targetDistance || run.raw_splits.length === 0)
+        continue;
 
-      for (
-        let start = 0;
-        start <= run.raw_splits.length - targetDistance;
-        start += 1
-      ) {
-        const window = run.raw_splits.slice(start, start + targetDistance);
-        if (window.some((split) => split.is_stop)) continue;
+      const time = bestTimeForDistance(run.raw_splits, targetDistance);
+      if (!time) continue;
 
-        const time = window.reduce((sum, split) => sum + split.pace, 0);
-        const candidate: PredictorAnchor = {
-          source: "rolling",
-          runId: run.id,
-          runTitle: run.title,
-          runDate: run.date,
-          runSource: run.source,
-          distance: targetDistance,
-          time,
-          pace: time / targetDistance,
-          containsStops: false,
-        };
+      const candidate: PredictorAnchor = {
+        source: "rolling",
+        runId: run.id,
+        runTitle: run.title,
+        runDate: run.date,
+        runSource: run.source,
+        distance: targetDistance,
+        time,
+        pace: time / targetDistance,
+        containsStops: false,
+      };
 
-        if (!bestRolling || candidate.pace < bestRolling.pace) {
-          bestRolling = candidate;
-        }
+      if (!bestRolling || candidate.pace < bestRolling.pace) {
+        bestRolling = candidate;
       }
     }
 
@@ -284,15 +279,20 @@ export function getWorkingVo2max(
 
 export function computeTrainingLoad(
   run: Pick<Run, "moving_time" | "avg_hr" | "avg_pace">,
-  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null
+  profile: Pick<
+    Profile,
+    "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"
+  > | null
 ): number {
   const durationHours = run.moving_time / 3600;
-  const maxHrRatio = run.avg_hr && profile?.max_hr ? run.avg_hr / profile.max_hr : null;
-  const lthrRatio = run.avg_hr && profile?.lthr ? run.avg_hr / profile.lthr : null;
+  const maxHrRatio =
+    run.avg_hr && profile?.max_hr ? run.avg_hr / profile.max_hr : null;
+  const lthrRatio =
+    run.avg_hr && profile?.lthr ? run.avg_hr / profile.lthr : null;
   const preferredHrRatio =
     profile?.hr_zone_method === "lthr"
-      ? lthrRatio ?? maxHrRatio
-      : maxHrRatio ?? lthrRatio;
+      ? (lthrRatio ?? maxHrRatio)
+      : (maxHrRatio ?? lthrRatio);
   const hrRatio =
     preferredHrRatio !== null
       ? preferredHrRatio
@@ -308,7 +308,10 @@ export function computeTrainingLoad(
 
 export function computeFitnessTimeSeries(
   runs: Run[],
-  profile: Pick<Profile, "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"> | null,
+  profile: Pick<
+    Profile,
+    "max_hr" | "lthr" | "hr_zone_method" | "ftp_pace"
+  > | null,
   today = new Date()
 ): FitnessPoint[] {
   const sorted = [...runs].sort((a, b) => a.date.localeCompare(b.date));
