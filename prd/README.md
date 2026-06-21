@@ -31,6 +31,7 @@ A general-purpose running analytics platform. Any runner — road, trail, track,
 | 11  | [training-tools](./11-training-tools/PRD.md)       | Pace calc, gel timing, hill gradient, Zone 2 HR calculator     |
 | 12  | [ui-ux](./12-ui-ux/PRD.md)                         | Layout, sidebar, dark mode, mobile, loading states, toasts     |
 | 13  | [run-streams](./13-run-streams/PRD.md)             | High-resolution per-run streams for detailed charts            |
+| 14  | [strava-auto-sync](./14-strava-auto-sync/PRD.md)   | App-wide Strava polling and new-run toast notifications        |
 
 ---
 
@@ -49,3 +50,4 @@ A general-purpose running analytics platform. Any runner — road, trail, track,
 11. `10-weekly-report` — needs everything above
 12. `12-ui-ux` — dark mode and mobile wired throughout, polish last
 13. `13-run-streams` — detailed per-run chart data after import/UI foundations
+14. `14-strava-auto-sync` — automatic Strava refresh after import foundations
