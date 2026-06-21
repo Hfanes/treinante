@@ -193,6 +193,34 @@
   background: var(--card);
 }
 
+.Toastify__toast-container {
+  width: min(24rem, calc(100vw - 2rem));
+  font-family: var(--font-inter), Inter, sans-serif;
+}
+
+.Toastify__toast {
+  border: 1px solid var(--border);
+  border-top-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      oklch(0.78 0.075 78 / 0.1) 0px,
+      oklch(0.78 0.075 78 / 0.1) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    color-mix(in oklch, var(--card) 92%, black);
+  color: var(--bone);
+  box-shadow: none;
+  padding: 1rem;
+}
+
+.Toastify__toast-body {
+  margin: 0;
+  padding: 0;
+}
+
 .metric-card {
   opacity: 0;
   transform: translateY(8px);
