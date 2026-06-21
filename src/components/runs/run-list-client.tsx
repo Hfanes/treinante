@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { Badge, Button, Card } from "@/components/ui";
+import { showErrorToast, showSuccessToast } from "@/components/app-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useRuns } from "@/hooks/useRuns";
 import { upsertCachedRuns } from "@/lib/idb";
@@ -629,9 +630,14 @@ export function RunListClient({
       }
 
       await syncRuns();
-      setMessage(`Synced ${body.imported ?? 0} new Strava runs.`);
+      const message = `Synced ${body.imported ?? 0} new Strava runs.`;
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sync Strava.");
+      const message =
+        err instanceof Error ? err.message : "Could not sync Strava.";
+      setError(message);
+      showErrorToast(message);
     } finally {
       setStravaSyncing(false);
     }
@@ -666,13 +672,14 @@ export function RunListClient({
       }
 
       setPendingGpx([]);
-      setMessage(
-        `Imported ${imported} GPX ${imported === 1 ? "run" : "runs"}.`
-      );
+      const message = `Imported ${imported} GPX ${imported === 1 ? "run" : "runs"}.`;
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not import GPX file."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not import GPX file.";
+      setError(message);
+      showErrorToast(message);
     }
   }
 
@@ -748,11 +755,13 @@ export function RunListClient({
       setManualNotes("");
       setManualOpen(false);
       setMessage("Manual run added.");
+      showSuccessToast("Manual run added.");
       setError(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not add manual run."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not add manual run.";
+      setError(message);
+      showErrorToast(message);
     }
   }
 
@@ -761,9 +770,13 @@ export function RunListClient({
     try {
       await deleteRun(run.id);
       setMessage("Run deleted.");
+      showSuccessToast("Run deleted.");
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete run.");
+      const message =
+        err instanceof Error ? err.message : "Could not delete run.";
+      setError(message);
+      showErrorToast(message);
     }
   }
 

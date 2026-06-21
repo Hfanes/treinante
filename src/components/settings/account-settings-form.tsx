@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { showInfoToast } from "@/components/app-toast";
 import { Button, Card } from "@/components/ui";
 import { createBrowserClient } from "@/lib/supabase";
 import { withSupabaseRetry } from "@/lib/supabase-retry";
@@ -33,7 +34,9 @@ function parsePace(value: string, unit: Profile["unit_preference"]) {
     : Number(value);
 
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return NaN;
-  return Math.round(unit === "imperial" ? totalSeconds * KM_TO_MI : totalSeconds);
+  return Math.round(
+    unit === "imperial" ? totalSeconds * KM_TO_MI : totalSeconds
+  );
 }
 
 export function AccountSettingsForm({ profile }: { profile: Profile }) {
@@ -121,7 +124,12 @@ export function AccountSettingsForm({ profile }: { profile: Profile }) {
               ftp_pace: ftpPaceValue,
             })
             .eq("id", profile.id),
-        () => setRetrying(true)
+        () => {
+          setRetrying(true);
+          showInfoToast(
+            "Database is waking up. This can take a few seconds on first load."
+          );
+        }
       );
 
       if (updateError) throw updateError;

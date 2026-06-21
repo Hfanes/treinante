@@ -182,38 +182,50 @@ export function WeeklyVolumeChart({
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return (
+    <div
+      role="img"
+      aria-label={`Weekly volume chart for ${buckets.length} weeks. Latest week ${buckets.at(-1)?.totalKm.toFixed(1) ?? "0"} kilometers.`}
+    >
+      <Bar data={data} options={options} />
+    </div>
+  );
 }
 
 export function WeeklyElevationChart({ buckets }: { buckets: WeeklyBucket[] }) {
   return (
-    <Bar
-      data={{
-        labels: buckets.map((bucket) => bucket.label),
-        datasets: [
-          {
-            label: "D+",
-            data: buckets.map((bucket) => bucket.elevationGain),
-            backgroundColor: elevColor,
-            borderRadius: 0,
+    <div
+      role="img"
+      aria-label={`Weekly elevation chart for ${buckets.length} weeks. Latest week ${buckets.at(-1)?.elevationGain ?? 0} meters climbed.`}
+    >
+      <Bar
+        data={{
+          labels: buckets.map((bucket) => bucket.label),
+          datasets: [
+            {
+              label: "D+",
+              data: buckets.map((bucket) => bucket.elevationGain),
+              backgroundColor: elevColor,
+              borderRadius: 0,
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 600, easing: "easeOutQuart" },
+          plugins: { ...chartPlugins, legend: { display: false } },
+          scales: {
+            ...chartScales,
+            y: {
+              ...chartScales.y,
+              beginAtZero: true,
+              title: { display: true, text: "metres D+" },
+            },
           },
-        ],
-      }}
-      options={{
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 600, easing: "easeOutQuart" },
-        plugins: { ...chartPlugins, legend: { display: false } },
-        scales: {
-          ...chartScales,
-          y: {
-            ...chartScales.y,
-            beginAtZero: true,
-            title: { display: true, text: "metres D+" },
-          },
-        },
-      }}
-    />
+        }}
+      />
+    </div>
   );
 }
 
@@ -254,35 +266,42 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
   };
 
   return (
-    <Line
-      data={data}
-      options={{
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 600, easing: "easeOutQuart" },
-        plugins: {
-          legend: chartPlugins.legend,
-          tooltip: {
-            ...chartPlugins.tooltip,
-            callbacks: {
-              label: (item) =>
-                `${item.dataset.label}: ${formatDashboardPace(Number(item.raw))}`,
-              afterBody: (items) =>
-                `${points[items[0]?.dataIndex ?? 0].distance.toFixed(1)} km`,
+    <div
+      role="img"
+      aria-label={`Pace trend chart for ${points.length} runs. Latest pace ${points.at(-1) ? formatDashboardPace(points.at(-1)!.pace) : "none"}.`}
+    >
+      <Line
+        data={data}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 600, easing: "easeOutQuart" },
+          plugins: {
+            legend: chartPlugins.legend,
+            tooltip: {
+              ...chartPlugins.tooltip,
+              callbacks: {
+                label: (item) =>
+                  `${item.dataset.label}: ${formatDashboardPace(Number(item.raw))}`,
+                afterBody: (items) =>
+                  `${points[items[0]?.dataIndex ?? 0].distance.toFixed(1)} km`,
+              },
             },
           },
-        },
-        scales: {
-          y: {
-            ...chartScales.y,
-            reverse: true,
-            min: Math.max(1, Math.min(...values) - 30),
-            max: Math.max(...values) + 30,
-            ticks: { callback: (value) => formatDashboardPace(Number(value)) },
+          scales: {
+            y: {
+              ...chartScales.y,
+              reverse: true,
+              min: Math.max(1, Math.min(...values) - 30),
+              max: Math.max(...values) + 30,
+              ticks: {
+                callback: (value) => formatDashboardPace(Number(value)),
+              },
+            },
           },
-        },
-      }}
-    />
+        }}
+      />
+    </div>
   );
 }
 
@@ -333,25 +352,30 @@ export function HrTrendChart({
   };
 
   return (
-    <Line
-      data={{
-        labels: points.map((point) => point.date.slice(5)),
-        datasets: [
-          {
-            label: "7-run avg HR",
-            data: points.map((point) => point.rollingHr),
-            borderColor: hrColor,
-            borderWidth: 3,
-            pointBackgroundColor: hrColor,
-            pointBorderColor: "#f3d49b",
-            pointRadius: 2.5,
-            pointHoverRadius: 4,
-            tension: 0.3,
-          },
-        ],
-      }}
-      options={options}
-    />
+    <div
+      role="img"
+      aria-label={`Heart-rate trend chart for ${points.length} runs. Latest rolling heart rate ${points.at(-1)?.rollingHr ?? "none"} bpm.`}
+    >
+      <Line
+        data={{
+          labels: points.map((point) => point.date.slice(5)),
+          datasets: [
+            {
+              label: "7-run avg HR",
+              data: points.map((point) => point.rollingHr),
+              borderColor: hrColor,
+              borderWidth: 3,
+              pointBackgroundColor: hrColor,
+              pointBorderColor: "#f3d49b",
+              pointRadius: 2.5,
+              pointHoverRadius: 4,
+              tension: 0.3,
+            },
+          ],
+        }}
+        options={options}
+      />
+    </div>
   );
 }
 
@@ -368,7 +392,11 @@ export function FitnessPreviewChart({ points }: { points: FitnessPoint[] }) {
           ATL - Fatigue
         </span>
       </div>
-      <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+      <div
+        className="min-h-0 min-w-0 flex-1 overflow-hidden"
+        role="img"
+        aria-label={`Fitness preview chart with ${points.length} points. Latest CTL ${points.at(-1)?.ctl.toFixed(1) ?? "none"} and ATL ${points.at(-1)?.atl.toFixed(1) ?? "none"}.`}
+      >
         <Line
           data={{
             labels: points.map((point) => point.date.slice(5)),

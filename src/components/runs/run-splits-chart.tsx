@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarElement,
   CategoryScale,
@@ -42,6 +42,7 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
   const [zoomReady, setZoomReady] = useState(zoomPluginReady);
   const [showPace, setShowPace] = useState(false);
   const [showHr, setShowHr] = useState(false);
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   useEffect(() => {
     if (zoomPluginReady) {
@@ -268,9 +269,20 @@ export function RunSplitsChart({ splits }: { splits: AnalyzedSplit[] }) {
 
   return (
     <div>
-      <div className="h-[240px] min-w-0 overflow-hidden sm:h-[320px]">
-        <Chart type="line" data={data} options={options} />
+      <div
+        className="h-[240px] min-w-0 overflow-hidden sm:h-[320px]"
+        role="img"
+        aria-label={`Split chart for ${splits.length} kilometers. Average pace ${formatPace(avgPace)}${avgHr === null ? "" : ` and average heart rate ${avgHr} bpm`}.`}
+      >
+        <Chart ref={chartRef} type="line" data={data} options={options} />
       </div>
+      <button
+        className="mt-3 min-h-11 rounded-[2px] border border-[var(--primary)] px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] text-[var(--primary)]"
+        type="button"
+        onClick={() => chartRef.current?.resetZoom()}
+      >
+        Reset zoom
+      </button>
       <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[1fr_1fr] gap-4 border-b border-[var(--border)] pb-4 text-center sm:mt-8 sm:gap-8">
         <MetricToggle
           checked={showPace}

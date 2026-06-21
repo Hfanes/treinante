@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarElement,
   CategoryScale,
@@ -92,6 +92,8 @@ function rangeEyebrow(days: number | null) {
 export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
   const [range, setRange] = useState(RANGES[1]);
   const [zoomReady, setZoomReady] = useState(zoomPluginReady);
+  const lineRef = useRef<ChartJS<"line"> | null>(null);
+  const barRef = useRef<ChartJS<"bar"> | null>(null);
 
   useEffect(() => {
     if (zoomPluginReady) {
@@ -114,6 +116,11 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
 
   const visible = visiblePoints(points, range.days);
   const labels = visible.map((point) => point.date.slice(5));
+  function syncZoom(source: ChartJS, target: ChartJS | null) {
+    const scale = source.scales.x;
+    if (!target || scale.min === undefined || scale.max === undefined) return;
+    target.zoomScale("x", { min: scale.min, max: scale.max }, "none");
+  }
 
   const lineData: ChartData<"line", number[], string> = {
     labels,
@@ -157,8 +164,15 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
                 wheel: { enabled: true },
                 pinch: { enabled: true },
                 mode: "x" as const,
+                onZoomComplete: ({ chart }: { chart: ChartJS }) =>
+                  syncZoom(chart, barRef.current),
               },
-              pan: { enabled: true, mode: "x" as const },
+              pan: {
+                enabled: true,
+                mode: "x" as const,
+                onPanComplete: ({ chart }: { chart: ChartJS }) =>
+                  syncZoom(chart, barRef.current),
+              },
             },
           }
         : {}),
@@ -202,8 +216,15 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
                 wheel: { enabled: true },
                 pinch: { enabled: true },
                 mode: "x" as const,
+                onZoomComplete: ({ chart }: { chart: ChartJS }) =>
+                  syncZoom(chart, lineRef.current),
               },
-              pan: { enabled: true, mode: "x" as const },
+              pan: {
+                enabled: true,
+                mode: "x" as const,
+                onPanComplete: ({ chart }: { chart: ChartJS }) =>
+                  syncZoom(chart, lineRef.current),
+              },
             },
           }
         : {}),
@@ -254,12 +275,30 @@ export function FitnessCharts({ points }: { points: FitnessPoint[] }) {
             </span>
           </div>
         </div>
-        <div className="h-[240px] min-w-0 overflow-hidden sm:h-[340px]">
-          <Line data={lineData} options={lineOptions} />
+        <div
+          className="h-[240px] min-w-0 overflow-hidden sm:h-[340px]"
+          role="img"
+          aria-label={`Fitness chart with ${visible.length} points, latest CTL ${visible.at(-1)?.ctl.toFixed(1) ?? "none"} and ATL ${visible.at(-1)?.atl.toFixed(1) ?? "none"}.`}
+        >
+          <Line ref={lineRef} data={lineData} options={lineOptions} />
         </div>
+        <button
+          className="mt-3 min-h-11 rounded-[2px] border border-[var(--primary)] px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] text-[var(--primary)]"
+          type="button"
+          onClick={() => {
+            lineRef.current?.resetZoom();
+            barRef.current?.resetZoom();
+          }}
+        >
+          Reset zoom
+        </button>
       </div>
-      <div className="h-[180px] min-w-0 overflow-hidden rounded-[2px] border border-[var(--border)] p-3 sm:h-[220px]">
-        <Bar data={barData} options={barOptions} />
+      <div
+        className="h-[180px] min-w-0 overflow-hidden rounded-[2px] border border-[var(--border)] p-3 sm:h-[220px]"
+        role="img"
+        aria-label={`Form chart with ${visible.length} TSB bars. Latest TSB ${visible.at(-1)?.tsb.toFixed(1) ?? "none"}.`}
+      >
+        <Bar ref={barRef} data={barData} options={barOptions} />
       </div>
     </div>
   );

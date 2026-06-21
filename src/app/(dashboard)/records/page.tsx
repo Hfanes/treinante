@@ -1,11 +1,17 @@
 import Link from "next/link";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { PrTimelineChart } from "@/components/records/pr-timeline-chart";
 import { Badge, Card } from "@/components/ui";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import { formatDuration } from "@/lib/runAnalysis";
 import { createServerClient } from "@/lib/supabase-server";
-import type { PersonalRecord, PersonalRecordType, Run } from "@/types";
+import type {
+  PersonalRecord,
+  PersonalRecordEvent,
+  PersonalRecordType,
+  Run,
+} from "@/types";
 
 const TIME_RECORDS: Array<{
   type: PersonalRecordType;
@@ -99,17 +105,29 @@ export default async function RecordsPage() {
       data: { user },
     },
     { data: records },
+    { data: events },
     { data: runs },
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("personal_records").select("*").order("type"),
+    supabase
+      .from("personal_record_events")
+      .select("*")
+      .order("achieved_at", { ascending: true }),
     supabase.from("runs").select("*").order("date", { ascending: false }),
   ]);
   let personalRecords = (records ?? []) as unknown as PersonalRecord[];
+  let personalRecordEvents = (events ?? []) as unknown as PersonalRecordEvent[];
   const typedRuns = (runs ?? []) as unknown as Run[];
 
   if (user && typedRuns.length > 0) {
     personalRecords = await recalculatePersonalRecords(supabase, user.id);
+    const { data: nextEvents } = await supabase
+      .from("personal_record_events")
+      .select("*")
+      .order("achieved_at", { ascending: true });
+    personalRecordEvents = (nextEvents ??
+      []) as unknown as PersonalRecordEvent[];
   }
 
   const runMap = new Map(typedRuns.map((run) => [run.id, run]));
@@ -125,9 +143,9 @@ export default async function RecordsPage() {
     record: byType.get(config.type),
   })).filter((item) => item.record);
   const listRecords = [
-    ...timeRecords.map(({ type, label, km, record }) => {
+    ...timeRecords.map(({ type, label, record }) => {
       const run = record?.run_id ? runMap.get(record.run_id) : null;
-      const estimated = Boolean(run && run.distance < km);
+      const estimated = Boolean(record?.estimated);
 
       return {
         type,
@@ -168,10 +186,10 @@ export default async function RecordsPage() {
 
         {timeRecords.length > 0 ? (
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            {timeRecords.map(({ type, label, km, record }) => {
+            {timeRecords.map(({ type, label, record }) => {
               if (!record) return null;
               const run = record.run_id ? runMap.get(record.run_id) : null;
-              const estimated = Boolean(run && run.distance < km);
+              const estimated = record.estimated;
               const value = `${estimated ? "~" : ""}${formatDuration(record.value)}`;
 
               return (
@@ -201,14 +219,13 @@ export default async function RecordsPage() {
         ) : null}
 
         {timeRecords.length > 0 ? (
-          <Card subtitle="Progression timelines need historical PR events. The current schema stores the latest best per record type only.">
+          <Card subtitle="Historical PR improvements generated from your run history.">
             <h2 className="font-semibold text-gray-950 dark:text-white">
               PR timeline
             </h2>
-            <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-              Run more and future PR history storage will show each improvement
-              over time.
-            </p>
+            <div className="mt-4">
+              <PrTimelineChart events={personalRecordEvents} />
+            </div>
           </Card>
         ) : null}
 

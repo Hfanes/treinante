@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
 
-export async function POST() {
+export async function DELETE() {
   try {
     const supabase = await createServerClient();
     const {
@@ -13,24 +14,14 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const admin = createAdminClient();
-    await admin
-      .from("strava_tokens")
-      .delete()
-      .eq("user_id", user.id)
-      .throwOnError();
-    await admin
-      .from("profiles")
-      .update({ strava_connected: false, strava_athlete_name: null })
-      .eq("id", user.id)
-      .throwOnError();
+    const { error } = await createAdminClient().auth.admin.deleteUser(user.id);
+    if (error) throw error;
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json(
       {
-        error:
-          err instanceof Error ? err.message : "Could not disconnect Strava",
+        error: err instanceof Error ? err.message : "Could not delete account",
       },
       { status: 400 }
     );

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { FirstVisitCallout } from "@/components/layout/first-visit-callout";
 
 export function PageShell({
   title,
@@ -21,6 +22,7 @@ export function PageShell({
           </div>
           <div className="vbars hidden min-h-20 border-l border-[var(--border)] pl-4 sm:block" />
         </header>
+        <FirstVisitCallout section={title} />
         {children}
       </div>
     </main>

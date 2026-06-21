@@ -67,8 +67,22 @@ export default async function FitnessPage() {
       run.atl_at_date === null ||
       run.tsb_at_date === null
   );
+  const latestRunUpdate = typedRuns
+    .map((run) => run.updated_at)
+    .sort()
+    .at(-1);
+  const latestSnapshotUpdate = typedRuns
+    .filter((run) => run.tsb_at_date !== null)
+    .map((run) => run.updated_at)
+    .sort()
+    .at(-1);
+  const needsStaleRefresh = Boolean(
+    latestRunUpdate &&
+    latestSnapshotUpdate &&
+    latestRunUpdate > latestSnapshotUpdate
+  );
   const series: FitnessPoint[] =
-    typedProfile && typedRuns.length > 0 && needsBackfill
+    typedProfile && typedRuns.length > 0 && (needsBackfill || needsStaleRefresh)
       ? await recalculateFitnessSnapshots(supabase, user.id)
       : computeFitnessTimeSeries(typedRuns, typedProfile);
   const current = series.at(-1);

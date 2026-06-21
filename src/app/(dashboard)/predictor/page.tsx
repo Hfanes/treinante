@@ -198,6 +198,7 @@ function Vo2TrendChart({
   const min = Math.min(...values) - 5;
   const max = Math.max(...values) + 5;
   const range = Math.max(1, max - min);
+  const yTicks = [max, min + range / 2, min];
   const insight = trendInsight(trend, currentMonth);
   const points = trend.map((point, index) => {
     const x = trend.length === 1 ? 50 : (index / (trend.length - 1)) * 100;
@@ -209,60 +210,69 @@ function Vo2TrendChart({
   return (
     <div className="grid min-w-0 gap-3">
       <div className="min-w-0 rounded-[2px] border border-[var(--border)] p-3">
-        <div className="relative h-36 overflow-hidden">
-          <svg
-            aria-label="VO2max trend"
-            className="pointer-events-none h-full w-full overflow-hidden"
-            preserveAspectRatio="none"
-            role="img"
-            viewBox="0 0 100 100"
-          >
-            <polyline
-              fill="none"
-              points={polyline}
-              stroke="var(--chart-pace)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-          {points.map((point, index) => {
-            const previousX = points[index - 1]?.x ?? 0;
-            const nextX = points[index + 1]?.x ?? 100;
-            const left = index === 0 ? 0 : (previousX + point.x) / 2;
-            const right =
-              index === points.length - 1 ? 100 : (point.x + nextX) / 2;
-            const hitX = ((point.x - left) / (right - left)) * 100;
-
-            return (
-              <span
-                aria-label={`${point.month}: ${point.vo2max.toFixed(1)} VO2max`}
-                className="group absolute top-0 h-full"
-                key={point.month}
-                style={{ left: `${left}%`, width: `${right - left}%` }}
+        <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] gap-2">
+          <div className="flex h-36 flex-col justify-between text-right font-mono text-[0.62rem] text-[var(--muted-foreground)] sm:text-[0.68rem]">
+            {yTicks.map((tick) => (
+              <span key={tick.toFixed(1)}>{tick.toFixed(1)}</span>
+            ))}
+          </div>
+          <div className="min-w-0">
+            <div className="relative h-36 overflow-hidden">
+              <svg
+                aria-label="VO2max trend"
+                className="pointer-events-none h-full w-full overflow-hidden"
+                preserveAspectRatio="none"
+                role="img"
+                viewBox="0 0 100 100"
               >
-                <span
-                  className="pointer-events-none absolute z-10 hidden max-w-[12rem] -translate-x-1/2 -translate-y-full whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 sm:block"
-                  style={{ left: `${hitX}%`, top: `${point.y}%` }}
-                >
-                  {point.month} · {point.vo2max.toFixed(1)} VO2max
-                </span>
-              </span>
-            );
-          })}
-        </div>
-        <div className="mt-2 grid min-w-0 grid-cols-3 gap-2 sm:flex sm:justify-between">
-          {points.map((point) => (
-            <div className="min-w-0 text-center" key={point.month}>
-              <div className="truncate font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:text-[0.68rem] sm:tracking-[0.14em]">
-                {formatMonthLabel(point.month)}
-              </div>
-              <div className="mt-1 truncate font-mono text-[0.62rem] text-[var(--bone)] sm:text-[0.68rem]">
-                VO2 {point.vo2max.toFixed(1)}
-              </div>
+                <polyline
+                  fill="none"
+                  points={polyline}
+                  stroke="var(--chart-pace)"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+              {points.map((point, index) => {
+                const previousX = points[index - 1]?.x ?? 0;
+                const nextX = points[index + 1]?.x ?? 100;
+                const left = index === 0 ? 0 : (previousX + point.x) / 2;
+                const right =
+                  index === points.length - 1 ? 100 : (point.x + nextX) / 2;
+                const hitX = ((point.x - left) / (right - left)) * 100;
+
+                return (
+                  <span
+                    aria-label={`${point.month}: ${point.vo2max.toFixed(1)} VO2max`}
+                    className="group absolute top-0 h-full"
+                    key={point.month}
+                    style={{ left: `${left}%`, width: `${right - left}%` }}
+                  >
+                    <span
+                      className="pointer-events-none absolute z-10 hidden max-w-[12rem] -translate-x-1/2 -translate-y-full whitespace-nowrap border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[var(--bone)] opacity-0 transition group-hover:opacity-100 sm:block"
+                      style={{ left: `${hitX}%`, top: `${point.y}%` }}
+                    >
+                      {point.month} · {point.vo2max.toFixed(1)} VO2max
+                    </span>
+                  </span>
+                );
+              })}
             </div>
-          ))}
+            <div className="mt-2 grid min-w-0 grid-cols-3 gap-2 sm:flex sm:justify-between">
+              {points.map((point) => (
+                <div className="min-w-0 text-center" key={point.month}>
+                  <div className="truncate font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:text-[0.68rem] sm:tracking-[0.14em]">
+                    {formatMonthLabel(point.month)}
+                  </div>
+                  <div className="mt-1 truncate font-mono text-[0.62rem] text-[var(--bone)] sm:text-[0.68rem]">
+                    VO2 {point.vo2max.toFixed(1)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
       {insight ? (
