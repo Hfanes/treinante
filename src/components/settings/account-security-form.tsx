@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 
+import { showErrorToast, showSuccessToast } from "@/components/app-toast";
 import { Button, Card } from "@/components/ui";
 import { createBrowserClient } from "@/lib/supabase";
 
@@ -99,6 +100,39 @@ export function AccountSecurityForm({ email }: { email: string | null }) {
     }
   }
 
+  async function handleDeleteAccount() {
+    if (
+      !window.confirm(
+        "Permanently delete your Treinante account and all app data?"
+      )
+    ) {
+      return;
+    }
+
+    setPendingAction("delete");
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/account", { method: "DELETE" });
+      const body = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(body.error ?? "Could not delete account.");
+      }
+
+      showSuccessToast("Account deleted.");
+      window.location.assign("/login");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not delete account.";
+      setError(message);
+      showErrorToast(message);
+      setPendingAction(null);
+    }
+  }
+
   return (
     <Card subtitle="Change the credentials used to sign in to Treinante.">
       <div className="mt-4 grid items-stretch gap-6 lg:grid-cols-2">
@@ -177,6 +211,21 @@ export function AccountSecurityForm({ email }: { email: string | null }) {
           {message}
         </p>
       ) : null}
+      <div className="mt-6 border-t border-[var(--border)] pt-4">
+        <p className="text-sm font-medium text-[var(--bone)]">Danger zone</p>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+          Permanently delete your account and app data. This cannot be undone.
+        </p>
+        <Button
+          className="mt-3"
+          type="button"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => void handleDeleteAccount()}
+        >
+          {pendingAction === "delete" ? "Deleting..." : "Delete account"}
+        </Button>
+      </div>
     </Card>
   );
 }
