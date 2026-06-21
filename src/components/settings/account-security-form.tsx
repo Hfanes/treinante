@@ -212,19 +212,26 @@ export function AccountSecurityForm({ email }: { email: string | null }) {
         </p>
       ) : null}
       <div className="mt-6 border-t border-[var(--border)] pt-4">
-        <p className="text-sm font-medium text-[var(--bone)]">Danger zone</p>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-          Permanently delete your account and app data. This cannot be undone.
-        </p>
-        <Button
-          className="mt-3"
-          type="button"
-          variant="ghost"
-          disabled={pending}
-          onClick={() => void handleDeleteAccount()}
-        >
-          {pendingAction === "delete" ? "Deleting..." : "Delete account"}
-        </Button>
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+          <div>
+            <p className="text-sm font-medium text-[var(--bone)]">
+              Danger zone
+            </p>
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              Permanently delete your account and app data. This cannot be
+              undone.
+            </p>
+          </div>
+          <Button
+            className="mt-3 text-white bg-red-700 hover:bg-red-600 focus-visible:ring-red-600 disabled:bg-red-400 disabled:hover:bg-red-400 cursor-pointer"
+            type="button"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => void handleDeleteAccount()}
+          >
+            {pendingAction === "delete" ? "Deleting..." : "Delete account"}
+          </Button>
+        </div>
       </div>
     </Card>
   );
