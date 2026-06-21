@@ -42,6 +42,12 @@ interface StravaTokenResponse {
   expires_at: number;
 }
 
+export class StravaRateLimitError extends Error {
+  constructor() {
+    super("Strava rate limit reached. Try again later.");
+  }
+}
+
 function env(name: string) {
   const value = process.env[name];
   if (!value) throw new Error(`Missing ${name}`);
@@ -49,11 +55,19 @@ function env(name: string) {
 }
 
 async function stravaFetch<T>(path: string, accessToken: string) {
-  const response = await fetch(`https://www.strava.com/api/v3${path}`, {
+  let response = await fetch(`https://www.strava.com/api/v3${path}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
+  if (response.status >= 500) {
+    response = await fetch(`https://www.strava.com/api/v3${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
+
   if (!response.ok) {
+    if (response.status === 429) throw new StravaRateLimitError();
+
     const text = await response.text();
     throw new Error(
       text.trim()

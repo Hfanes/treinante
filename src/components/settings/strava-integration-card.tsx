@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { showErrorToast, showSuccessToast } from "@/components/app-toast";
 import { Button, Card } from "@/components/ui";
 import { deleteCachedRunsBySource } from "@/lib/idb";
 import type { Profile } from "@/types";
@@ -84,9 +85,14 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
 
     try {
       const body = await request("/api/strava/sync");
-      setMessage(`Synced ${body.imported ?? 0} new runs.`);
+      const message = `Synced ${body.imported ?? 0} new runs.`;
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sync Strava.");
+      const message =
+        err instanceof Error ? err.message : "Could not sync Strava.";
+      setError(message);
+      showErrorToast(message);
     } finally {
       setPendingAction(null);
     }
@@ -99,13 +105,14 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
 
     try {
       const body = await request("/api/strava/sync?full=true");
-      setMessage(
-        `Full-history resync imported ${body.imported ?? 0} missing runs.`
-      );
+      const message = `Full-history resync imported ${body.imported ?? 0} missing runs.`;
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not resync Strava history."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not resync Strava history.";
+      setError(message);
+      showErrorToast(message);
     } finally {
       setPendingAction(null);
     }
@@ -127,13 +134,14 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
     try {
       const body = await request("/api/strava/runs", "DELETE");
       await deleteCachedRunsBySource(profile.id, "strava");
-      setMessage(
-        `Deleted ${body.deleted ?? 0} Strava-imported runs from this app.`
-      );
+      const message = `Deleted ${body.deleted ?? 0} Strava-imported runs from this app.`;
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not delete Strava runs."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not delete Strava runs.";
+      setError(message);
+      showErrorToast(message);
     } finally {
       setPendingAction(null);
     }
@@ -155,13 +163,15 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
     try {
       await request("/api/strava/disconnect");
       setConnected(false);
-      setMessage(
-        "Strava disconnected. Stored tokens were removed. Existing imported runs were kept."
-      );
+      const message =
+        "Strava disconnected. Stored tokens were removed. Existing imported runs were kept.";
+      setMessage(message);
+      showSuccessToast(message);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not disconnect Strava."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not disconnect Strava.";
+      setError(message);
+      showErrorToast(message);
     } finally {
       setPendingAction(null);
     }
@@ -179,6 +189,11 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               ? "Sync now imports new Run activities. Resync all history backfills missing older runs. Disconnect keeps imported runs."
               : "Connect with activity read permission to import your runs."}
           </p>
+          {connected && profile.strava_athlete_name ? (
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              Athlete: {profile.strava_athlete_name}
+            </p>
+          ) : null}
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {connected ? (

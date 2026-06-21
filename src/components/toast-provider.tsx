@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 export function ToastProvider() {
   return (
     <ToastContainer
-      autoClose={5000}
+      autoClose={4000}
       closeButton={false}
       draggable={false}
       hideProgressBar
@@ -14,6 +14,7 @@ export function ToastProvider() {
       pauseOnFocusLoss={false}
       position="bottom-right"
       theme="dark"
+      limit={3}
     />
   );
 }

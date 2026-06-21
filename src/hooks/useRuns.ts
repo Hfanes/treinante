@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { showPrToast } from "@/components/app-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { STRAVA_SYNC_COMPLETE_EVENT } from "@/lib/strava-sync-events";
 import {
@@ -12,17 +13,22 @@ import {
   hydrateFromExport,
   parseExportFile,
   setSyncMeta,
+  upsertCachedPersonalRecords,
   upsertCachedRun,
   upsertCachedRuns,
+  upsertCachedWeeklyReports,
 } from "@/lib/idb";
 import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
 import { recalculateWeeklyReports } from "@/lib/reportEngine";
+import { formatDuration } from "@/lib/runAnalysis";
 import { createBrowserClient } from "@/lib/supabase";
-import type { ExportFile, Run } from "@/types";
+import type { ExportFile, PersonalRecord, Run, WeeklyReport } from "@/types";
 import type { TablesInsert } from "@/types/supabase";
 
 const RUN_SYNC_PREFIX = "runs_last_sync";
+const RECORD_SYNC_PREFIX = "personal_records_last_sync";
+const REPORT_SYNC_PREFIX = "weekly_reports_last_sync";
 type RunInsert = TablesInsert<"runs">;
 
 function sortRuns(runs: Run[]) {
@@ -116,6 +122,34 @@ export function useRuns(): {
       const nextRuns = lastSync ? await getCachedRuns(user.id) : remoteRuns;
       setRuns(sortRuns(nextRuns));
       await setSyncMeta(syncKey, new Date().toISOString());
+
+      const recordSyncKey = `${RECORD_SYNC_PREFIX}:${user.id}`;
+      const reportSyncKey = `${REPORT_SYNC_PREFIX}:${user.id}`;
+      const [recordLastSync, reportLastSync] = await Promise.all([
+        getSyncMeta(recordSyncKey),
+        getSyncMeta(reportSyncKey),
+      ]);
+      let recordQuery = supabase.from("personal_records").select("*");
+      if (recordLastSync)
+        recordQuery = recordQuery.gt("updated_at", recordLastSync);
+      let reportQuery = supabase.from("weekly_reports").select("*");
+      if (reportLastSync)
+        reportQuery = reportQuery.gt("generated_at", reportLastSync);
+
+      const [{ data: records }, { data: reports }] = await Promise.all([
+        recordQuery,
+        reportQuery,
+      ]);
+      await Promise.all([
+        records?.length
+          ? upsertCachedPersonalRecords(records as unknown as PersonalRecord[])
+          : Promise.resolve(),
+        reports?.length
+          ? upsertCachedWeeklyReports(reports as unknown as WeeklyReport[])
+          : Promise.resolve(),
+        setSyncMeta(recordSyncKey, new Date().toISOString()),
+        setSyncMeta(reportSyncKey, new Date().toISOString()),
+      ]);
     } catch (err) {
       console.error("Run sync failed", err);
     } finally {
@@ -133,7 +167,10 @@ export function useRuns(): {
       void syncRuns();
     }
 
-    window.addEventListener(STRAVA_SYNC_COMPLETE_EVENT, handleStravaSyncComplete);
+    window.addEventListener(
+      STRAVA_SYNC_COMPLETE_EVENT,
+      handleStravaSyncComplete
+    );
 
     return () => {
       window.removeEventListener(
@@ -156,7 +193,24 @@ export function useRuns(): {
       }
 
       const savedRun = data as unknown as Run;
-      await recalculatePersonalRecords(supabase, savedRun.user_id);
+      const { data: previousRecords } = await supabase
+        .from("personal_records")
+        .select("type,value");
+      const nextRecords = await recalculatePersonalRecords(
+        supabase,
+        savedRun.user_id
+      );
+      const previous = new Map(
+        (previousRecords ?? []).map((record) => [record.type, record.value])
+      );
+      const improved = nextRecords.find((record) => {
+        const before = previous.get(record.type);
+        return before === undefined || record.value !== before;
+      });
+
+      if (improved) {
+        showPrToast(improved.type, formatDuration(improved.value));
+      }
       await recalculateFitnessSnapshots(supabase, savedRun.user_id);
       await recalculateWeeklyReports(supabase, savedRun.user_id);
       await upsertCachedRun(savedRun);

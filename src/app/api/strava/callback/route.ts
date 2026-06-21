@@ -41,8 +41,17 @@ export async function GET(request: NextRequest) {
     access_token: string;
     refresh_token: string;
     expires_at: number;
+    athlete?: {
+      firstname?: string | null;
+      lastname?: string | null;
+      username?: string | null;
+    };
   };
   const admin = createAdminClient();
+  const athleteName = [token.athlete?.firstname, token.athlete?.lastname]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 
   await admin
     .from("strava_tokens")
@@ -55,7 +64,10 @@ export async function GET(request: NextRequest) {
     .throwOnError();
   await admin
     .from("profiles")
-    .update({ strava_connected: true })
+    .update({
+      strava_connected: true,
+      strava_athlete_name: athleteName || token.athlete?.username || null,
+    })
     .eq("id", user.id)
     .throwOnError();
 

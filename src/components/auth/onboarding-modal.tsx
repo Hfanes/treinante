@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { showInfoToast } from "@/components/app-toast";
 import { Button } from "@/components/ui";
 import { createBrowserClient } from "@/lib/supabase";
 import { withSupabaseRetry } from "@/lib/supabase-retry";
@@ -33,7 +34,9 @@ function parsePace(value: string, unit: Profile["unit_preference"]) {
     : Number(value);
 
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return NaN;
-  return Math.round(unit === "imperial" ? totalSeconds * KM_TO_MI : totalSeconds);
+  return Math.round(
+    unit === "imperial" ? totalSeconds * KM_TO_MI : totalSeconds
+  );
 }
 
 export function OnboardingModal({
@@ -157,7 +160,12 @@ export function OnboardingModal({
               onboarding_complete: true,
             })
             .eq("id", initialProfile.id),
-        () => setRetrying(true)
+        () => {
+          setRetrying(true);
+          showInfoToast(
+            "Database is waking up. This can take a few seconds on first load."
+          );
+        }
       );
 
       if (updateError) {
@@ -187,7 +195,12 @@ export function OnboardingModal({
             .from("profiles")
             .update({ onboarding_complete: true })
             .eq("id", initialProfile.id),
-        () => setRetrying(true)
+        () => {
+          setRetrying(true);
+          showInfoToast(
+            "Database is waking up. This can take a few seconds on first load."
+          );
+        }
       );
 
       if (updateError) throw updateError;
@@ -339,7 +352,8 @@ export function OnboardingModal({
                 </label>
               ) : null}
               <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)] sm:col-span-2">
-                Threshold pace ({unitPreference === "imperial" ? "min/mi" : "min/km"})
+                Threshold pace (
+                {unitPreference === "imperial" ? "min/mi" : "min/km"})
                 <input
                   className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)] focus:border-[var(--primary)]"
                   placeholder={unitPreference === "imperial" ? "7:15" : "4:30"}

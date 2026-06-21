@@ -21,7 +21,7 @@ export async function POST() {
       .throwOnError();
     await admin
       .from("profiles")
-      .update({ strava_connected: false })
+      .update({ strava_connected: false, strava_athlete_name: null })
       .eq("id", user.id)
       .throwOnError();
 

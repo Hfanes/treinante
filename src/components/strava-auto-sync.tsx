@@ -12,6 +12,13 @@ interface StravaSyncResponse {
   error?: string;
 }
 
+function isTransientFetchError(err: unknown) {
+  return (
+    err instanceof TypeError ||
+    (err instanceof DOMException && err.name === "AbortError")
+  );
+}
+
 export function StravaAutoSync({ enabled }: { enabled: boolean }) {
   const router = useRouter();
   const syncingRef = useRef(false);
@@ -48,6 +55,8 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
           router.refresh();
         }
       } catch (err) {
+        if (isTransientFetchError(err)) return;
+
         console.warn("Strava auto-sync failed", err);
       } finally {
         syncingRef.current = false;

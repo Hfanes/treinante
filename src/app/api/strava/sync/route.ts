@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
-import { syncStravaRuns } from "@/lib/stravaClient";
+import { StravaRateLimitError, syncStravaRuns } from "@/lib/stravaClient";
 
 function errorMessage(err: unknown) {
   if (err instanceof Error) return err.message;
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       {
         error: errorMessage(err),
       },
-      { status: 400 }
+      { status: err instanceof StravaRateLimitError ? 429 : 400 }
     );
   }
 }
