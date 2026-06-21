@@ -23,8 +23,7 @@ Reviewed: 2026-06-07
 
 - Delete account flow is not implemented. Needs confirm dialog and Supabase Auth admin hard delete.
 - Cold-start skeleton handling is not fully implemented. Current retry UI shows inline wake-up text in onboarding/settings only.
-- Onboarding Step 3 does not include an explicit `Skip for now` link for heart-rate fields.
-- Sidebar does not display profile `name` yet, even though onboarding collects it for sidebar and reports.
+- Sidebar no longer displays profile `name` by product choice; it now shows "Powered by" with the Strava logo.
 
 ### External Setup Required
 
@@ -42,7 +41,6 @@ Reviewed: 2026-06-07
 ### Not Implemented Yet
 
 - Settings UI does not expose export/import controls yet, even though `useRuns` includes `exportJSON` and `importJSON`.
-- Offline writes are not supported. Current behavior is cached offline reads only; mutations require Supabase success first.
 - Sync strategy is complete for `runs`; related stores are import/export-capable but do not yet background-sync independently from Supabase.
 - IndexedDB currently stores full `Run` objects in one `runs` store, including split arrays and raw source metadata. Before PRD 09 segment matching or detailed route storage, consider splitting cache storage into lightweight indexed `runs` rows and lazy `run_details` rows for splits/raw payloads.
 
@@ -54,7 +52,6 @@ Reviewed: 2026-06-09
 
 - Post-import pipeline recalculates personal records, fitness snapshots, and weekly reports after import/delete. Segment recalculation remains deferred to PRD 09. Weekly reports resolved in PRD 10 on 2026-06-09.
 - Import success/error toasts are inline page messages for now. Global toast system remains deferred to PRD 12.
-- Manual run form is available on `/runs`, not from a global "Add run" dropdown anywhere in the app. Global action placement deferred to PRD 12 navigation/UI polish.
 - Delete does not re-run downstream analytics pipelines yet. Deferred with post-import pipeline work.
 
 ### Partial Implementations
@@ -62,8 +59,7 @@ Reviewed: 2026-06-09
 - Strava Settings UI shows connected/not connected, incremental sync, full-history resync, delete Strava runs, and disconnect, but does not display athlete name because no athlete profile fields exist yet.
 - Strava sync imports full paged history on first connect and streams when available, but does not yet implement advanced retry/rate-limit handling.
 - Strava imports store computed per-km split points, not the full GPS point stream. PRD 04 does not require full route storage, but PRD 09 segment matching may need a `run_points` table or compressed route storage if per-km split points are too coarse.
-- Run history supports sorting through a dropdown and filters by source/date range; columns themselves are not clickable sortable headers.
-- Run history limits to 25 rows but does not expose pagination controls yet.
+- Run history supports sorting through a dropdown and clickable sortable headers, with filters by source/date range.
 
 ## PRD 04 — Per-Run Analysis
 
@@ -76,8 +72,6 @@ Reviewed: 2026-06-09
 
 ### Partial Implementations
 
-- GAP is computed for the run detail display from stored per-km split elevations; existing imported rows are not backfilled with updated stored `raw_splits.gap` values.
-- Whole-run GAP is averaged from available per-km splits. Current import data does not include a final partial split, so GAP ignores any trailing partial kilometer.
 - Chart zoom/pan is enabled through Chart.js plugins, but there is no explicit reset-zoom control yet.
 
 ## PRD 05 — Unified Activity Dashboard
@@ -127,7 +121,6 @@ Reviewed: 2026-06-09
 ### Partial Implementations
 
 - Automatic VO2max uses one anchor effort by priority: best clean rolling window from the last 90 days, then whole-run average pace fallback. Rolling-window candidates are based on stored whole-kilometer splits, so partial-kilometer windows are not considered.
-- VO2max trend uses a compact in-page monthly bar visualization rather than a Chart.js line chart.
 - HR-based VO2max uses Settings max HR first, then observed run max HR. Age-based `220 - age` fallback is not implemented because profiles do not currently store age or date of birth.
 
 ## PRD 10 — Auto Weekly Training Report
@@ -162,14 +155,13 @@ Reviewed: 2026-06-15
 - Dark-first instrument-grade token foundation is implemented in `src/app/globals.css` with olive-brown surfaces, sand primary accents, Space Mono metric/label rules, vertical-bar texture utilities, skeleton shimmer, and staggered metric-card entrance animation.
 - Google fonts are loaded through `next/font/google` for Inter, Cormorant Garamond, and Space Mono, with the root document permanently dark-first.
 - Shared UI primitives (`Card`, `Button`, `Badge`, `Skeleton`) now use the PRD 12 tokens, 2px radius, no shadows, mono metric labels, and data-only badge colors.
-- Protected app shell now uses a fixed 240px desktop sidebar, bottom mobile nav, PRD 12 page hero layout, profile name in the sidebar, and dark olive-brown surfaces.
+- Protected app shell now uses a fixed 240px desktop sidebar, bottom mobile nav, PRD 12 page hero layout, a Strava-powered footer, and dark olive-brown surfaces.
 - Dashboard, run import/list, training tools, auth, onboarding, settings form, and Chart.js-based charts were restyled toward the PRD 12 visual system without changing feature behavior.
 - Chart.js defaults now use dark tooltip styling, Space Mono labels, sand/semantic series colors, square bars, and `easeOutQuart` 600ms animation on updated dashboard, fitness, and run-split charts.
 
 ### Partial Implementations
 
 - Some feature pages still contain legacy Tailwind gray/brand utility classes. A temporary global legacy utility bridge maps the visible old gray/brand classes onto PRD 12 tokens, but future UI work should continue replacing those with semantic component classes.
-- Mobile uses the required 5-item bottom nav, but the "More" destination links to Settings instead of opening a drawer for secondary navigation.
 - Sidebar badge indicators for overreaching Fitness state and recent Records PR state are not wired yet; current data is available in feature pages but not exposed to the shell without extra queries.
 - Tablet compact icon-only sidebar is not implemented; the current breakpoint switches from bottom nav to the full 240px sidebar at `md`.
 - Chart accessibility summaries are partially covered by existing chart roles/labels, but Chart.js instances do not yet all provide the detailed PRD text summaries.

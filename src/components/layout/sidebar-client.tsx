@@ -190,13 +190,7 @@ function AuthLink({
   );
 }
 
-export function SidebarClient({
-  isLoggedIn,
-  profileName,
-}: {
-  isLoggedIn: boolean;
-  profileName: string | null;
-}) {
+export function SidebarClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -296,6 +290,23 @@ export function SidebarClient({
   const sidebarStyle = isDragging
     ? { transition: "none", width: `${dragWidth ?? openWidth}px` }
     : undefined;
+  const collapseButton = (
+    <button
+      type="button"
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-expanded={!collapsed}
+      onClick={toggleCollapsed}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] border border-[var(--border)] text-[var(--muted-foreground)] transition-colors duration-200 ease-in-out hover:bg-[var(--muted)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] motion-reduce:transition-none"
+    >
+      <ChevronLeft
+        aria-hidden="true"
+        className={`size-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${
+          layoutCollapsed ? "rotate-180" : "rotate-0"
+        }`}
+        strokeWidth={1.8}
+      />
+    </button>
+  );
 
   return (
     <aside
@@ -304,51 +315,44 @@ export function SidebarClient({
       }`}
       style={sidebarStyle}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div
+        className={`flex gap-3 ${
+          layoutCollapsed
+            ? "flex-col items-center"
+            : "items-center justify-between" // items-center (not start) aligns icon + button vertically
+        }`}
+      >
         <Link
           aria-label="Treinante home"
-          className="flex min-w-0 items-start gap-3 no-underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+          className={`flex min-w-0 items-center no-underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] ${
+            layoutCollapsed ? "" : "gap-3" // ← no gap when collapsed = icon truly centered
+          }`}
           href={isLoggedIn ? "/dashboard" : "/tools"}
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[2px]">
+          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[2px]">
             <Image
               src="/images/bg-removed-logo.png"
               alt=""
               width={88}
               height={88}
-              className="max-w-none scale-[2.15]"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-[2.15]"
               priority
             />
           </span>
+
           <span
             className={`min-w-0 overflow-hidden transition-[max-width,max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none ${
               layoutCollapsed
                 ? "max-h-0 max-w-0 opacity-0"
-                : "max-h-20 max-w-40 opacity-100"
+                : "max-h-20 max-w-52 opacity-100" // ← 208px instead of 160px
             }`}
             style={dragWordmarkStyle}
           >
-            <span className="instrument-heading block text-3xl leading-none">
+            <span className="instrument-heading block text-3xl leading-none whitespace-nowrap">
               Treinante
             </span>
-            <span className="ui-label mt-2 block">Training Instrument</span>
           </span>
         </Link>
-        <button
-          type="button"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          onClick={toggleCollapsed}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] border border-[var(--border)] text-[var(--muted-foreground)] transition-colors duration-200 ease-in-out hover:bg-[var(--muted)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] motion-reduce:transition-none"
-        >
-          <ChevronLeft
-            aria-hidden="true"
-            className={`size-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${
-              layoutCollapsed ? "rotate-180" : "rotate-0"
-            }`}
-            strokeWidth={1.8}
-          />
-        </button>
       </div>
 
       <nav className="mt-10 flex flex-col gap-1">
@@ -385,37 +389,53 @@ export function SidebarClient({
         }`}
       >
         {isLoggedIn ? (
-          <div className={layoutCollapsed ? "text-center" : ""}>
-            <p
-              className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none ${
-                layoutCollapsed ? "max-h-0 opacity-0" : "max-h-6 opacity-100"
-              } ui-label`}
-            >
-              Runner
-            </p>
-            <p className="mt-2 truncate text-sm text-[var(--bone)]">
-              {layoutCollapsed
-                ? (profileName ?? "Profile").at(0)
-                : (profileName ?? "Profile")}
-            </p>
+          <div
+            className={
+              layoutCollapsed
+                ? "flex justify-center"
+                : "flex items-end justify-between gap-3"
+            }
+          >
+            {!layoutCollapsed && (
+              <div className="min-w-0">
+                <p className="ui-label">Powered by</p>
+                <Image
+                  src="/images/strava.svg"
+                  alt="Strava"
+                  width={45}
+                  height={10}
+                  className="mt-2 h-4 w-[60px]"
+                />
+              </div>
+            )}
+            {collapseButton}
           </div>
         ) : (
-          <div className="grid gap-2">
-            <AuthLink
-              collapsed={layoutCollapsed}
-              dragLabelStyle={dragLabelStyle}
-              href="/login"
-              icon={LogIn}
-              label="Login"
-              primary
-            />
-            <AuthLink
-              collapsed={layoutCollapsed}
-              dragLabelStyle={dragLabelStyle}
-              href="/signup"
-              icon={UserPlus}
-              label="Register"
-            />
+          <div>
+            <div className="grid gap-2">
+              <AuthLink
+                collapsed={layoutCollapsed}
+                dragLabelStyle={dragLabelStyle}
+                href="/login"
+                icon={LogIn}
+                label="Login"
+                primary
+              />
+              <AuthLink
+                collapsed={layoutCollapsed}
+                dragLabelStyle={dragLabelStyle}
+                href="/signup"
+                icon={UserPlus}
+                label="Register"
+              />
+            </div>
+            <div
+              className={`mt-4 flex ${
+                layoutCollapsed ? "justify-center" : "justify-end"
+              }`}
+            >
+              {collapseButton}
+            </div>
           </div>
         )}
       </div>

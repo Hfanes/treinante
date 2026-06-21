@@ -32,6 +32,7 @@ type SortKey =
   | "avg_pace"
   | "avg_hr"
   | "elevation_gain";
+type SortDirection = "asc" | "desc";
 
 interface PendingGpx {
   id: string;
@@ -61,6 +62,166 @@ function formatDuration(seconds: number) {
 
 function formatPace(seconds: number) {
   return `${formatDuration(seconds)}/km`;
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function monthLabel(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function addUtcDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function startOfUtcWeek(date: Date) {
+  const start = new Date(date);
+  const day = start.getUTCDay() || 7;
+  start.setUTCDate(start.getUTCDate() - day + 1);
+  return start;
+}
+
+function endOfUtcWeek(date: Date) {
+  return addUtcDays(startOfUtcWeek(date), 6);
+}
+
+function activityCountClass(count: number) {
+  if (count <= 0) return "bg-[color-mix(in_oklch,var(--muted)_82%,white)]";
+  if (count === 1) return "bg-[#65b54d]";
+  if (count === 2) return "bg-[#f6bd3f]";
+  if (count === 3) return "bg-[#ff8a1a]";
+  return "bg-[#ef1119]";
+}
+
+function ActivityCountHeatmap({ runs }: { runs: Run[] }) {
+  const today = new Date();
+  const monthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 11, 1)
+  );
+  const monthEnd = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0)
+  );
+  const start = startOfUtcWeek(monthStart);
+  const end = endOfUtcWeek(monthEnd);
+  const dayCount = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  const weekCount = Math.ceil(dayCount / 7);
+  const days = Array.from({ length: dayCount }, (_, index) =>
+    addUtcDays(start, index)
+  );
+  const counts = new Map<string, number>();
+
+  for (const run of runs) {
+    counts.set(run.date, (counts.get(run.date) ?? 0) + 1);
+  }
+
+  const monthLabels = Array.from({ length: 12 }, (_, index) => {
+    const month = new Date(
+      Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + index, 1)
+    );
+    return {
+      label: monthLabel(month),
+      column:
+        Math.floor((month.getTime() - start.getTime()) / 86400000 / 7) + 1,
+    };
+  });
+  const legend = [
+    ["No activities", 0],
+    ["1 activity", 1],
+    ["2 activities", 2],
+    ["3 activities", 3],
+    ["4+ activities", 4],
+  ] as const;
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="ui-label">Activity count</p>
+          <h2 className="instrument-heading mt-2 text-3xl">
+            {monthLabel(monthStart)} {monthStart.getUTCFullYear()} -{" "}
+            {monthLabel(monthEnd)} {monthEnd.getUTCFullYear()}
+          </h2>
+        </div>
+        <p className="max-w-sm text-sm text-[var(--muted-foreground)]">
+          Daily number of logged activities.
+        </p>
+      </div>
+
+      <div className="mt-8 overflow-x-auto pb-2">
+        <div className="min-w-[58rem]">
+          <div
+            className="ml-9 grid gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]"
+            style={{
+              gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))`,
+            }}
+          >
+            {monthLabels.map((month) => (
+              <span key={month.label} style={{ gridColumnStart: month.column }}>
+                {month.label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-[2rem_1fr] gap-3">
+            <div className="grid grid-rows-7 gap-1 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <span key={day}>{day}</span>
+              ))}
+            </div>
+            <div
+              className="grid grid-flow-col grid-rows-7 gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))`,
+              }}
+            >
+              {days.map((day) => {
+                const key = dateKey(day);
+                const count = counts.get(key) ?? 0;
+                const inRange = day >= monthStart && day <= monthEnd;
+                const label = `${key}: ${count || "no"} ${
+                  count === 1 ? "activity" : "activities"
+                }`;
+                const cell = (
+                  <span
+                    aria-label={label}
+                    className={`block h-3.5 rounded-[2px] ${
+                      inRange ? activityCountClass(count) : "bg-transparent"
+                    }`}
+                    title={label}
+                  />
+                );
+
+                return count > 0 ? (
+                  <a href={`/runs?dateFrom=${key}&dateTo=${key}`} key={key}>
+                    {cell}
+                  </a>
+                ) : (
+                  <span key={key}>{cell}</span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-[0.68rem] text-[var(--muted-foreground)]">
+        {legend.map(([label, count]) => (
+          <span className="inline-flex items-center gap-2" key={label}>
+            <span
+              className={`h-3.5 w-5 rounded-[2px] ${activityCountClass(count)}`}
+            />
+            {label}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 type RunAnalysisZone = NonNullable<ReturnType<typeof analyzeRun>["zone"]>;
@@ -146,6 +307,43 @@ function PrBadge({ label }: { label: string }) {
       <span aria-hidden="true">★</span>
       {label}
     </span>
+  );
+}
+
+function SortableHeader({
+  active,
+  children,
+  direction,
+  onClick,
+  padded = false,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  direction: SortDirection;
+  onClick: () => void;
+  padded?: boolean;
+}) {
+  return (
+    <th
+      aria-sort={
+        active ? (direction === "asc" ? "ascending" : "descending") : "none"
+      }
+      className={padded ? "py-2" : undefined}
+    >
+      <button
+        className="inline-flex items-center gap-1 text-left uppercase tracking-[0.14em] text-inherit transition hover:text-[var(--primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+        onClick={onClick}
+        type="button"
+      >
+        {children}
+        <span
+          aria-hidden="true"
+          className={active ? "opacity-100" : "opacity-35"}
+        >
+          {active && direction === "asc" ? "↑" : "↓"}
+        </span>
+      </button>
+    </th>
   );
 }
 
@@ -270,6 +468,7 @@ export function RunListClient({
   const [stravaSyncing, setStravaSyncing] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<RunSource | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -332,12 +531,16 @@ export function RunListClient({
       .filter((run) => !dateFrom || run.date >= dateFrom)
       .filter((run) => !dateTo || run.date <= dateTo)
       .sort((a, b) => {
-        if (sortKey === "date") return b.date.localeCompare(a.date);
+        const direction = sortDirection === "asc" ? 1 : -1;
+
+        if (sortKey === "date") {
+          return a.date.localeCompare(b.date) * direction;
+        }
         const aValue = a[sortKey] ?? -1;
         const bValue = b[sortKey] ?? -1;
-        return Number(bValue) - Number(aValue);
+        return (Number(aValue) - Number(bValue)) * direction;
       });
-  }, [dateFrom, dateTo, displayRuns, sortKey, sourceFilter]);
+  }, [dateFrom, dateTo, displayRuns, sortDirection, sortKey, sourceFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredRuns.length / pageSize));
   const filteredTotals = useMemo(
     () => ({
@@ -353,7 +556,7 @@ export function RunListClient({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [dateFrom, dateTo, pageSize, sortKey, sourceFilter]);
+  }, [dateFrom, dateTo, pageSize, sortDirection, sortKey, sourceFilter]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, pageCount));
@@ -564,6 +767,16 @@ export function RunListClient({
     }
   }
 
+  function sortBy(nextSortKey: SortKey) {
+    if (nextSortKey === sortKey) {
+      setSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(nextSortKey);
+    setSortDirection("desc");
+  }
+
   return (
     <div className="grid gap-4">
       <RunsLibraryHero />
@@ -621,6 +834,8 @@ export function RunListClient({
       {error ? (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       ) : null}
+
+      <ActivityCountHeatmap runs={displayRuns} />
 
       {pendingGpx.length > 0 ? (
         <Card subtitle="Review parsed files before saving them to your run history.">
@@ -765,7 +980,10 @@ export function RunListClient({
           <select
             className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
             value={sortKey}
-            onChange={(event) => setSortKey(event.target.value as SortKey)}
+            onChange={(event) => {
+              setSortKey(event.target.value as SortKey);
+              setSortDirection("desc");
+            }}
           >
             <option value="date">Sort by date</option>
             <option value="distance">Sort by distance</option>
@@ -827,16 +1045,55 @@ export function RunListClient({
 
             <div className="mt-4 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[960px] text-left text-sm">
-                <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)]">
+                <thead className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--secondary)] cursor-pointer">
                   <tr>
-                    <th className="py-2">Date</th>
-                    <th>Distance</th>
-                    <th>Time</th>
-                    <th>Pace</th>
+                    <SortableHeader
+                      active={sortKey === "date"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("date")}
+                      padded
+                    >
+                      Date
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "distance"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("distance")}
+                    >
+                      Distance
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "moving_time"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("moving_time")}
+                    >
+                      Time
+                    </SortableHeader>
+                    <SortableHeader
+                      active={sortKey === "avg_pace"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("avg_pace")}
+                    >
+                      Pace
+                    </SortableHeader>
                     <th>Splits</th>
-                    <th>Avg HR</th>
+                    <SortableHeader
+                      active={sortKey === "avg_hr"}
+                      direction={sortDirection}
+                      onClick={() => sortBy("avg_hr")}
+                    >
+                      Avg HR
+                    </SortableHeader>
                     <th>Zone</th>
-                    {showElevation ? <th>D+</th> : null}
+                    {showElevation ? (
+                      <SortableHeader
+                        active={sortKey === "elevation_gain"}
+                        direction={sortDirection}
+                        onClick={() => sortBy("elevation_gain")}
+                      >
+                        D+
+                      </SortableHeader>
+                    ) : null}
                     <th>Source</th>
                     <th>Actions</th>
                   </tr>
