@@ -1,14 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
+import {
+  STRAVA_STATE_COOKIE,
+  STRAVA_STATE_COOKIE_OPTIONS,
+} from "@/lib/strava-oauth";
 import { syncStravaRuns } from "@/lib/stravaClient";
+
+function redirectWithClearedState(path: string, request: NextRequest) {
+  const response = NextResponse.redirect(new URL(path, request.url));
+  response.cookies.set(STRAVA_STATE_COOKIE, "", {
+    ...STRAVA_STATE_COOKIE_OPTIONS,
+    maxAge: 0,
+  });
+  return response;
+}
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
+  const state = request.nextUrl.searchParams.get("state");
+  const expectedState = request.cookies.get(STRAVA_STATE_COOKIE)?.value;
+
+  if (!state || !expectedState || state !== expectedState) {
+    return redirectWithClearedState("/settings?strava=invalid_state", request);
+  }
+
   if (!code) {
-    return NextResponse.redirect(
-      new URL("/settings?strava=missing_code", request.url)
-    );
+    return redirectWithClearedState("/settings?strava=missing_code", request);
   }
 
   const supabase = await createServerClient();
@@ -17,7 +35,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return redirectWithClearedState("/login", request);
   }
 
   const response = await fetch("https://www.strava.com/oauth/token", {
@@ -32,8 +50,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (!response.ok) {
-    return NextResponse.redirect(
-      new URL("/settings?strava=exchange_failed", request.url)
+    return redirectWithClearedState(
+      "/settings?strava=exchange_failed",
+      request
     );
   }
 
@@ -73,12 +92,14 @@ export async function GET(request: NextRequest) {
 
   const imported = await syncStravaRuns(user.id).catch(() => null);
   if (!imported) {
-    return NextResponse.redirect(
-      new URL("/settings?strava=connected&sync=failed", request.url)
+    return redirectWithClearedState(
+      "/settings?strava=connected&sync=failed",
+      request
     );
   }
 
-  return NextResponse.redirect(
-    new URL(`/settings?strava=connected&synced=${imported.length}`, request.url)
+  return redirectWithClearedState(
+    `/settings?strava=connected&synced=${imported.length}`,
+    request
   );
 }

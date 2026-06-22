@@ -147,3 +147,17 @@ Reviewed: 2026-06-21
 ### Intentional Product Choices
 
 - Auto-sync uses browser polling while the app is open, not Strava webhooks or Vercel Cron.
+
+## PRD 15 — Security Hardening
+
+Reviewed: 2026-06-22
+
+### Implemented
+
+- Supabase sessions remain cookie-backed through `@supabase/ssr`; no auth session storage was found in `localStorage` or `sessionStorage`.
+- Server-side route protection remains in `src/proxy.ts`, and service-role Supabase access is kept server-only through `src/lib/supabase-admin.ts`.
+- Strava OAuth now starts from a server route, stores a short-lived `HttpOnly` state cookie, and validates that state in the callback before token exchange.
+- Strava sync, refresh, delete, disconnect, and manual weekly report generation now use DB-backed per-user rate limits.
+- User-writable profile, run, segment, record, report, and rate-limit data now has database `check` constraints for core type/range/shape validation on new writes.
+- JSON imports now validate file size, array sizes, row shape, enum values, UUIDs, dates, timestamps, numeric ranges, and ownership before IndexedDB hydration or Supabase upsert.
+- Global security headers now include CSP, `X-Content-Type-Options`, and `Referrer-Policy`.

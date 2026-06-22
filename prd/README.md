@@ -32,6 +32,7 @@ A general-purpose running analytics platform. Any runner — road, trail, track,
 | 12  | [ui-ux](./12-ui-ux/PRD.md)                         | Layout, sidebar, dark mode, mobile, loading states, toasts     |
 | 13  | [run-streams](./13-run-streams/PRD.md)             | High-resolution per-run streams for detailed charts            |
 | 14  | [strava-auto-sync](./14-strava-auto-sync/PRD.md)   | App-wide Strava polling and new-run toast notifications        |
+| 15  | [security](./15-security/PRD.md)                   | Session, OAuth, rate-limit, and validation hardening           |
 
 ---
 
@@ -51,3 +52,4 @@ A general-purpose running analytics platform. Any runner — road, trail, track,
 12. `12-ui-ux` — dark mode and mobile wired throughout, polish last
 13. `13-run-streams` — detailed per-run chart data after import/UI foundations
 14. `14-strava-auto-sync` — automatic Strava refresh after import foundations
+15. `15-security` — hardening pass for sessions, OAuth, rate limits, and validation

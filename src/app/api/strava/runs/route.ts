@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { recalculateFitnessSnapshots } from "@/lib/calculations";
 import { recalculatePersonalRecords } from "@/lib/prExtractor";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { recalculateWeeklyReports } from "@/lib/reportEngine";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
@@ -14,6 +15,11 @@ export async function DELETE() {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = await checkRateLimit(`strava:delete:${user.id}`, 2, 3600);
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter);
     }
 
     const admin = createAdminClient();

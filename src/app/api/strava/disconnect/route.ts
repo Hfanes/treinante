@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
 
@@ -11,6 +12,15 @@ export async function POST() {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = await checkRateLimit(
+      `strava:disconnect:${user.id}`,
+      5,
+      3600
+    );
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter);
     }
 
     const admin = createAdminClient();

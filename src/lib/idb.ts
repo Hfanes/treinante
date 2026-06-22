@@ -1,13 +1,44 @@
 import { openDB, type DBSchema } from "idb";
 import type {
   ExportFile,
+  PersonalRecordType,
   PersonalRecord,
   Profile,
   Run,
+  RunSource,
   Segment,
   SegmentEffort,
   WeeklyReport,
 } from "@/types";
+
+const EXPORT_ARRAY_LIMIT = 10_000;
+const RUN_SOURCES = ["gpx", "strava", "manual"] satisfies RunSource[];
+const PERSONAL_RECORD_TYPES = [
+  "400m",
+  "half_mile",
+  "1k",
+  "1_mile",
+  "2_mile",
+  "5k",
+  "10k",
+  "15k",
+  "10_mile",
+  "20k",
+  "half_marathon",
+  "30k",
+  "marathon",
+  "50k",
+  "50_mile",
+  "100k",
+  "100_mile",
+  "200k",
+  "24h",
+  "48h",
+  "longest_run",
+  "longest_duration",
+  "most_elevation",
+  "best_d_plus_per_km",
+] satisfies PersonalRecordType[];
 
 interface TreinanteDB extends DBSchema {
   runs: {
@@ -187,6 +218,419 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function assertValid(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+function isUuid(value: unknown) {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
+function isDate(value: unknown) {
+  return (
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
+  );
+}
+
+function isTimestamp(value: unknown) {
+  return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
+
+function isNumberInRange(value: unknown, min: number, max: number) {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= min &&
+    value <= max
+  );
+}
+
+function isOptionalText(value: unknown, maxLength: number) {
+  return (
+    value === null || (typeof value === "string" && value.length <= maxLength)
+  );
+}
+
+function isOptionalIntegerInRange(value: unknown, min: number, max: number) {
+  return (
+    value === null ||
+    (Number.isInteger(value) && Number(value) >= min && Number(value) <= max)
+  );
+}
+
+function isOptionalNumberInRange(value: unknown, min: number, max: number) {
+  return value === null || isNumberInRange(value, min, max);
+}
+
+function validateSplit(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid split at index ${index}`);
+  assertValid(
+    isNumberInRange(value.km, 1, 1000),
+    `Invalid split km at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.pace, 1, 86400),
+    `Invalid split pace at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.hr, 1, 250),
+    `Invalid split HR at index ${index}`
+  );
+  assertValid(
+    typeof value.elevation === "number" && Number.isFinite(value.elevation),
+    `Invalid split elevation at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.gap, 1, 86400),
+    `Invalid split GAP at index ${index}`
+  );
+  assertValid(
+    typeof value.is_stop === "boolean",
+    `Invalid split stop flag at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.lat, -90, 90),
+    `Invalid split latitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.lng, -180, 180),
+    `Invalid split longitude at index ${index}`
+  );
+  assertValid(
+    value.timestamp === undefined || isTimestamp(value.timestamp),
+    `Invalid split timestamp at index ${index}`
+  );
+}
+
+function validateRun(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid run at index ${index}`);
+  assertValid(isUuid(value.id), `Invalid run id at index ${index}`);
+  assertValid(isUuid(value.user_id), `Invalid run user at index ${index}`);
+  assertValid(
+    isOptionalText(value.title, 200),
+    `Invalid run title at index ${index}`
+  );
+  assertValid(isDate(value.date), `Invalid run date at index ${index}`);
+  assertValid(
+    value.start_time === null || isTimestamp(value.start_time),
+    `Invalid run start time at index ${index}`
+  );
+  assertValid(
+    typeof value.source === "string" &&
+      RUN_SOURCES.includes(value.source as RunSource),
+    `Invalid run source at index ${index}`
+  );
+  assertValid(
+    isOptionalText(value.sport_type, 50),
+    `Invalid run sport type at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(
+      value.strava_activity_id,
+      1,
+      Number.MAX_SAFE_INTEGER
+    ),
+    `Invalid Strava id at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.distance, 0.001, 1000),
+    `Invalid run distance at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.total_time, 1, 604800),
+    `Invalid run total time at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.moving_time, 1, Number(value.total_time)),
+    `Invalid run moving time at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.avg_hr, 1, 250),
+    `Invalid run average HR at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.max_hr, 1, 250),
+    `Invalid run max HR at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.avg_power, 1, 5000),
+    `Invalid run average power at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.max_power, 1, 5000),
+    `Invalid run max power at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.elevation_gain, 0, 100000),
+    `Invalid run elevation gain at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.elevation_loss, 0, 100000),
+    `Invalid run elevation loss at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.avg_pace, 1, 86400),
+    `Invalid run pace at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.start_lat, -90, 90),
+    `Invalid run start latitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.start_lng, -180, 180),
+    `Invalid run start longitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.end_lat, -90, 90),
+    `Invalid run end latitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.end_lng, -180, 180),
+    `Invalid run end longitude at index ${index}`
+  );
+  assertValid(
+    isOptionalText(value.summary_polyline, 10000),
+    `Invalid run polyline at index ${index}`
+  );
+  assertValid(
+    isOptionalText(value.gpx_file_url, 500),
+    `Invalid run GPX file at index ${index}`
+  );
+  assertValid(
+    Array.isArray(value.raw_splits) &&
+      value.raw_splits.length <= EXPORT_ARRAY_LIMIT,
+    `Invalid run splits at index ${index}`
+  );
+  value.raw_splits.forEach(validateSplit);
+  assertValid(
+    isRecord(value.raw_source),
+    `Invalid run raw source at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.training_load, 0, 100000),
+    `Invalid run training load at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.ctl_at_date, -100000, 100000),
+    `Invalid run CTL at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.atl_at_date, -100000, 100000),
+    `Invalid run ATL at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.tsb_at_date, -100000, 100000),
+    `Invalid run TSB at index ${index}`
+  );
+  assertValid(
+    isTimestamp(value.created_at),
+    `Invalid run created time at index ${index}`
+  );
+  assertValid(
+    isTimestamp(value.updated_at),
+    `Invalid run updated time at index ${index}`
+  );
+}
+
+function validatePersonalRecord(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid personal record at index ${index}`);
+  assertValid(isUuid(value.id), `Invalid personal record id at index ${index}`);
+  assertValid(
+    isUuid(value.user_id),
+    `Invalid personal record user at index ${index}`
+  );
+  assertValid(
+    typeof value.type === "string" &&
+      PERSONAL_RECORD_TYPES.includes(value.type as PersonalRecordType),
+    `Invalid personal record type at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.value, 0.001, 1_000_000),
+    `Invalid personal record value at index ${index}`
+  );
+  assertValid(
+    value.run_id === null || isUuid(value.run_id),
+    `Invalid personal record run at index ${index}`
+  );
+  assertValid(
+    value.achieved_at === null || isDate(value.achieved_at),
+    `Invalid personal record date at index ${index}`
+  );
+  assertValid(
+    typeof value.estimated === "boolean",
+    `Invalid personal record estimated flag at index ${index}`
+  );
+  assertValid(
+    isTimestamp(value.updated_at),
+    `Invalid personal record update time at index ${index}`
+  );
+}
+
+function validateSegment(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid segment at index ${index}`);
+  assertValid(isUuid(value.id), `Invalid segment id at index ${index}`);
+  assertValid(isUuid(value.user_id), `Invalid segment user at index ${index}`);
+  assertValid(
+    typeof value.name === "string" &&
+      value.name.length > 0 &&
+      value.name.length <= 120,
+    `Invalid segment name at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.start_lat, -90, 90),
+    `Invalid segment start latitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.start_lng, -180, 180),
+    `Invalid segment start longitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.end_lat, -90, 90),
+    `Invalid segment end latitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.end_lng, -180, 180),
+    `Invalid segment end longitude at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.distance, 0.001, 1000),
+    `Invalid segment distance at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.best_time, 1, 604800),
+    `Invalid segment best time at index ${index}`
+  );
+  assertValid(
+    value.best_date === null || isDate(value.best_date),
+    `Invalid segment best date at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.kom_time, 1, 604800),
+    `Invalid segment KOM time at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(
+      value.strava_segment_id,
+      1,
+      Number.MAX_SAFE_INTEGER
+    ),
+    `Invalid Strava segment id at index ${index}`
+  );
+  assertValid(
+    isTimestamp(value.created_at),
+    `Invalid segment created time at index ${index}`
+  );
+}
+
+function validateSegmentEffort(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid segment effort at index ${index}`);
+  assertValid(isUuid(value.id), `Invalid segment effort id at index ${index}`);
+  assertValid(
+    isUuid(value.user_id),
+    `Invalid segment effort user at index ${index}`
+  );
+  assertValid(
+    isUuid(value.segment_id),
+    `Invalid segment effort segment at index ${index}`
+  );
+  assertValid(
+    isUuid(value.run_id),
+    `Invalid segment effort run at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.elapsed_time, 1, 604800),
+    `Invalid segment effort elapsed time at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.avg_hr, 1, 250),
+    `Invalid segment effort HR at index ${index}`
+  );
+  assertValid(
+    isDate(value.date),
+    `Invalid segment effort date at index ${index}`
+  );
+}
+
+function validateWeeklyReport(value: unknown, index: number) {
+  assertValid(isRecord(value), `Invalid weekly report at index ${index}`);
+  assertValid(isUuid(value.id), `Invalid weekly report id at index ${index}`);
+  assertValid(
+    isUuid(value.user_id),
+    `Invalid weekly report user at index ${index}`
+  );
+  assertValid(
+    isDate(value.week_start),
+    `Invalid weekly report week at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.total_km, 0, 1000),
+    `Invalid weekly report km at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.total_d_plus, 0, 100000),
+    `Invalid weekly report D+ at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.total_time, 0, 604800),
+    `Invalid weekly report time at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.num_runs, 0, EXPORT_ARRAY_LIMIT),
+    `Invalid weekly report run count at index ${index}`
+  );
+  assertValid(
+    isNumberInRange(value.avg_pace, 1, 86400),
+    `Invalid weekly report pace at index ${index}`
+  );
+  assertValid(
+    isOptionalIntegerInRange(value.avg_hr, 1, 250),
+    `Invalid weekly report HR at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.ctl_end, -100000, 100000),
+    `Invalid weekly report CTL at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.atl_end, -100000, 100000),
+    `Invalid weekly report ATL at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.tsb_end, -100000, 100000),
+    `Invalid weekly report TSB at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.vs_prev_km_delta, -1000, 1000),
+    `Invalid weekly report km delta at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.vs_prev_d_plus_delta, -100000, 100000),
+    `Invalid weekly report D+ delta at index ${index}`
+  );
+  assertValid(
+    isOptionalNumberInRange(value.vs_prev_time_delta, -604800, 604800),
+    `Invalid weekly report time delta at index ${index}`
+  );
+  assertValid(
+    value.zone_breakdown === null || isRecord(value.zone_breakdown),
+    `Invalid weekly report zones at index ${index}`
+  );
+  assertValid(
+    isOptionalText(value.insight_text, 2000),
+    `Invalid weekly report insight at index ${index}`
+  );
+  assertValid(
+    isTimestamp(value.generated_at),
+    `Invalid weekly report generated time at index ${index}`
+  );
+}
+
 export function parseExportFile(value: unknown): ExportFile {
   if (!isRecord(value) || value.version !== 2) {
     throw new Error("Unsupported import file version");
@@ -204,7 +648,23 @@ export function parseExportFile(value: unknown): ExportFile {
     if (!Array.isArray(value[key])) {
       throw new Error(`Import file is missing ${key}`);
     }
+
+    if (value[key].length > EXPORT_ARRAY_LIMIT) {
+      throw new Error(`Import file has too many ${key}`);
+    }
   }
+
+  const runs = value.runs as unknown[];
+  const personalRecords = value.personal_records as unknown[];
+  const segments = value.segments as unknown[];
+  const segmentEfforts = value.segment_efforts as unknown[];
+  const weeklyReports = value.weekly_reports as unknown[];
+
+  runs.forEach(validateRun);
+  personalRecords.forEach(validatePersonalRecord);
+  segments.forEach(validateSegment);
+  segmentEfforts.forEach(validateSegmentEffort);
+  weeklyReports.forEach(validateWeeklyReport);
 
   return value as unknown as ExportFile;
 }

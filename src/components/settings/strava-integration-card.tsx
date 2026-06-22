@@ -15,7 +15,15 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("strava") !== "connected") return;
+    const stravaStatus = params.get("strava");
+    if (stravaStatus === "invalid_state") {
+      setError(
+        "Strava connection could not be verified. Try connecting again."
+      );
+      return;
+    }
+
+    if (stravaStatus !== "connected") return;
 
     setConnected(true);
     if (params.get("sync") === "failed") {
@@ -30,22 +38,7 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
   }, []);
 
   function connect() {
-    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-    if (!clientId) {
-      setError("Missing Strava client id.");
-      return;
-    }
-
-    const redirectUri = `${window.location.origin}/api/strava/callback`;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: "code",
-      approval_prompt: "auto",
-      scope: "activity:read_all",
-    });
-
-    window.location.assign(`https://www.strava.com/oauth/authorize?${params}`);
+    window.location.assign("/api/strava/connect");
   }
 
   async function request(path: string, method = "POST") {

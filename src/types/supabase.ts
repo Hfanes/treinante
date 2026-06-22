@@ -515,7 +515,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      check_rate_limit: {
+        Args: {
+          rate_key: string;
+          max_requests: number;
+          window_seconds: number;
+        };
+        Returns: {
+          allowed: boolean;
+          retry_after: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
