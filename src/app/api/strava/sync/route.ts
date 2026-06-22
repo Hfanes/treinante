@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { createServerClient } from "@/lib/supabase-server";
 import { StravaRateLimitError, syncStravaRuns } from "@/lib/stravaClient";
 
@@ -30,6 +31,11 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = await checkRateLimit(`strava:sync:${user.id}`, 5, 600);
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter);
     }
 
     const fullHistory = request.nextUrl.searchParams.get("full") === "true";

@@ -588,22 +588,7 @@ export function RunListClient({
   }
 
   function connectStrava() {
-    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-    if (!clientId) {
-      setError("Missing Strava client id.");
-      return;
-    }
-
-    const redirectUri = `${window.location.origin}/api/strava/callback`;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: "code",
-      approval_prompt: "auto",
-      scope: "activity:read_all",
-    });
-
-    window.location.assign(`https://www.strava.com/oauth/authorize?${params}`);
+    window.location.assign("/api/strava/connect");
   }
 
   async function handleStravaSync() {

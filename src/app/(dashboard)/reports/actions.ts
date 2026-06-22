@@ -7,6 +7,7 @@ import {
   getPreviousWeekStart,
   regenerateWeeklyReport,
 } from "@/lib/reportEngine";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createServerClient } from "@/lib/supabase-server";
 
 export async function generateLastWeekReport() {
@@ -16,6 +17,15 @@ export async function generateLastWeekReport() {
   } = await supabase.auth.getUser();
 
   if (!user) return;
+
+  const rateLimit = await checkRateLimit(
+    `reports:generate:${user.id}`,
+    3,
+    3600
+  );
+  if (!rateLimit.allowed) {
+    redirect("/reports?report=rate_limited");
+  }
 
   let status: string;
 

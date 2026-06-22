@@ -29,6 +29,7 @@ import type { TablesInsert } from "@/types/supabase";
 const RUN_SYNC_PREFIX = "runs_last_sync";
 const RECORD_SYNC_PREFIX = "personal_records_last_sync";
 const REPORT_SYNC_PREFIX = "weekly_reports_last_sync";
+const MAX_IMPORT_FILE_BYTES = 5 * 1024 * 1024;
 type RunInsert = TablesInsert<"runs">;
 
 function sortRuns(runs: Run[]) {
@@ -268,6 +269,10 @@ export function useRuns(): {
     async (file: File) => {
       if (!user) {
         throw new Error("Cannot import runs without an authenticated user");
+      }
+
+      if (file.size > MAX_IMPORT_FILE_BYTES) {
+        throw new Error("Import file is too large");
       }
 
       const exportFile = parseExportFile(await readJSONFile(file));

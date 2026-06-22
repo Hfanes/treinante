@@ -22,6 +22,7 @@ function isTransientFetchError(err: unknown) {
 export function StravaAutoSync({ enabled }: { enabled: boolean }) {
   const router = useRouter();
   const syncingRef = useRef(false);
+  const nextAllowedSyncRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) return;
@@ -29,6 +30,7 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
     async function sync() {
       if (
         syncingRef.current ||
+        Date.now() < nextAllowedSyncRef.current ||
         document.visibilityState !== "visible" ||
         !navigator.onLine
       ) {
@@ -41,6 +43,14 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
         const response = await fetch("/api/strava/sync", { method: "POST" });
         const body = (await response.json()) as StravaSyncResponse;
 
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers.get("Retry-After"));
+          nextAllowedSyncRef.current =
+            Date.now() +
+            (Number.isFinite(retryAfter) ? retryAfter : 600) * 1000;
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(body.error ?? "Strava auto-sync failed");
         }
@@ -49,7 +59,9 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
 
         if (imported > 0) {
           window.dispatchEvent(
-            new CustomEvent(STRAVA_SYNC_COMPLETE_EVENT, { detail: { imported } })
+            new CustomEvent(STRAVA_SYNC_COMPLETE_EVENT, {
+              detail: { imported },
+            })
           );
           showStravaImportToast(imported);
           router.refresh();
