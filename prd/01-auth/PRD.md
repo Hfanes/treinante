@@ -12,8 +12,9 @@ All app data is user-scoped. Authentication is handled by Supabase Auth. Each us
 | ---------------- | ------------------------ |
 | Email + password | Supabase built-in        |
 | Google OAuth     | Supabase Google provider |
+| Strava OAuth     | Supabase custom provider |
 
-Strava OAuth is a **data source connection**, not a login method. Managed separately in Settings (see PRD 03).
+Strava OAuth can be both a login method and a data source connection. Strava-login users are connected for run sync during login; email/password and Google users connect Strava separately in Settings (see PRD 03 and PRD 16).
 
 ---
 
@@ -218,6 +219,7 @@ const {
   signIn, // (email, password) => Promise
   signUp, // (email, password) => Promise
   signInWithGoogle, // () => Promise
+  signInWithStrava, // () => Promise
   signOut, // () => Promise
   updateProfile, // (Partial<Profile>) => Promise
 } = useAuth();
@@ -230,6 +232,7 @@ const {
 - Edit name and weekly km goal
 - Edit max HR, resting HR, FTP pace
 - Connect / disconnect Strava (see PRD 03)
+- OAuth-only accounts show linked sign-in providers instead of password controls
 - Export all data as JSON (see PRD 02)
 - Delete account — confirm dialog, then hard delete via Supabase Auth admin
 
