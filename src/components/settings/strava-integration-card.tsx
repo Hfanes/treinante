@@ -61,6 +61,9 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
       const { error } = await supabase.auth.linkIdentity({
         provider: "custom:strava",
         options: {
+          queryParams: {
+            approval_prompt: "force",
+          },
           redirectTo: `${window.location.origin}${getOAuthCallbackUrl(
             "strava",
             "/settings"
@@ -222,6 +225,10 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
           {connected && profile.strava_athlete_name ? (
             <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               Athlete: {profile.strava_athlete_name}
+            </p>
+          ) : connected ? (
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              Athlete: connected Strava account
             </p>
           ) : null}
         </div>

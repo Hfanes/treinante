@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import type { User } from "@supabase/supabase-js";
 
 import {
   LAST_LOGIN_COOKIE,
@@ -12,14 +11,6 @@ import {
   storeStravaConnection,
 } from "@/lib/strava-token-store";
 import type { Database } from "@/types/supabase";
-
-function identityProviders(user: User | null) {
-  return new Set(
-    (user?.identities ?? [])
-      .map((identity) => identity.provider)
-      .filter((provider): provider is string => typeof provider === "string")
-  );
-}
 
 function setLastLoginCookie(
   response: NextResponse,
@@ -88,9 +79,7 @@ export async function GET(req: NextRequest) {
     return authErrorRedirect(requestUrl.origin, error);
   }
 
-  const providers = identityProviders(data.user);
-  const isStravaLogin =
-    loginMethod === "strava" && providers.has("custom:strava");
+  const isStravaLogin = loginMethod === "strava";
 
   if (isStravaLogin) {
     const accessToken = data.session?.provider_token;

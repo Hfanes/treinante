@@ -378,6 +378,9 @@ describe("useAuth", () => {
     expect(mocks.supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
       provider: "custom:strava",
       options: {
+        queryParams: {
+          approval_prompt: "force",
+        },
         redirectTo:
           "http://localhost:3000/auth/callback?next=%2Fruns&login=strava",
       },

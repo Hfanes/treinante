@@ -213,6 +213,9 @@ export function useAuth(): UseAuthResult {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "custom:strava",
       options: {
+        queryParams: {
+          approval_prompt: "force",
+        },
         redirectTo: `${window.location.origin}${getOAuthCallbackUrl("strava", next)}`,
       },
     });
