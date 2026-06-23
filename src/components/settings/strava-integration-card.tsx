@@ -222,14 +222,13 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               ? "Sync now imports new Run activities. Resync all history backfills missing older runs. Disconnect keeps imported runs."
               : "Connect with activity read permission to import your runs."}
           </p>
-          {connected && profile.strava_athlete_name ? (
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-              Athlete: {profile.strava_athlete_name}
-            </p>
-          ) : connected ? (
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-              Athlete: connected Strava account
-            </p>
+          {connected ? (
+            <div className="mt-3 inline-flex flex-col rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+              <span className="ui-label">Strava athlete</span>
+              <span className="mt-1 text-lg font-medium text-[var(--bone)]">
+                {profile.strava_athlete_name ?? "Connected Strava account"}
+              </span>
+            </div>
           ) : null}
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
