@@ -217,10 +217,10 @@ function Vo2TrendChart({
             ))}
           </div>
           <div className="min-w-0">
-            <div className="relative h-36 overflow-hidden">
+            <div className="relative h-36 overflow-visible">
               <svg
                 aria-label="VO2max trend"
-                className="pointer-events-none h-full w-full overflow-hidden"
+                className="pointer-events-none h-full w-full overflow-visible"
                 preserveAspectRatio="none"
                 role="img"
                 viewBox="0 0 100 100"

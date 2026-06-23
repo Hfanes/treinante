@@ -267,6 +267,7 @@ export function PaceTrendChart({ points }: { points: PacePoint[] }) {
 
   return (
     <div
+      className="h-full min-w-0"
       role="img"
       aria-label={`Pace trend chart for ${points.length} runs. Latest pace ${points.at(-1) ? formatDashboardPace(points.at(-1)!.pace) : "none"}.`}
     >
@@ -353,6 +354,7 @@ export function HrTrendChart({
 
   return (
     <div
+      className="h-full min-w-0"
       role="img"
       aria-label={`Heart-rate trend chart for ${points.length} runs. Latest rolling heart rate ${points.at(-1)?.rollingHr ?? "none"} bpm.`}
     >

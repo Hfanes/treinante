@@ -506,7 +506,9 @@ function ActivityIntensity({ runs }: { runs: Run[] }) {
           </h2>
         </div>
         <p className="max-w-sm text-sm text-[var(--muted-foreground)]">
-          Daily training load, with distance used when load is missing.
+          Daily intensity is the sum of each run&apos;s training load. Load uses
+          duration plus HR or pace intensity; when that is missing, distance × 10
+          keeps the day visible.
         </p>
       </div>
 
@@ -538,13 +540,17 @@ function ActivityIntensity({ runs }: { runs: Run[] }) {
                 const key = dateKey(day);
                 const score = scores.get(key) ?? 0;
                 const inRange = day >= monthStart && day <= monthEnd;
+                const roundedScore = Math.round(score);
+                const label = score
+                  ? `${key} · intensity ${roundedScore}`
+                  : `${key} · no activity`;
                 const cell = (
                   <span
-                    aria-label={`${key}: ${score ? Math.round(score) : "no"} activity intensity`}
+                    aria-label={label}
                     className={`block h-3.5 rounded-[2px] ${
                       inRange ? intensityClass(score) : "bg-transparent"
                     }`}
-                    title={`${key}: ${score ? Math.round(score) : "no"} activity intensity`}
+                    title={label}
                   />
                 );
 
