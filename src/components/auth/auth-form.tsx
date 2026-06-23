@@ -6,11 +6,20 @@ import { FormEvent, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { getAuthRedirectUrl } from "@/lib/auth-redirects";
 import { useAuth } from "@/hooks/useAuth";
+import type { LoginMethod } from "@/lib/auth-redirects";
 
 type AuthMode = "login" | "signup";
 
-export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
-  const { signIn, signInWithGoogle, signUp } = useAuth();
+export function AuthForm({
+  lastLoginMethod,
+  mode,
+  next,
+}: {
+  lastLoginMethod: LoginMethod | null;
+  mode: AuthMode;
+  next: string;
+}) {
+  const { signIn, signInWithGoogle, signInWithStrava, signUp } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +64,27 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
       setError(err instanceof Error ? err.message : "Google sign-in failed.");
       setPending(false);
     }
+  }
+
+  async function handleStrava() {
+    setError(null);
+    setMessage(null);
+    setPending(true);
+
+    try {
+      await signInWithStrava();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Strava sign-in failed.");
+      setPending(false);
+    }
+  }
+
+  function LastUsedBadge({ method }: { method: LoginMethod }) {
+    return lastLoginMethod === method ? (
+      <span className="ml-2 rounded-[2px] border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]">
+        Last used
+      </span>
+    ) : null;
   }
 
   const alternateHref = getAuthRedirectUrl(
@@ -121,6 +151,7 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
 
         <Button type="submit" disabled={pending}>
           {pending ? "Working..." : isLogin ? "Log in" : "Create account"}
+          <LastUsedBadge method="email" />
         </Button>
       </form>
 
@@ -138,7 +169,23 @@ export function AuthForm({ mode, next }: { mode: AuthMode; next: string }) {
         onClick={handleGoogle}
       >
         Continue with Google
+        <LastUsedBadge method="google" />
       </Button>
+
+      <Button
+        className="mt-3 w-full"
+        type="button"
+        variant="secondary"
+        disabled={pending}
+        onClick={handleStrava}
+      >
+        Continue with Strava
+        <LastUsedBadge method="strava" />
+      </Button>
+
+      <p className="mt-3 text-xs text-[var(--muted-foreground)]">
+        Use Strava to create or log into a Strava-linked Treinante account.
+      </p>
 
       <p className="mt-5 text-sm text-[var(--muted-foreground)]">
         {isLogin ? "New here?" : "Already have an account?"}{" "}

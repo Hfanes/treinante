@@ -5,6 +5,32 @@ import { StravaIntegrationCard } from "@/components/settings/strava-integration-
 import { Card } from "@/components/ui";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
+import type { User } from "@supabase/supabase-js";
+
+function authProviders(user: User | null) {
+  const providers = new Set<string>();
+
+  for (const identity of user?.identities ?? []) {
+    if (identity.provider === "custom:strava") {
+      providers.add("strava");
+    } else if (identity.provider) {
+      providers.add(identity.provider);
+    }
+  }
+
+  const primaryProvider = user?.app_metadata.provider;
+  if (primaryProvider === "custom:strava") {
+    providers.add("strava");
+  } else if (typeof primaryProvider === "string") {
+    providers.add(primaryProvider);
+  }
+
+  if (providers.size === 0 && user?.email) {
+    providers.add("email");
+  }
+
+  return Array.from(providers);
+}
 
 export default async function SettingsPage() {
   const supabase = await createServerClient();
@@ -29,7 +55,10 @@ export default async function SettingsPage() {
           </section>
 
           <AccountSettingsForm profile={profile as Profile} />
-          <AccountSecurityForm email={user?.email ?? null} />
+          <AccountSecurityForm
+            authProviders={authProviders(user)}
+            email={user?.email ?? null}
+          />
           <StravaIntegrationCard profile={profile as Profile} />
         </div>
       ) : (

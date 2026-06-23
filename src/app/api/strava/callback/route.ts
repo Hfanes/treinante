@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerClient } from "@/lib/supabase-server";
 import {
   STRAVA_STATE_COOKIE,
   STRAVA_STATE_COOKIE_OPTIONS,
 } from "@/lib/strava-oauth";
+import { storeStravaConnection } from "@/lib/strava-token-store";
 import { syncStravaRuns } from "@/lib/stravaClient";
 
 function redirectWithClearedState(path: string, request: NextRequest) {
@@ -61,34 +61,31 @@ export async function GET(request: NextRequest) {
     refresh_token: string;
     expires_at: number;
     athlete?: {
+      id: number;
       firstname?: string | null;
       lastname?: string | null;
       username?: string | null;
     };
   };
-  const admin = createAdminClient();
-  const athleteName = [token.athlete?.firstname, token.athlete?.lastname]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
 
-  await admin
-    .from("strava_tokens")
-    .upsert({
-      user_id: user.id,
-      access_token: token.access_token,
-      refresh_token: token.refresh_token,
-      expires_at: new Date(token.expires_at * 1000).toISOString(),
-    })
-    .throwOnError();
-  await admin
-    .from("profiles")
-    .update({
-      strava_connected: true,
-      strava_athlete_name: athleteName || token.athlete?.username || null,
-    })
-    .eq("id", user.id)
-    .throwOnError();
+  if (!token.athlete?.id) {
+    return redirectWithClearedState(
+      "/settings?strava=missing_athlete",
+      request
+    );
+  }
+
+  try {
+    await storeStravaConnection({
+      userId: user.id,
+      accessToken: token.access_token,
+      refreshToken: token.refresh_token,
+      expiresAt: new Date(token.expires_at * 1000).toISOString(),
+      athlete: token.athlete,
+    });
+  } catch {
+    return redirectWithClearedState("/settings?strava=already_linked", request);
+  }
 
   const imported = await syncStravaRuns(user.id).catch(() => null);
   if (!imported) {

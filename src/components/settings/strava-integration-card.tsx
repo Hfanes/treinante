@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { showErrorToast, showSuccessToast } from "@/components/app-toast";
 import { Button, Card } from "@/components/ui";
+import { getOAuthCallbackUrl } from "@/lib/auth-redirects";
 import { deleteCachedRunsBySource } from "@/lib/idb";
+import { createBrowserClient } from "@/lib/supabase";
 import type { Profile } from "@/types";
 
 export function StravaIntegrationCard({ profile }: { profile: Profile }) {
@@ -23,6 +25,18 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
       return;
     }
 
+    if (stravaStatus === "already_linked") {
+      setError(
+        "This Strava account is already linked to another Treinante account. Log out and continue with Strava, or disconnect it from the other account first."
+      );
+      return;
+    }
+
+    if (stravaStatus === "missing_athlete") {
+      setError("Strava did not return an athlete ID. Try connecting again.");
+      return;
+    }
+
     if (stravaStatus !== "connected") return;
 
     setConnected(true);
@@ -37,8 +51,34 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
     }
   }, []);
 
-  function connect() {
-    window.location.assign("/api/strava/connect");
+  async function connect() {
+    setPendingAction("connect");
+    setError(null);
+    setMessage(null);
+
+    try {
+      const supabase = createBrowserClient();
+      const { error } = await supabase.auth.linkIdentity({
+        provider: "custom:strava",
+        options: {
+          queryParams: {
+            approval_prompt: "force",
+          },
+          redirectTo: `${window.location.origin}${getOAuthCallbackUrl(
+            "strava",
+            "/settings"
+          )}`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not connect Strava.";
+      setError(message);
+      showErrorToast(message);
+      setPendingAction(null);
+    }
   }
 
   async function request(path: string, method = "POST") {
@@ -173,7 +213,15 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
   return (
     <Card subtitle="Import Strava runs while keeping OAuth tokens in server-only storage.">
       <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="flex flex-col gap-2">
+          {connected ? (
+            <div className="max-w-sm inline-flex flex-col rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+              <span className="ui-label">Strava athlete</span>
+              <span className="mt-1 text-lg font-medium text-[var(--bone)]">
+                {profile.strava_athlete_name ?? "Connected Strava account"}
+              </span>
+            </div>
+          ) : null}
           <p className="text-sm font-medium text-gray-950 dark:text-white">
             {connected ? "Strava connected" : "Strava not connected"}
           </p>
@@ -182,11 +230,6 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               ? "Sync now imports new Run activities. Resync all history backfills missing older runs. Disconnect keeps imported runs."
               : "Connect with activity read permission to import your runs."}
           </p>
-          {connected && profile.strava_athlete_name ? (
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-              Athlete: {profile.strava_athlete_name}
-            </p>
-          ) : null}
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {connected ? (
@@ -237,9 +280,10 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
             <Button
               className="w-full sm:w-auto"
               type="button"
-              onClick={connect}
+              disabled={pending}
+              onClick={() => void connect()}
             >
-              Connect Strava
+              {pendingAction === "connect" ? "Connecting..." : "Connect Strava"}
             </Button>
           )}
         </div>

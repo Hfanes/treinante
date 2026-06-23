@@ -161,3 +161,16 @@ Reviewed: 2026-06-22
 - User-writable profile, run, segment, record, report, and rate-limit data now has database `check` constraints for core type/range/shape validation on new writes.
 - JSON imports now validate file size, array sizes, row shape, enum values, UUIDs, dates, timestamps, numeric ranges, and ownership before IndexedDB hydration or Supabase upsert.
 - Global security headers now include CSP, `X-Content-Type-Options`, and `Referrer-Policy`.
+
+## PRD 16 — Strava Login
+
+Reviewed: 2026-06-22
+
+### External Setup Required
+
+- Supabase Custom OAuth provider `custom:strava` must be created in the Supabase Dashboard with Strava authorization, token, and athlete userinfo URLs before live Strava login can be tested.
+- The Strava API app must allow the Supabase custom-provider callback URL.
+
+### Deferred By PRD Scope
+
+- Automatic account merging and adding password login to OAuth-only accounts remain intentionally out of scope.

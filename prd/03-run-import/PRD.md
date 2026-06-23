@@ -71,6 +71,10 @@ export function parseGPX(
 
 ### OAuth flow (Next.js Route Handlers)
 
+Users who log in with Strava through PRD 16 are connected for sync during the auth callback. Settings Strava connect also uses the Supabase `custom:strava` provider so Strava only needs one callback domain: the Supabase project domain.
+
+Supabase custom OAuth uses `/api/auth/strava/userinfo` as its UserInfo URL. That route forwards the bearer token to Strava and maps Strava athlete `id` to `sub` for Supabase identity creation.
+
 **Step 1 — Authorise (client-side redirect)**
 
 ```typescript
@@ -133,6 +137,7 @@ export async function GET(req: NextRequest) {
 
   await admin.from("strava_tokens").upsert({
     user_id: user!.id,
+    strava_athlete_id,
     access_token,
     refresh_token,
     expires_at: new Date(expires_at * 1000).toISOString(),
@@ -184,6 +189,7 @@ export async function GET(req: NextRequest) {
 - "Resync all history" → full paged Strava history fetch, deduped by `strava_activity_id`
 - "Delete Strava runs" → deletes Strava-imported runs from this app only; keeps connection and does not delete anything from Strava
 - Disconnect: deletes the `strava_tokens` row and sets `profiles.strava_connected = false`; does not delete existing runs
+- The same Strava athlete ID cannot be linked to more than one Treinante user
 
 ---
 

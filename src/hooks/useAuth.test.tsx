@@ -47,6 +47,7 @@ const profile: Profile = {
   hr_zone_method: "max_hr",
   ftp_pace: 270,
   strava_connected: false,
+  strava_athlete_name: null,
   onboarding_complete: true,
 };
 
@@ -352,7 +353,36 @@ describe("useAuth", () => {
     expect(mocks.supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
       options: {
-        redirectTo: "http://localhost:3000/auth/callback?next=%2Fruns",
+        redirectTo:
+          "http://localhost:3000/auth/callback?next=%2Fruns&login=google",
+      },
+    });
+  });
+
+  test("signInWithStrava redirects to the custom Strava provider callback", async () => {
+    mocks.supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+    window.history.replaceState(null, "", "/login?next=/runs");
+    let latestAuth: ReturnType<typeof useAuth> | null = null;
+
+    render(<AuthProbe onRender={(auth) => (latestAuth = auth)} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("loading").textContent).toBe("false")
+    );
+    await act(async () => {
+      await latestAuth?.signInWithStrava();
+    });
+
+    expect(mocks.supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: "custom:strava",
+      options: {
+        queryParams: {
+          approval_prompt: "force",
+        },
+        redirectTo:
+          "http://localhost:3000/auth/callback?next=%2Fruns&login=strava",
       },
     });
   });

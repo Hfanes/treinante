@@ -410,6 +410,7 @@ export type Database = {
           created_at: string;
           expires_at: string;
           refresh_token: string;
+          strava_athlete_id: number | null;
           updated_at: string;
           user_id: string;
         };
@@ -418,6 +419,7 @@ export type Database = {
           created_at?: string;
           expires_at: string;
           refresh_token: string;
+          strava_athlete_id?: number | null;
           updated_at?: string;
           user_id: string;
         };
@@ -426,6 +428,7 @@ export type Database = {
           created_at?: string;
           expires_at?: string;
           refresh_token?: string;
+          strava_athlete_id?: number | null;
           updated_at?: string;
           user_id?: string;
         };

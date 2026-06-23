@@ -32,7 +32,7 @@ export function PredictorExplanationToggle({
   return (
     <div className="mt-4">
       <button
-        className="mb-2 inline-flex items-center gap-1 font-mono text-[0.5rem] tracking-[0.08em] text-[var(--primary)]"
+        className="mb-2 inline-flex items-center gap-1 font-mono text-[1rem] tracking-[0.08em] text-[var(--primary)]"
         onClick={() => setExpanded((value) => !value)}
         type="button"
       >
