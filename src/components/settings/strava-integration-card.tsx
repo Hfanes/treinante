@@ -213,7 +213,15 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
   return (
     <Card subtitle="Import Strava runs while keeping OAuth tokens in server-only storage.">
       <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="flex flex-col gap-2">
+          {connected ? (
+            <div className="max-w-sm inline-flex flex-col rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+              <span className="ui-label">Strava athlete</span>
+              <span className="mt-1 text-lg font-medium text-[var(--bone)]">
+                {profile.strava_athlete_name ?? "Connected Strava account"}
+              </span>
+            </div>
+          ) : null}
           <p className="text-sm font-medium text-gray-950 dark:text-white">
             {connected ? "Strava connected" : "Strava not connected"}
           </p>
@@ -222,14 +230,6 @@ export function StravaIntegrationCard({ profile }: { profile: Profile }) {
               ? "Sync now imports new Run activities. Resync all history backfills missing older runs. Disconnect keeps imported runs."
               : "Connect with activity read permission to import your runs."}
           </p>
-          {connected ? (
-            <div className="mt-3 inline-flex flex-col rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2">
-              <span className="ui-label">Strava athlete</span>
-              <span className="mt-1 text-lg font-medium text-[var(--bone)]">
-                {profile.strava_athlete_name ?? "Connected Strava account"}
-              </span>
-            </div>
-          ) : null}
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {connected ? (
