@@ -11,6 +11,7 @@ const protectedPrefixes = [
   "/segments",
   "/reports",
   "/settings",
+  "/strava",
   "/update-password",
 ];
 
@@ -63,6 +64,7 @@ export const config = {
     "/segments/:path*",
     "/reports/:path*",
     "/settings/:path*",
+    "/strava/:path*",
     "/update-password/:path*",
   ],
 };

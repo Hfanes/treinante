@@ -112,13 +112,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (next === "/settings") {
-      const settingsResponse = NextResponse.redirect(
-        new URL("/settings?strava=connected", requestUrl.origin)
-      );
-      setLastLoginCookie(settingsResponse, "strava");
-      return settingsResponse;
-    }
+    const importingUrl = new URL("/strava/importing", requestUrl.origin);
+    importingUrl.searchParams.set("next", next);
+    res.headers.set("Location", importingUrl.toString());
+    setLastLoginCookie(res, "strava");
+    return res;
   }
 
   setLastLoginCookie(res, isStravaLogin ? "strava" : loginMethod);

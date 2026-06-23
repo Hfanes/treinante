@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { showStravaImportToast } from "@/components/app-toast";
 import { STRAVA_SYNC_COMPLETE_EVENT } from "@/lib/strava-sync-events";
@@ -20,12 +20,13 @@ function isTransientFetchError(err: unknown) {
 }
 
 export function StravaAutoSync({ enabled }: { enabled: boolean }) {
+  const pathname = usePathname();
   const router = useRouter();
   const syncingRef = useRef(false);
   const nextAllowedSyncRef = useRef(0);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || pathname === "/strava/importing") return;
 
     async function sync() {
       if (
@@ -96,7 +97,7 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
       window.removeEventListener("online", sync);
       document.removeEventListener("visibilitychange", syncIfVisible);
     };
-  }, [enabled, router]);
+  }, [enabled, pathname, router]);
 
   return null;
 }

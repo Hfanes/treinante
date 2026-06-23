@@ -55,14 +55,43 @@ function env(name: string) {
 }
 
 async function stravaFetch<T>(path: string, accessToken: string) {
-  let response = await fetch(`https://www.strava.com/api/v3${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const url = `https://www.strava.com/api/v3${path}`;
+  let response: Response;
 
-  if (response.status >= 500) {
-    response = await fetch(`https://www.strava.com/api/v3${path}`, {
+  try {
+    response = await fetch(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+  } catch {
+    try {
+      response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch (retryError) {
+      const cause = retryError instanceof Error ? retryError.message : null;
+      throw new Error(
+        cause
+          ? `Strava API request failed: ${cause}`
+          : "Strava API request failed",
+        { cause: retryError }
+      );
+    }
+  }
+
+  if (response.status >= 500) {
+    try {
+      response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch (retryError) {
+      const cause = retryError instanceof Error ? retryError.message : null;
+      throw new Error(
+        cause
+          ? `Strava API request failed: ${cause}`
+          : "Strava API request failed",
+        { cause: retryError }
+      );
+    }
   }
 
   if (!response.ok) {
