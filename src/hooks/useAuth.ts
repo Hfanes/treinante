@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
-import { getAuthRedirectUrl, getSafeNextPath } from "@/lib/auth-redirects";
+import {
+  getOAuthCallbackUrl,
+  getSafeNextPath,
+  lastLoginCookieValue,
+} from "@/lib/auth-redirects";
 import { createBrowserClient } from "@/lib/supabase";
 import { withSupabaseRetry } from "@/lib/supabase-retry";
 import type { Profile } from "@/types";
@@ -15,6 +19,7 @@ interface UseAuthResult {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithStrava: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
 }
@@ -166,6 +171,7 @@ export function useAuth(): UseAuthResult {
         throw toError("Failed to sign in", error);
       }
 
+      document.cookie = lastLoginCookieValue("email");
       const next = new URLSearchParams(window.location.search).get("next");
       window.location.assign(getSafeNextPath(next));
     },
@@ -190,16 +196,29 @@ export function useAuth(): UseAuthResult {
 
   const signInWithGoogle = useCallback(async () => {
     const next = new URLSearchParams(window.location.search).get("next");
-    const callbackPath = getAuthRedirectUrl("/auth/callback", next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}${callbackPath}`,
+        redirectTo: `${window.location.origin}${getOAuthCallbackUrl("google", next)}`,
       },
     });
 
     if (error) {
       throw toError("Failed to sign in with Google", error);
+    }
+  }, [supabase]);
+
+  const signInWithStrava = useCallback(async () => {
+    const next = new URLSearchParams(window.location.search).get("next");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "custom:strava",
+      options: {
+        redirectTo: `${window.location.origin}${getOAuthCallbackUrl("strava", next)}`,
+      },
+    });
+
+    if (error) {
+      throw toError("Failed to sign in with Strava", error);
     }
   }, [supabase]);
 
@@ -245,6 +264,7 @@ export function useAuth(): UseAuthResult {
     signIn,
     signUp,
     signInWithGoogle,
+    signInWithStrava,
     signOut,
     updateProfile,
   };
