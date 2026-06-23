@@ -43,6 +43,10 @@ export function StravaAutoSync({ enabled }: { enabled: boolean }) {
         const response = await fetch("/api/strava/sync", { method: "POST" });
         const body = (await response.json()) as StravaSyncResponse;
 
+        if (response.status === 401) {
+          return;
+        }
+
         if (response.status === 429) {
           const retryAfter = Number(response.headers.get("Retry-After"));
           nextAllowedSyncRef.current =
