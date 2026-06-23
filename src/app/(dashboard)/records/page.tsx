@@ -219,10 +219,20 @@ export default async function RecordsPage() {
         ) : null}
 
         {timeRecords.length > 0 ? (
-          <Card subtitle="Historical PR improvements generated from your run history.">
+          <Card subtitle="Calendar of days when your run history produced one or more personal records.">
             <h2 className="font-semibold text-gray-950 dark:text-white">
-              PR timeline
+              PR hit days
             </h2>
+            <div className="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+              <p>
+                Each square is one day. Brighter colors mean more personal
+                records were found on that date.
+              </p>
+              <p>
+                Hover a square to see which records were hit. Estimated marks
+                come from whole-run pace when exact split data is not available.
+              </p>
+            </div>
             <div className="mt-4">
               <PrTimelineChart events={personalRecordEvents} />
             </div>
