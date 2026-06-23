@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 
 import { showInfoToast } from "@/components/app-toast";
 import { Button } from "@/components/ui";
@@ -12,7 +12,7 @@ const KM_TO_MI = 0.621371;
 
 function optionalNumber(value: string) {
   if (!value.trim()) return null;
-  return Number(value);
+  return Math.round(Number(value));
 }
 
 function formatDecimal(value: number) {
@@ -27,11 +27,17 @@ function formatPace(seconds: number | null, unit: Profile["unit_preference"]) {
 }
 
 function parsePace(value: string, unit: Profile["unit_preference"]) {
-  if (!value.trim()) return null;
-  const [minutes, seconds] = value.split(":");
+  const cleanValue = value
+    .trim()
+    .toLowerCase()
+    .replace(/\s*(min\/km|min\/mi|\/km|\/mi)\s*$/, "");
+
+  if (!cleanValue) return null;
+
+  const [minutes, seconds] = cleanValue.split(":");
   const totalSeconds = seconds
     ? Number(minutes) * 60 + Number(seconds)
-    : Number(value);
+    : Number(cleanValue) * 60;
 
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return NaN;
   return Math.round(
@@ -102,8 +108,7 @@ export function OnboardingModal({
     }
   }
 
-  async function handleComplete(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleComplete() {
     const validationError = validateCurrentStep();
     setError(validationError);
 
@@ -132,7 +137,7 @@ export function OnboardingModal({
       (ftpPaceValue !== null &&
         (!Number.isInteger(ftpPaceValue) || ftpPaceValue <= 0))
     ) {
-      setError("Heart-rate and threshold pace values must be positive.");
+      setError("HR values must be whole numbers. Threshold pace must look like 4:30.");
       return;
     }
 
@@ -234,9 +239,8 @@ export function OnboardingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <form
+      <div
         className="instrument-card w-full max-w-lg p-6"
-        onSubmit={handleComplete}
       >
         <p className="ui-label">Step {step} of 3</p>
         <h2 className="instrument-heading mt-2 text-4xl">
@@ -402,12 +406,12 @@ export function OnboardingModal({
               Continue
             </Button>
           ) : (
-            <Button type="submit" disabled={pending}>
+            <Button type="button" disabled={pending} onClick={handleComplete}>
               {pending ? "Saving..." : "Finish setup"}
             </Button>
           )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }
