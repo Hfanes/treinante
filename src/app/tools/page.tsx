@@ -56,7 +56,7 @@ export default async function ToolsPage() {
           <TrainingToolsClient isLoggedIn={isLoggedIn} />
         </div>
       </PageShell>
-      <MobileNavClient />
+      <MobileNavClient isLoggedIn={isLoggedIn} />
     </div>
   );
 }

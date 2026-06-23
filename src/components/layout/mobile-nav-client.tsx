@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { LogoutButton } from "@/components/layout/logout-button";
 import {
   Activity,
   FileText,
@@ -64,7 +65,11 @@ function MobileNavLink({
   );
 }
 
-export function MobileNavClient() {
+export function MobileNavClient({
+  isLoggedIn = true,
+}: {
+  isLoggedIn?: boolean;
+}) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -115,6 +120,11 @@ export function MobileNavClient() {
                 </Link>
               ))}
             </div>
+            {isLoggedIn ? (
+              <div className="mt-4 border-t border-[var(--border)] pt-4">
+                <LogoutButton />
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

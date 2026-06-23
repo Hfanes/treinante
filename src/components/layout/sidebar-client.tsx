@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/layout/logout-button";
 import {
   useEffect,
   useRef,
@@ -412,26 +413,31 @@ export function SidebarClient({
         }`}
       >
         {isLoggedIn ? (
-          <div
-            className={
-              layoutCollapsed
-                ? "flex justify-center"
-                : "flex items-end justify-between gap-3"
-            }
-          >
-            {!layoutCollapsed && (
-              <div className="min-w-0">
-                <p className="ui-label">Powered by</p>
-                <Image
-                  src="/images/strava.svg"
-                  alt="Strava"
-                  width={45}
-                  height={10}
-                  className="mt-2 h-4 w-[60px]"
-                />
-              </div>
-            )}
-            {collapseButton}
+          <div>
+            <div className={layoutCollapsed ? "flex justify-center" : ""}>
+              <LogoutButton collapsed={layoutCollapsed} />
+            </div>
+            <div
+              className={`mt-4 ${
+                layoutCollapsed
+                  ? "flex justify-center"
+                  : "flex items-end justify-between gap-3"
+              }`}
+            >
+              {!layoutCollapsed && (
+                <div className="min-w-0">
+                  <p className="ui-label">Powered by</p>
+                  <Image
+                    src="/images/strava.svg"
+                    alt="Strava"
+                    width={45}
+                    height={10}
+                    className="mt-2 h-4 w-[60px]"
+                  />
+                </div>
+              )}
+              {collapseButton}
+            </div>
           </div>
         ) : (
           <div>

@@ -41,8 +41,10 @@ export default async function DashboardLayout({
       {profile && !profile.onboarding_complete ? (
         <OnboardingModal initialProfile={profile} />
       ) : null}
-      <StravaAutoSync enabled={profile?.strava_connected ?? false} />
-      <MobileNavClient />
+      <StravaAutoSync
+        enabled={Boolean(profile?.strava_connected && profile.onboarding_complete)}
+      />
+      <MobileNavClient isLoggedIn={Boolean(profile)} />
     </div>
   );
 }
