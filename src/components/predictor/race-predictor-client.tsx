@@ -120,7 +120,7 @@ export function ManualRaceCalculator({
           </span>
           <input
             className="h-2 w-full appearance-none rounded-[2px] bg-white/10 accent-[var(--primary)]"
-            max="42.2"
+            max="300"
             min="0.1"
             onChange={(event) => setDistance(event.target.value)}
             step="0.1"
@@ -129,7 +129,7 @@ export function ManualRaceCalculator({
           />
           <span className="flex min-w-0 justify-between font-mono text-[0.68rem] text-[var(--muted-foreground)]">
             <span>0.1</span>
-            <span>42.2</span>
+            <span>300</span>
           </span>
         </label>
 

@@ -123,9 +123,17 @@ function GelTimeline({
 }
 
 function GelCalculator({ pace }: { pace: number }) {
-  const [distanceKey, setDistanceKey] = useState<ToolDistanceKey>("half");
-  const distance = distanceLabel(distanceKey);
-  const finishTime = finishSeconds(pace, distance.distanceKm);
+  const [distanceKey, setDistanceKey] = useState<ToolDistanceKey | "custom">(
+    "half"
+  );
+  const [distanceKm, setDistanceKm] = useState("21.0975");
+  const selectedDistance =
+    distanceKey === "custom" ? null : distanceLabel(distanceKey);
+  const distanceValue = inputNumber(
+    distanceKm,
+    selectedDistance?.distanceKm ?? 0
+  );
+  const finishTime = finishSeconds(pace, distanceValue);
   const gels = buildGelSchedule(finishTime, pace);
 
   return (
@@ -134,31 +142,56 @@ function GelCalculator({ pace }: { pace: number }) {
         <div>
           <h2 className="instrument-heading text-2xl">Gel timing</h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            {distance.label} at {paceLabel(pace)} - finish{" "}
-            {formatDuration(finishTime)}.
+            {selectedDistance?.label ?? `${distanceValue.toFixed(1)} km`} at{" "}
+            {paceLabel(pace)} - finish {formatDuration(finishTime)}.
           </p>
         </div>
-        <span className="relative inline-flex">
-          <select
-            className="appearance-none rounded-[2px] border border-[var(--border)] bg-[var(--background)] py-2 pr-9 pl-4 text-sm text-[var(--bone)]"
-            value={distanceKey}
-            onChange={(event) =>
-              setDistanceKey(event.target.value as ToolDistanceKey)
-            }
-          >
-            {TOOL_DISTANCES.map((item) => (
-              <option key={item.key} value={item.key}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--bone)]"
-          >
-            ▾
+        <div className="grid gap-2 sm:grid-cols-[auto_8rem]">
+          <span className="relative inline-flex">
+            <select
+              className="appearance-none rounded-[2px] border border-[var(--border)] bg-[var(--background)] py-2 pr-9 pl-4 text-sm text-[var(--bone)]"
+              value={distanceKey}
+              onChange={(event) => {
+                const nextKey = event.target.value as ToolDistanceKey | "custom";
+                if (nextKey === "custom") {
+                  setDistanceKey(nextKey);
+                  return;
+                }
+                const nextDistance = distanceLabel(nextKey);
+                setDistanceKey(nextKey);
+                setDistanceKm(String(nextDistance.distanceKm));
+              }}
+            >
+              {TOOL_DISTANCES.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                </option>
+              ))}
+              <option value="custom">Custom</option>
+            </select>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--bone)]"
+            >
+              ▾
+            </span>
           </span>
-        </span>
+          <label className="sr-only" htmlFor="gel-distance-km">
+            Gel distance in kilometers
+          </label>
+          <input
+            className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--bone)]"
+            id="gel-distance-km"
+            min="0.1"
+            step="0.1"
+            type="number"
+            value={distanceKm}
+            onChange={(event) => {
+              setDistanceKey("custom");
+              setDistanceKm(event.target.value);
+            }}
+          />
+        </div>
       </div>
 
       {gels.length === 0 ? (
@@ -289,14 +322,14 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div>
           <h2 className="instrument-heading text-2xl">Zone 2 HR</h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Run or cycle as hard as you can sustain for 20 minutes.
+            LTHR-based zones from a hard 20-minute average HR.
           </p>
         </div>
         <Badge variant="z2">Z2 focus</Badge>
       </div>
 
       <label className="mt-4 grid gap-1 text-sm font-medium text-[var(--foreground)]">
-        20-min average HR
+        20-min average HR (LTHR estimate)
         <input
           className="rounded-[2px] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--bone)]"
           min="1"
@@ -335,6 +368,10 @@ function ZoneCalculator({ isLoggedIn }: { isLoggedIn: boolean }) {
       <p className="mt-4 rounded-[2px] border border-[#22c55e44] bg-[#15803d22] p-3 text-sm text-[#22c55e]">
         Zone 2 target: {zones.z2.min} - {zones.z2.max} bpm. Keep easy runs below{" "}
         {zones.z2.max} bpm.
+      </p>
+      <p className="mt-3 text-sm text-[var(--muted-foreground)]">
+        Formula: Z2 is 80%-89% of this LTHR estimate. Saving converts it to an
+        estimated max HR separately.
       </p>
 
       <form
@@ -387,14 +424,14 @@ export function TrainingToolsClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               aria-label="Pace per kilometer"
               className="accent-[var(--primary)]"
               max="600"
-              min="240"
+              min="120"
               step="5"
               type="range"
               value={pace}
               onChange={(event) => setPace(Number(event.target.value))}
             />
             <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
-              <span>4:00/km</span>
+              <span>2:00/km</span>
               <span>10:00/km</span>
             </div>
           </label>
