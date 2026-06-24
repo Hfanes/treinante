@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
   if (isStravaLogin) {
     const accessToken = data.session?.provider_token;
     const refreshToken = data.session?.provider_refresh_token;
+    let isNewConnection: boolean;
 
     if (!accessToken || !refreshToken || !data.user) {
       return NextResponse.redirect(
@@ -93,13 +94,14 @@ export async function GET(req: NextRequest) {
 
     try {
       const athlete = await fetchStravaAthlete(accessToken);
-      await storeStravaConnection({
+      const connection = await storeStravaConnection({
         userId: data.user.id,
         accessToken,
         refreshToken,
         expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
         athlete,
       });
+      isNewConnection = connection.isNewConnection;
     } catch {
       if (next === "/settings") {
         return NextResponse.redirect(
@@ -112,9 +114,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const importingUrl = new URL("/strava/importing", requestUrl.origin);
-    importingUrl.searchParams.set("next", next);
-    res.headers.set("Location", importingUrl.toString());
+    if (isNewConnection) {
+      const importingUrl = new URL("/strava/importing", requestUrl.origin);
+      importingUrl.searchParams.set("next", next);
+      res.headers.set("Location", importingUrl.toString());
+    }
     setLastLoginCookie(res, "strava");
     return res;
   }
