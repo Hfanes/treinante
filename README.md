@@ -1,21 +1,43 @@
-# Treinante
+<p align="center">
+  <img src="public/bg-removed-treinante.png" alt="treinante logo" width="96" height="96" />
+</p>
 
-Treinante is a running analytics platform for importing runs, analysing training, tracking progress, and using practical training tools. It is designed for road, trail, track, and mixed runners, with features that adapt to the data each runner provides.
+<h1 align="center">treinante</h1>
 
-## Status
+<p align="center">
+  <a href="https://treinante.hfanes.com/">Website</a>
+</p>
 
-This project is in active PRD-driven development. Product scope, feature order, and detailed requirements live in [`prd/README.md`](./prd/README.md).
+<p align="center">
+  Treinante is a running analytics platform for importing runs, analysing training, tracking progress, and using practical training tools. It is designed for road, trail, track, and mixed runners, with features that adapt to the data each runner provides.
+</p>
 
-## Tech Stack
+<p align="center">
+<a href="https://www.hfanes.com/">About me</a>
+  ·
+  <a href="https://x.com/hfa_dev">Twitter / X</a>
+  ·
+  <a href="https://github.com/Hfanes">GitHub</a>
+</p>
 
-- Next.js 16 with App Router
-- React 19
-- Tailwind CSS 4
-- Supabase Auth, Postgres, and Storage
-- IndexedDB via `idb`
-- Chart.js with `react-chartjs-2`
-- Strava OAuth through Next.js Route Handlers
-- pnpm 11.5.0
+## Screenshots
+
+<p align="center">
+  <img src="public/images/treinante-landing.webp" alt="Treinante landing page" width="760" />
+</p>
+
+<p align="center">
+  <img src="public/images/dashboard.png" alt="Treinante desktop dashboard" width="760" />
+</p>
+
+<p align="center">
+<img src="public/images/webapplogo.webp" alt="Treinante app icon" width="260" />
+</p>
+
+<p align="center">
+  <img src="public/images/webappdashboard.webp" alt="Treinante mobile dashboard" width="260" />
+  <img src="public/images/webapp.webp" alt="Treinante installed web app on a phone home screen" width="260" />
+</p>
 
 ## Features
 
@@ -52,30 +74,6 @@ pnpm dev
 ```
 
 Open `http://localhost:3000` in your browser.
-
-## Environment Variables
-
-Use `.env.local.example` as the source for required variable names:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXT_PUBLIC_STRAVA_CLIENT_ID`
-- `STRAVA_CLIENT_SECRET`
-
-Never commit real secrets, API keys, tokens, passwords, or credentials. Server-only secrets belong in `.env.local` locally and in the deployment provider environment for hosted environments.
-
-## Scripts
-
-- `pnpm dev` - start the Next.js dev server
-- `pnpm build` - build the production app
-- `pnpm start` - start the production server
-- `pnpm lint` - run ESLint
-- `pnpm test` - run Vitest
-- `pnpm format` - format files with Prettier
-- `pnpm format:check` - check Prettier formatting
-- `pnpm db:push` - apply linked Supabase migrations
-- `pnpm db:types` - generate linked Supabase TypeScript types
 
 ## Database Workflow
 
