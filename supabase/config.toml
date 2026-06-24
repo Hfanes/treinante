@@ -248,6 +248,18 @@ otp_expiry = 900
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+[auth.email.template.confirmation]
+subject = "Confirm your Treinante account"
+content_path = "./supabase/templates/confirm-signup.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your Treinante email change"
+content_path = "./supabase/templates/change-email-address.html"
+
+[auth.email.template.recovery]
+subject = "Reset your Treinante password"
+content_path = "./supabase/templates/reset-password.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

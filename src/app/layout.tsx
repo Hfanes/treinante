@@ -4,6 +4,7 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { ToastProvider } from "@/components/toast-provider";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         {children}
         <ToastProvider />
+        <Analytics />
       </body>
     </html>
   );
