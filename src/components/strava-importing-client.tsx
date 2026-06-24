@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { showStravaImportToast } from "@/components/app-toast";
+import { STRAVA_SYNC_COMPLETE_EVENT } from "@/lib/strava-sync-events";
 
 export function StravaImportingClient({ next }: { next: string }) {
   const router = useRouter();
@@ -13,13 +15,29 @@ export function StravaImportingClient({ next }: { next: string }) {
     async function sync() {
       try {
         const response = await fetch("/api/strava/sync", { method: "POST" });
-        const body = (await response.json()) as { error?: string };
+        const body = (await response.json()) as {
+          error?: string;
+          imported?: number;
+        };
 
         if (!response.ok) {
           throw new Error(body.error ?? "Strava import failed");
         }
 
-        if (!cancelled) router.replace(next);
+        if (!cancelled) {
+          const imported = body.imported ?? 0;
+
+          if (imported > 0) {
+            window.dispatchEvent(
+              new CustomEvent(STRAVA_SYNC_COMPLETE_EVENT, {
+                detail: { imported },
+              })
+            );
+            showStravaImportToast(imported);
+          }
+
+          router.replace(next);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Strava import failed");

@@ -57,6 +57,8 @@ export async function storeStravaConnection({
     throw new Error(STRAVA_ACCOUNT_ALREADY_LINKED);
   }
 
+  const isNewConnection = !existing;
+
   const { error } = await admin.from("strava_tokens").upsert({
     user_id: userId,
     access_token: accessToken,
@@ -81,4 +83,6 @@ export async function storeStravaConnection({
     })
     .eq("id", userId)
     .throwOnError();
+
+  return { isNewConnection };
 }
