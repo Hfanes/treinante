@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { FormEvent, useState } from "react";
 
 import { Button, Card } from "@/components/ui";
@@ -23,14 +24,20 @@ export function AuthForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(
+    null
+  );
   const [pending, setPending] = useState(false);
   const isLogin = mode === "login";
+
+  const alternateHref = getAuthRedirectUrl(
+    isLogin ? "/signup" : "/login",
+    next
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setMessage(null);
 
     if (!email.trim() || !password) {
       setError("Email and password are required.");
@@ -43,8 +50,9 @@ export function AuthForm({
       if (isLogin) {
         await signIn(email.trim(), password);
       } else {
-        await signUp(email.trim(), password);
-        setMessage("Check your email to confirm your account, then log in.");
+        const submittedEmail = email.trim();
+        await signUp(submittedEmail, password);
+        setConfirmationEmail(submittedEmail);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed.");
@@ -55,7 +63,6 @@ export function AuthForm({
 
   async function handleGoogle() {
     setError(null);
-    setMessage(null);
     setPending(true);
 
     try {
@@ -68,7 +75,6 @@ export function AuthForm({
 
   async function handleStrava() {
     setError(null);
-    setMessage(null);
     setPending(true);
 
     try {
@@ -87,10 +93,32 @@ export function AuthForm({
     ) : null;
   }
 
-  const alternateHref = getAuthRedirectUrl(
-    isLogin ? "/signup" : "/login",
-    next
-  );
+  if (confirmationEmail) {
+    return (
+      <Card className="w-full max-w-md text-center">
+        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-[18px] border border-[var(--primary)] bg-[var(--primary)]/20 text-[var(--primary)]">
+          <Mail aria-hidden="true" className="size-8" strokeWidth={2} />
+        </div>
+        <h1 className="instrument-heading text-3xl">Review your inbox</h1>
+        <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-[var(--muted-foreground)]">
+          We sent a confirmation link to{" "}
+          <span className="font-medium text-[var(--bone)] break-all">
+            {confirmationEmail}
+          </span>
+          .
+        </p>
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          Click the link to activate your account.
+        </p>
+        <Link
+          className="mt-8 inline-block text-sm font-medium text-[var(--secondary)] no-underline hover:text-[var(--primary)]"
+          href={alternateHref}
+        >
+          Back to log in
+        </Link>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -143,12 +171,6 @@ export function AuthForm({
         {error ? (
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         ) : null}
-        {message ? (
-          <p className="text-sm text-green-700 dark:text-green-400">
-            {message}
-          </p>
-        ) : null}
-
         <Button type="submit" disabled={pending}>
           {pending ? "Working..." : isLogin ? "Log in" : "Create account"}
           <LastUsedBadge method="email" />

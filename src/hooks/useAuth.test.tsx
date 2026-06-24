@@ -260,7 +260,63 @@ describe("useAuth", () => {
     expect(mocks.supabase.auth.signUp).toHaveBeenCalledWith({
       email: "new-runner@example.com",
       password: "secret-password",
+      options: {
+        emailRedirectTo: "http://localhost:3000/auth/callback?login=email",
+      },
     });
+  });
+
+  test("signUp keeps a safe next path in the confirmation redirect", async () => {
+    mocks.supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+    window.history.replaceState(null, "", "/signup?next=/runs");
+    let latestAuth: ReturnType<typeof useAuth> | null = null;
+
+    render(<AuthProbe onRender={(auth) => (latestAuth = auth)} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("loading").textContent).toBe("false")
+    );
+    await act(async () => {
+      await latestAuth?.signUp("new-runner@example.com", "secret-password");
+    });
+
+    expect(mocks.supabase.auth.signUp).toHaveBeenCalledWith({
+      email: "new-runner@example.com",
+      password: "secret-password",
+      options: {
+        emailRedirectTo:
+          "http://localhost:3000/auth/callback?next=%2Fruns&login=email",
+      },
+    });
+  });
+
+  test("signUp clears a stale local session and retries refresh-token failures", async () => {
+    mocks.supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+    mocks.supabase.auth.signUp
+      .mockResolvedValueOnce({
+        data: null,
+        error: new Error("Invalid Refresh Token: Refresh Token Not Found"),
+      })
+      .mockResolvedValueOnce({ data: {}, error: null });
+    let latestAuth: ReturnType<typeof useAuth> | null = null;
+
+    render(<AuthProbe onRender={(auth) => (latestAuth = auth)} />);
+    await waitFor(() =>
+      expect(screen.getByTestId("loading").textContent).toBe("false")
+    );
+    await act(async () => {
+      await latestAuth?.signUp("new-runner@example.com", "secret-password");
+    });
+
+    expect(mocks.supabase.auth.signOut).toHaveBeenCalledWith({
+      scope: "local",
+    });
+    expect(mocks.supabase.auth.signUp).toHaveBeenCalledTimes(2);
   });
 
   test("signUp throws a meaningful Supabase auth error", async () => {
