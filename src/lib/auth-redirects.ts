@@ -39,6 +39,13 @@ export function getOAuthCallbackUrl(
   method: Exclude<LoginMethod, "email">,
   next: string | null | undefined
 ) {
+  return getAuthCallbackUrl(method, next);
+}
+
+export function getAuthCallbackUrl(
+  method: LoginMethod,
+  next: string | null | undefined
+) {
   const callbackPath = getAuthRedirectUrl("/auth/callback", next);
   const [pathname, search = ""] = callbackPath.split("?");
   const searchParams = new URLSearchParams(search);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import {
+  getAuthCallbackUrl,
   getOAuthCallbackUrl,
   getSafeNextPath,
   lastLoginCookieValue,
@@ -34,6 +35,17 @@ function toError(message: string, error: unknown) {
   }
 
   return new Error(message);
+}
+
+function isInvalidRefreshToken(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : error && typeof error === "object" && "message" in error
+        ? String(error.message)
+        : String(error);
+
+  return message.toLowerCase().includes("refresh token");
 }
 
 export function useAuth(): UseAuthResult {
@@ -116,9 +128,13 @@ export function useAuth(): UseAuthResult {
         }
 
         await loadProfileFor(data.user.id);
-      } catch {
+      } catch (error) {
         if (!active) {
           return;
+        }
+
+        if (isInvalidRefreshToken(error)) {
+          await supabase.auth.signOut({ scope: "local" });
         }
 
         currentUserId = null;
@@ -180,14 +196,26 @@ export function useAuth(): UseAuthResult {
 
   const signUp = useCallback(
     async (email: string, password: string) => {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const next = new URLSearchParams(window.location.search).get("next");
+      const signUpPayload = {
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}${getAuthCallbackUrl("email", next)}`,
+        },
+      };
+      let { data, error } = await supabase.auth.signUp(signUpPayload);
+
+      if (isInvalidRefreshToken(error)) {
+        await supabase.auth.signOut({ scope: "local" });
+        ({ data, error } = await supabase.auth.signUp(signUpPayload));
+      }
 
       if (error) {
         throw toError("Failed to sign up", error);
       }
 
       if (data.session) {
-        const next = new URLSearchParams(window.location.search).get("next");
         window.location.assign(getSafeNextPath(next));
       }
     },
